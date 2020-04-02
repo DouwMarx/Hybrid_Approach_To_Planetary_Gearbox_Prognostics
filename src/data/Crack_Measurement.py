@@ -361,8 +361,6 @@ def point_select(event, x, y, flags, param):
                         lineType)
 
 
-
-
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True, help="Path to the image")
 ap.add_argument("-j", "--w", required=True, help="cut width")

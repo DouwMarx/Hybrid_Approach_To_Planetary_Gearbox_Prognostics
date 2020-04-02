@@ -1,68 +1,44 @@
-import sys
-
-
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
-import Proc_Lib
-import importlib
-importlib.reload(Proc_Lib)
+import pickle
+import definitions
 
-import Proc_Lib as proc
-
-
-
-
+import src.features.proc_lib as proc
 plt.close("all")
-# Pump Fan
-#filename = "Pump_Only"
-filename = "Cycle_4_end"
 
-dir = 'D:\h5_datasets' + "\\" + filename + ".h5"
-
-df = pd.read_hdf(dir)
-fs = proc.sampling_rate(df["Time"].values)
+#  Load the dataset object
+filename = "g1_p0_v10_0.pgdata"
+directory = definitions.root + "\\data\\processed\\" + filename
+with open(directory, 'rb') as filename:
+    data = pickle.load(filename)
 
 
-time = df["Time"].values
-mag = df["1PR_Mag_Pickup"].values
-acc = df["Acc_Sun"].values
-
-indexes, timepoints = proc.Planet_Pass_Time(time, mag, Plot_checks=False)
 
 
-RPM, t_rpm = proc.getrpm(mag,fs,0.5,1,1,fs)
-print("Average RPM of motor over the course of the test as based on 1XPR magnetic encoder", np.average(RPM)*5.77)
-fc_ave = 1/np.average(RPM/60)
+time = data.dataset["Time"].values
+mag = data.dataset["1PR_Mag_Pickup"].values
+acc = data.dataset["Acc_Sun"].values
 
-Zp = proc.Bonfiglioli.Z_p
+indexes = data.derived_attributes["trigger_index_mag"]
+
+
+RPM = data.info["rpm_carrier_ave"]
+print("Average RPM of motor over the course of the test as based on 1XPR magnetic encoder", np.average(RPM)*data.PG.GR)
+fc_ave = 1/(RPM/60)
+
 fp_ave = proc.Bonfiglioli.f_p(fc_ave)
 
 print("Average planet gear speed",fp_ave,"Rev/s")
 
-winds = proc.Window_extract(acc,indexes,fp_ave,fs,Zp/2,555)
+#winds = data.Window_extract()
 
-aves = proc.Window_average(winds,12)
+#aves = proc.Time_Synchronous_Averaging.Window_average(winds,12)
 
-mesh_seq = list(np.ndarray.astype(np.array(proc.Bonfiglioli.Meshing_sequence())/2,int))
-arranged, all = proc.Aranged_averaged_windows(aves,mesh_seq)
-
-plt.figure()
-plt.plot(all)
-plt.vlines(np.arange(12)*4963, -4000, 4000, zorder = 10)
-
-#for pl in range(12):
-#    plt.figure()
-#    plt.plot(arranged[pl,:])
-
+#mesh_seq = list(np.ndarray.astype(np.array(proc.Bonfiglioli.Meshing_sequence())/2,int))
+#arranged, all_together = proc.Time_Synchronous_Averaging.Aranged_averaged_windows(aves,mesh_seq)
 
 #plt.figure()
-#plt.plot(df["Time"],df["1PR_Mag_Pickup"])
-#plt.plot(df["Time"],df["Acc_Sun"])
+#plt.plot(all_together)
+#plt.vlines(np.arange(12)*4963, -4000, 4000, zorder = 10)
 
-#proc.fftplot(df["Acc_Carrier"].values, fs)
-#plt.title("Pump cooling Fan")
-#plt.xlim(0,3000)
-
-# Motor Fan

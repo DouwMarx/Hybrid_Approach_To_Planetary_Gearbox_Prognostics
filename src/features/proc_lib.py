@@ -36,7 +36,7 @@ class Dataset_Plotting(object):
         plt.ylabel("Input RPM")
         plt.text(0,max(rpm),"Average motor speed: " + str(int(self.info["rpm_sun_ave"]))+ " RPM")
 
-    def plot_fft(self, data):
+    def plot_fft(self, data,plot_gmf = False):
         """
         Computes and plots the FFT for a given signal
         Parameters
@@ -50,18 +50,25 @@ class Dataset_Plotting(object):
         """
         freq, mag, phase = self.fft(data)
 
-        GMF = self.PG.GMF(self.info["rpm_sun_ave"]/60)
-        FF1 = GMF/self.PG.Z_p
 
-        max_height = 2
+
+        #max_height = 2
         plt.plot(freq, mag, "k")
-        plt.vlines(np.arange(1, 5) * GMF, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
-        plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
-        plt.xlim(0, 6000)
-        plt.ylim(0, 1.5)
-
         plt.ylabel("Magnitude")
         plt.xlabel("Frequency [Hz]")
+
+        if plot_gmf == True:
+            GMF = self.PG.GMF(self.info["rpm_sun_ave"]/60)
+            #FF1 = GMF/self.PG.Z_p
+            max_height = np.max(mag)
+            plt.vlines(np.arange(1, 5) * GMF, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
+            #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
+
+        plt.xlim(0, 6000)
+        #plt.show()
+
+        return
+
 
     def plot_TSA(self):
         """
@@ -124,56 +131,6 @@ class Tachos_And_Triggers(object):
 
         return indexes[0], time_points
 
-    #def getrpm(self, tacho, triglevel, slope, ppr, newfs):
-        # """
-        #
-        # Parameters
-        # ----------
-        # tacho: String
-        #         The name of the dataframe column that corresponds to the tacho signal of interest
-        # triglevel:float
-        #
-        # slope:
-        #
-        # ppr:
-        #
-        # newfs: New Sampling rate
-        #
-        # Returns
-        # -------
-        # rpm: RPM at each time instance
-        # trpm: time vector
-        # average_rpm: average rpm over the course of the test
-        # """
-        #
-        # fs = self.info["f_s"]
-        # tacho = self.dataset[tacho]
-        #
-        #
-        # y = np.sign(tacho - triglevel)
-        # dy = np.diff(y)
-        # ldy = len(dy)
-        # tt = np.arange(0, (ldy) / fs, 1 / fs)
-        # if slope > 0:
-        #     indexes = np.where(dy > 0.8)
-        # if slope < 0:
-        #     indexes = np.where(dy < 0.8)
-        # yt = tt[indexes]
-        # dy = np.diff(yt)
-        # dy = np.hstack((dy, dy[-1]))
-        # rpm = (60 / ppr) * np.divide(np.ones(len(dy)), dy)
-        # b = [0.25, 0.5, 0.25]
-        # a = 1
-        # rpm = sig.filtfilt(b, a, rpm)
-        # N = np.max(tt) * newfs + 1
-        # trpm = np.linspace(0, np.max(tt), int(N))
-        # rpm = np.interp(trpm, yt, rpm)
-        # indexnan = np.where(rpm != np.isnan)
-        # rpm = rpm[indexnan]
-        # average_rpm = np.average(rpm)
-        # return (rpm, trpm, average_rpm)
-
-
     def getrpm(self, tacho, TrigLevel, Slope, PPRM, NewSampleFreq):
         """
         1. tacho = Tachometer Signal name
@@ -225,6 +182,9 @@ class Tachos_And_Triggers(object):
             for i in (dy < 0.8):
                 if i == True:
                     Pos.append(cnt)
+
+        if len(Pos)<3:
+            raise ValueError("Threshold for RPM measurement is probably too high")
 
         yt = tt[Pos]
 
@@ -301,7 +261,6 @@ class Signal_Processing(object):
         phase = np.angle(Y)[0:int(length / 2)]
         freq = np.fft.fftfreq(length, 1 / fs)[0:int(length / 2)]
         return freq, magnitude, phase
-
 
 class Time_Synchronous_Averaging(object):
     """
@@ -424,7 +383,6 @@ class Time_Synchronous_Averaging(object):
 
         return all
 
-
 class Callibration(object):
     """
     Sets the relationships between a read voltage and some physical quantity.
@@ -481,122 +439,6 @@ class Callibration(object):
         return
 
 
-
-    def Window_extract(self):
-        """Extracts a rectangular window depending on the average frequency of rotation of the planet gear
-        ----------
-        acc: array
-             Accelerometer samples over time
-
-        window_centre: array
-             array of indexes where planet passes accelerometer as calculated by Planet Pass Time Function
-
-        f_p_ave: float
-                        average frequency of rotation of planet gear
-
-        fs: Float
-            Sampling Frequency
-
-        Z_p: int
-            Number of planet gear teeth. In the case of the Bonfiglioli gearbox, this should be Z_p/2 seeing that only even numbered gear planet gear teeth mesh with a given ring gear tooth.
-
-        Returns
-        -------
-        windows: nxm Array
-            n windows each with m samples
-            """
-
-        fs = self.info["f_s"]
-        Z_p = self.PG.Z_p
-        acc = self.dataset["Acc_Sun"].values
-
-        fc_ave = 1 / (self.info["rpm_carrier_ave"] /60)
-
-        f_p_ave = self.PG.f_p(fc_ave)
-
-        window_length = int(fs * (1 / f_p_ave) / Z_p)
-
-        if window_length % 2 == 0:  # Make sure that the window length is uneven
-            window_length += 1
-
-        #print("window length calculated as ", window_length, "samples")
-
-        # window_length = 29001 # Should be uneven
-        window_half_length = int((window_length - 1) / 2)
-        window_center_index = self.derived_attributes["trigger_index_mag"]
-
-        n_revs = np.shape(window_center_index)[
-                     0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
-
-        windows = np.zeros((n_revs, window_length))  # Initialize an empty array that will hold the extracted windows
-
-        window_count = 0
-        for index in window_center_index[
-                     1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
-            windows[window_count, :] = acc[index - window_half_length:index + window_half_length + 1]
-            window_count += 1
-        return windows
-
-    def Window_average(self, window_array, rotations_to_repeat):
-        """ Computes the average of windows extracted from the extract_windows function
-        ----------
-        window_array: array
-             List of all extracted windows as calculated by extract_windows function
-
-        rotations_to_repeat: int
-             number of rotations (extracted windows) before an identical tooth meshing occurs to the first meshing configuration
-
-        Returns
-        -------
-        Averages: nxm Array
-            n gear teeth of the planet gear each with an averaged window of m samples
-            """
-
-        n_samples_for_average = int(np.floor(np.shape(window_array)[0] / rotations_to_repeat))
-
-        #print(n_samples_for_average)
-
-        averages = np.zeros((rotations_to_repeat, np.shape(window_array)[1]))
-
-        for sample in range(n_samples_for_average):
-            averages += window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat, :]
-
-        return averages
-
-    def Aranged_averaged_windows(self, window_averages, meshing_sequence):
-        """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
-        ----------
-        window_averages: array
-             Array of averaged windows obtained from the Window_average function
-
-        meshing_sequence: Array
-                         Meshing sequence of a planetary gearbox (For the Bonfiglioli gearbox, the meshing sequence array should be divided by 2 seeing that only the even numbered planet gear teeth with mesh with a given ring gear tooth.
-
-        Returns
-        -------
-        averages_in_order: nxm Array
-                n gear teeth of the planet gear each with an averaged window of m samples in order of increasing geartooth number
-        planet_gear_revolution: Array of length n*m
-                n gear teeth, m samples  in a window, all samples in the correct order concatenated together.
-            """
-
-        averages_in_order = window_averages[
-            meshing_sequence]  # Order the array of averages according to the meshing sequence
-        planet_gear_revolution = averages_in_order.reshape(-1)
-
-        return averages_in_order, planet_gear_revolution
-
-    def Compute_TSA(self):
-
-        winds = self.Window_extract()
-
-        aves = self.Window_average(winds, 12)
-
-        mesh_seq = list(np.ndarray.astype(np.array(self.PG.Meshing_sequence()) / 2, int))
-        arranged, all = self.Aranged_averaged_windows(aves, mesh_seq)
-
-        return all
-
 class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, Callibration):
     """This class creates objects that include a particular dataset, then planetary gearbox configuration used and derived attributes from the dataset"""
     def __init__(self, dataset, PG_Object):
@@ -632,16 +474,20 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         self.derived_attributes.update({"trigger_time_mag" : trigger_time, "trigger_index_mag" : trigger_index})
 
         # Compute the number of fatigue cycles (Note that this is stored in info and not derived attributes
-        n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
-        n_fatigue_cycles = self.PG.fatigue_cycles(n_carrier_revs)
-        self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
+        #n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
+        #n_fatigue_cycles = self.PG.fatigue_cycles(n_carrier_revs)
+        #self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
 
         #  Compute the RPM over time according to the magnetic pickup
-        rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 5, 1, 1, self.info["f_s"])
-        self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
-        self.info.update({"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
-        self.info.update({"rpm_sun_ave": average_rpm*self.PG.GR})  # Notice that info is updated not in compute info function
-
+        try:
+            rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 8, 1, 1, self.info["f_s"])
+            self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
+            self.info.update({"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
+            self.info.update({"rpm_sun_ave": average_rpm*self.PG.GR})  # Notice that info is updated not in compute info function
+        except:
+            self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
+            self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
+            self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
 
         # Compute TSA for sun gear acc
         #TSA = self.Compute_TSA()
@@ -660,7 +506,6 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         # Compute the time duration of the dataset
         duration = self.dataset["Time"].values[-1]
         self.info.update({"duration": duration})
-
 
 class PG(object):
     """This class creates planetary gearbox objects in order to determine their expected frequency response"""

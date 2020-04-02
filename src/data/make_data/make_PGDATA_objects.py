@@ -1,31 +1,24 @@
-import numpy as np
+
 import os
 import pandas as pd
-from scipy.io import loadmat
 from tqdm import tqdm
-import importlib
-import Proc_Lib
-importlib.reload(Proc_Lib)
 import pickle
-import time
+import src.features.proc_lib as proc
 
-import Proc_Lib as proc
+import definitions
 
-directory = 'D:\h5_datasets'
+directory = definitions.root + "\\data\\interim"
 
 for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in a folder
+    try:
+        df = pd.read_hdf(directory + "\\" + filename)
+        d = proc.Dataset(df, proc.Bonfiglioli)  # Create the dataset object
 
-    dir = 'D:\h5_datasets' + "\\" + filename #+ ".h5"
-    df = pd.read_hdf(dir)
-
-    d = proc.Dataset(df, proc.Bonfiglioli)
-
-    with open('D:\pickle_datasets' + "\\" +filename[0:-3] + ".PGDATA", 'wb') as config:
-        pickle.dump(d, config)
-
-    continue
-
-
+        with open(definitions.root + "\\data\\processed" + "\\" + filename[0:-3] + ".pgdata", 'wb') as config:
+            pickle.dump(d, config)
+    except:
+        print(filename, "gives problems - super specific")
+        continue
 
 
 

@@ -4,11 +4,13 @@ import pandas as pd
 from scipy.io import loadmat
 from tqdm import tqdm
 
+import definitions
 
 def main():
 
-    #directory = 'D:\Datasets'
-    directory = "C:\\Users\\u15012639\\Desktop\\DATA"
+    #directory = definitions.root + "\\data\\raw\\pre_lockdown_full_and_half_facewidth"
+    #directory = definitions.root + "\\data\\raw\\no_rotation_frequencies"
+    directory = definitions.root + "\\data\\raw\\test_bench_torque_capability"
 
     for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in a folder
         if filename.endswith('.xlsx'):   # This section deals with .xlsx files
@@ -19,8 +21,8 @@ def main():
             df = df.reset_index(drop=True)  # Makes sure that the indexes start from zero
             df = df.astype("float")  # Changes the data type to float
 
-            #save_dir = 'D:\h5_datasets' + "\\" + filename[0:-5].lower() + ".h5"
-            save_dir = 'C:\\Users\\u15012639\\Desktop\\DATA\\h5_datasets' + "\\" + filename[0:-5].lower() + ".h5"
+
+            save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-5].lower() + ".h5"
             df.to_hdf(save_dir, key="df" , mode="w")
             continue
 
@@ -41,7 +43,7 @@ def main():
             df.columns = ['Time', 'Acc_Carrier', 'Acc_Sun', 'Tacho_Carrier', 'Tacho_Sun', '1PR_Mag_Pickup', 'T_amb',
                           'T_oil', 'Torque']
 
-            save_dir = 'C:\\Users\\u15012639\\Desktop\\DATA\\h5_datasets' + "\\" + filename[0:-4].lower() + ".h5"
+            save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-12].lower() + ".h5"   #This also omits the sampling frequency from the filename
             df.to_hdf(save_dir, key="df" , mode="w")
             continue
 

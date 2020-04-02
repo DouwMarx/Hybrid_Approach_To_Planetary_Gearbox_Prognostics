@@ -1,10 +1,6 @@
 import os
 import numpy as np
-import pandas as pd
-import Proc_Lib as proc
-
-
-
+import definitions
 
 def compute_crack_length(image_path,slot_width, slot_length):
     """
@@ -22,7 +18,8 @@ def compute_crack_length(image_path,slot_width, slot_length):
 
 
     #Run the crack measurement software and write the resulting crack length to a file
-    os.system('python Crack_Measurement.py --image ' + image_path +  " --w " + str(slot_width) + " --l " + str(slot_length) +" > crack_length.txt")
+    script_path = definitions.root + "\\src\\data\\Crack_Measurement.py"
+    os.system('python ' + script_path + ' --image ' + image_path + " --w " + str(slot_width) + " --l " + str(slot_length) +" > crack_length.txt")
 
     # Load the crack length into memory
     log = open(r"crack_length.txt","r")
@@ -34,8 +31,8 @@ def compute_crack_length(image_path,slot_width, slot_length):
     return length
 
 
-#image_name = proc.Z_crack_im_path + "\\" + "Z_cycle_0"  #test_im.jpg"
-image_name = "Z_Cycle_4d.jpg"
+
+image_name = definitions.root + "\\data\\raw\\crack_measurement_photos\\crack_test_im.jpg"
 
 l = compute_crack_length(image_name, 0.3, 1.2)
 
