@@ -225,6 +225,7 @@ static
 *.MAT
 *.XLSX
 *.pgdata
+*.h5
 
 
 #Crack measurement temporary info storage
