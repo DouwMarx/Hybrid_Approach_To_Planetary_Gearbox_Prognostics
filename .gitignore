@@ -224,3 +224,8 @@ static
 #DATA 
 *.MAT
 *.XLSX
+*.pgdata
+
+
+#Crack measurement temporary info storage
+crack_length.txt
