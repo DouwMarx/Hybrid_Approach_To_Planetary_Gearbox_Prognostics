@@ -1,5 +1,5 @@
 """
-This script is used to determine the speed torque curve of the test setup in order to learn the maximum opperating torque as well as the optimal opperating conditions for gear crack growth
+This script is used to determine the speed torque curve of the test setup in order to learn the maximum operating torque as well as the optimal opperating conditions for gear crack growth
 
 Notice that a different convention is used for the different channels measured
 Channel 6: Oil temperature

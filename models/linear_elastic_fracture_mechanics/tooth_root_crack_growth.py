@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
-import scipy.integrate as inter
 plt.close("all")
 
 # Fatigue Calculation based on
