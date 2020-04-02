@@ -218,3 +218,9 @@ static
 *.sts
 *.t16
 *.mud
+*.bdf
+
+
+#DATA 
+*.MAT
+*.XLSX
