@@ -1,0 +1,164 @@
+%%
+%%  Department of Electrical, Electronic and Computer Engineering
+%%  MEng Dissertation / PhD Thesis - Chapter 1
+%%  Copyright (C) 2011-2016 University of Pretoria.
+%%
+\newpage
+
+\chapter*{Summary}
+This report documents the process of obtaining the scope of research for a hybrid approach to condition monitoring of planetary gearboxes in wind turbines. Relevant literature is reviewed to determine whether a hybrid prognostics approach for planetary gearboxes could have potential. A planetary gearbox test rig is constructed that is capable of simulating wind turbine loading conditions. As an introduction to the proposed hybrid methodology, an $18$ DOF planetary gearbox lumped mass model is programmed and the proposed hybrid methodology is applied to a battery prognostics dataset.
+
+
+
+\chapter{Introduction}
+
+This chapter gives background on the problem of condition monitoring and provides an overview of the work contained in this report.
+
+
+\section{Background}
+
+Planetary gearboxes are widely used in industry seeing that they can provide high torque ratios in a compact package. Planetary gearboxes form an integral part in wind turbines with failure of these gearboxes could leading to large amounts of downtime and even loss of life. One method to reduce the chances of gearbox failure is to follow a time-based maintenance strategy where the gearbox is periodically inspected. This approach causes downtime during maintenance procedures and cannot provide warning of possible future failure. On the other hand, condition-based maintenance strategies continuously monitor the system to detect faults and predict remaining useful life. Condition monitoring practices for conventional fixed axis gearboxes are, however, not directly applicable to planetary gearboxes. More sophisticated condition monitoring techniques are therefore required. Finally, condition-based monitoring methods generally rely on either data-driven models or physics-based models with only a few attempts being made at combing the two approaches to exploit the benefits from each of the respective approaches. A hybrid condition monitoring strategy for planetary gearboxes can, therefore, be very valuable.
+
+Condition-based monitoring can lead to significant maintenance cost saving as maintenance can be conducted only when necessary and early warning of imminent failure is possible. With the increasing importance of renewable energy generation using wind turbines, maintaining their planetary gearboxes becomes a priority. The hybrid prognostics model for planetary gearboxes proposed for this investigation has the advantage that certain load cases can be simulated using the hybrid model to determine the most likely effect that they will have on the actual machine health. This can help with making maintenance decisions but also in determining the operating conditions under which planetary gearboxes, subject to certain faults, can be most efficiently used. Finally, the hybrid modeling strategies that will be used in this investigation promises to apply to more than just monitoring of planetary gearboxes. The idea of combining measured data with a physics model can be valuable in modeling a wide range of systems.
+
+The intended research field; "A hybrid approach to condition monitoring of planetary gearboxes in wind turbines" is now placed in perspective. Figure \ref{F:Hierarchy} shows the hierarchy of research under which the hybrid method exists and serves as a basic outline for this chapter.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.9]{Chapter_1/Images_1/flow}
+	\caption{Position of work in research hierarchy}
+	\label{F:Hierarchy}
+\end{figure}
+
+
+\subsection{Wind turbine gearbox monitoring}
+The installed capacity of wind energy have been rapidly increasing from the year $2000$ to $2018$. Figure \ref{F:WindE} shows a plot of data from the International Renewable Energy Agency \citep{IRENA2019}. An average yearly increase in wind energy capacity from 2013 to 2018 of $14\%$ stresses that effective wind turbine maintenance strategies are becoming increasingly important. %Explain what capacity means.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{Chapter_1/Images_1/Wind_Energy_Capacity}
+	\caption{Global wind energy capacity increase \citep{IRENA2019}}
+	\label{F:WindE}
+\end{figure}
+
+
+
+Wind turbines operate under harsh conditions with rapidly changing environmental conditions and loading due to wind transients \citep{Nie2013,Salameh2018} . As a result, wind turbines suffer from a variety of failure modes such as the failure of main bearings, gearboxes, and the generator. The maintenance and operation cost for wind turbines largely determines the competitiveness of wind energy in the energy sector as compared to other conventional energy sources \citep{Nie2013}. The replacement of failed components not only leads to power generation downtime but requires that maintenance teams and sophisticated lifting equipment be deployed, often in hard to reach areas \citep{Nie2013}.
+
+Wind turbine gearboxes failures are second to only generator failures when the amount of downtime caused is considered \citep{Salameh2018}. The gearbox failure is particularly costly due to this large downtime required to repair gearbox failures. As of $2013$, up to $21\%$ to the total downtime of wind turbines can be attributed to gearbox failure \citep{Nie2013}. The improvement of gearbox maintenance practices will, therefore, improve overall wind turbine maintenance significantly. 
+
+The function of a gearbox in a wind turbine is to step up the rotational speed of the low-speed shaft connected to the rotor (See Figure \ref{F:Urbanek}) by roughly a factor of $50$ to ensure a high speed for efficient energy generation at the generator \citep{Salameh2018}. For a planetary gearbox in a wind turbine, the outer ring, therefore, remains stationary, the low-speed input is delivered to the planet carrier, and the high-speed output comes from the shaft attached to the sun gear. Attempts at eliminating the gearbox from the wind turbine drive train have been made \citep{Morris2011} but the increased weight and cost of these direct-drive wind turbines prevent them from replacing the conventional geared wind turbines.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{Chapter_2/Images_2/Urbanek_2012}
+	\caption{Planetary gearbox in a wind turbine \citep{Urbanek2012}}
+	\label{F:Urbanek}
+\end{figure}
+
+
+
+Condition monitoring of planetary gearboxes is therefore performed because a failure of the gearbox might lead to an overall shut down of the whole system and as a result lead to major economic or loss of human life \cite{Lei2014}.
+
+
+
+\subsection{Vibration based condition monitoring}
+
+
+Various maintenance strategies have been applied to rotating machinery in the past. The most elementary maintenance technique is run to failure maintenance. With this maintenance strategy, maintenance is only conducted when breakdowns occur.
+
+A more advanced maintenance strategy is time-based preventative maintenance where maintenance is conducted at some periodic interval. However, with time-based preventative maintenance, maintenance is performed irrespective of the condition of the machine. This can result in unnecessary maintenance expenses. 
+
+Condition-based maintenance aims to address the shortcomings of the above-mentioned strategies by recommending maintenance actions based on the information collected through condition monitoring. Maintenance is only performed when the collected information indicates that the machine has degraded to an extent that it requires maintenance. Ultimately, a condition-based maintenance strategy can lead to a significant decrease in maintenance cost \citep{Jardine2006}.
+
+
+
+\cite{Nie2013} mentions the following methods that have been applied in wind turbine condition monitoring.
+\begin{itemize}
+	\item Time frequency Analysis
+	\item Acoustic emission
+	\item Oil monitoring
+	\item SCADA historical data 
+	\item Vibration analysis
+\end{itemize}
+
+Vibration analysis, which is used in this investigation, is the most widely applied technique for condition monitoring. If a fault occurs in a mechanical component, the machine's vibration profile will be altered, indicating possible damage in the machine \citep{Salameh2018}. The vibration signal is typically obtained from the machine with the use of an accelerometer.
+
+
+% Several factors contribute to the complexity of wind turbine gearbox maintenance. Firstly, the maintenance practices applied to traditional fixed axis gearboxes are not directly applicable to planetary gearboxes. Figure \ref{F:Urbanek} shows a typical wind turbine gearbox consisting of  a planetary gearbox stage, followed by two fixed axis gear stages. Planetary gearboxes are used in wind turbines due to their high torque to size ratio. 
+
+
+
+%    Three main factors that make the condition monitoring of wind turbines challenging include
+%    \begin{itemize}
+%        \item The transient operating conditions of wind turbines
+%        \item Planetary gearboxes are used in wind turbines and the condition monitoring practices used for traditional fixed axis gearboxes cannot be applied to planetary gearboxes
+%        \item 
+%    \end{itemize}
+
+
+
+
+\subsection{Diagnostics and Prognostics}
+
+The field of condition-based maintenance is divided into two main fields. Diagnostics aims to detect, isolate and identify a fault when it occurs. 
+
+Common signal processing methods used in diagnostics methods include: Fourier transform, short-time Fourier transform, Wigner-Ville Distribution, Wavelet transform, empirical mode decomposition and support vector machines \cite{Salameh2018}. 
+
+Prognostics, on the other hand, aims to predict the failure event before it occurs \citep{Jardine2006}. Performing diagnostics if often a requirement for prognostics. The applicable failure mode is determined using diagnostics before prognostics can be performed. Prognostics in condition based maintenance aims to predict remaining useful life (RUL) of a machine from condition information \citep{Lei2018}. RUL is defined as the time until failure given the current age and condition of the machine as well as its previous operating conditions \citep{Jardine2006}.
+
+
+\subsection{Hybrid Prognostics}
+%%%%%%%%%%%%%%%%%%%%%%%
+
+%For physics-based models, the damage is a component is mathematically modelled with model parameters being determined from measured data. The models are built from first principles, expert knowledge, failure mechanisms and assumptions. Some disadvantages include a sole dependency on domain knowledge, the difficulty in estimating model parameters, the difficulty in optimizing very non-linear models and the model applying to only one very specific problem \citep{Xia2018}.
+
+
+%Data-driven approaches use previously observed data to determine the mapping of a health indicator and the degraded state. Some disadvantages include that these methods are often a black box providing no understanding of the inherent physics of the problem. Furthermore, they often require a large amount of training data over the entire life cycle of the machine
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\cite{Liao2014} mentions there are three broad prognostics approaches used to predict RUL. These include experience-based models, data-driven models, and physics-based models. Hybrid models (also called integrated methods) originate when the aforementioned approaches are combined to make exploit their respective advantages.
+
+\cite{Liao2014} explains the three prognostics approaches as follows:
+
+Experience-based models are based on domain knowledge and are usually implemented as a set of IF-THEN rules. The advantages of experience-based models include that they are simple to understand and their resulting prediction is easily interpretable. However, experience-based models have the disadvantage of being only as good as the rules that they are built on. The output of the model can be very wrong if the appropriate rules are not in place. 
+
+Data-driven models rely on previously observed data to make a prediction. Examples of data-driven models include Hidden Markov Models, dynamic Bayesian networks, auto-regressive moving average models, empirical mode decomposition, feed-forward neural networks, recurrent neural networks, support vector machines, and similarity-based methods. Data-driven models can model non-linear, non-monotonic degradation and an in-depth understanding of the complex physics that governs the problem is not required. A large amount of data is however required to make accurate predictions. For instance, data of the complete failure of a wind turbine is generally not accessible and is very expensive to obtain in an experimental setting. Furthermore, the predictions made by these models are generally not easily explained.  
+
+Physics-based (or model-based) models are mathematical models that describe the failure mechanism of a system. Physics-based models require an in-depth knowledge of the problem with the system model being derived from first principles and physics. The parameters that describe these models are obtained either through experimental tests or they are learned as time progresses, using parameter updating techniques. Physics-based models can therefore still be reliant on some sort of data even though it is not considered a data-driven model. Physics-based models tend to outperform other types of models if there is a good understanding of the physical mechanisms that govern the problem. Furthermore, the output of the physics-based model is usually understandable and can be easily explained. However, for complex systems, a complete understanding of the system physics is not available and the models do not generalize well, applying to a very specific case only. 
+
+
+As mentioned, hybrid models intend to combine different prognostics methods to exploit their respective advantages. \cite{Liao2014} mentions $5$ types of hybrid models that have been researched. The $5$ types of hybrid models are
+
+\begin{itemize}
+	\item Experience-based model + Data driven model
+	\item Experience-based model + Physics based model
+	\item Data-driven model + Data driven model
+	\item Data driven model + Physics based model
+	\item Experience based model + Data driven model + Physics based model
+\end{itemize}
+
+
+\cite{Xia2018} acknowledges only two classes of hybrid methods as listed by \cite{Liao2014} but highlights important subtypes of two of the hybrid types mentioned by \cite{Liao2014}. The first class involves the combination of a physics-based method with a data-driven method. This category is further split into two types. In the first type, the results from a physics-based method and a data-driven method are fused. The second type involves estimating the current or future health state using a data-driven model and then using a physics-based model to predict the RUL. 
+
+The second class of hybrid models combine data-driven approaches with other data-driven approaches. This class is also divided into two types. The first type involves the merging of results from the two data-driven models. With the second type, the results from one data-driven model is fed into the other data-driven model.
+
+
+
+%\section{Problem Statement}
+
+%Can a hybrid methodology be used to model a planetary gearbox? 
+
+\section{Objective}
+
+The objective of this report is to review the literature relevant to the field of planetary gearbox condition monitoring and hybrid prognostics strategies. Based on this literature review, the intention is to formulate a hybrid prognostics approach for planetary gearboxes that will be the subject of further investigation for the author's Masters dissertation. Other objectives include the construction of a planetary gearbox test bench that is capable of simulating wind turbine cases. The test bench should be designed not only to meet the requirements for the experimental work required to validate this hybrid approach, but rather as a general planetary gearbox test-bench platform for different types of further research. Other objectives include practical investigative studies aimed at equipping the author in the implementation of the proposed hybrid methodology.
+
+
+\section{Overview of Report}
+Chapter \ref{S:Literature} is a literature review that lists previous work in the field of planetary gearbox condition monitoring and explains various methods and concepts that are required for the implementation and understanding of a hybrid planetary gearbox prognostics approach.
+Chapter \ref{S:Practical} consists of three parts. The first part documents the design and construction of the planetary gearbox test bench and includes the results of preliminary studies regarding the placement of accelerometers on the gearbox casing as well as the frequency response of the system. The second part of this chapter involves a simplified implementation of a hybrid approach to the condition monitoring of lithium-Ion batteries as presented by \cite{Liao2016}. An analogy is also drawn between the parameters relevant to the condition monitoring of lithium Ion batteries and the parameters relevant to planetary gearbox condition monitoring. The third and final part involves the implementation of an $18$ degree of freedom lumped mass model based on the lumped mass model used by \cite{Chaari2006}. Some of the work in the practical investigative studies are still ongoing and the documented results show progress in a particular problem rather than the final results. Finally, Chapter \ref{S:Scope} proposes a research scope that could lead to a valuable contribution in the field of hybrid prognostics of planetary gearboxes. A hybrid method is proposed and simplifications are listed that could help focus the research on the feasibility of the hybrid approach rather than other closely related fields that would contribute to the complexity of the problem.
+
+
+
+%% End of File.

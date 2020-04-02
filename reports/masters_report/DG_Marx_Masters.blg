@@ -1,0 +1,22 @@
+This is BibTeX, Version 0.99dThe top-level auxiliary file: DG_Marx_Masters.aux
+The style file: plainnat.bst
+Database file #1: Bibliography/Masters.bib
+Repeated entry---line 3264 of file Bibliography/Masters.bib
+ : @article{McFadden1985
+ :                      ,
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 12232 of file Bibliography/Masters.bib
+ : @article{Yu 
+ :             2017,
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "Paris1963"
+Warning--I didn't find a database entry for "Li200"
+Warning--I didn't find a database entry for "Chopin2019"
+Warning--to sort, need author or key in IRENA2019
+Warning--empty author in IRENA2019
+Warning--there's a number but no volume in Orchard2008
+Warning--empty year in Saha2007
+Warning--empty year in Saha2007
+Warning--empty journal in Schon2005
+Warning--there's a number but no volume in Schon2005
+(There were 2 error messages)

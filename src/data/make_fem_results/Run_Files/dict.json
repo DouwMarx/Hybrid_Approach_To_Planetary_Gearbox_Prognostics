@@ -1,0 +1,30 @@
+{
+        "Description": "Description and intention of the simulation",
+        "TVMS Properties": {
+                "Mesh": {
+                        "Ring Mesh": "Ring_Marc_Mesh_0305",
+                        "Planet Meshes": "Test_Mesh_Iter"
+                },
+                "Load Case": {
+                        "Total Rotation": 0.1,
+                        "Number Of Loadsteps": 5,
+                        "Applied Moment": 4
+                },
+                "Contact": {
+                        "Friction Coefficient": 0.07
+                },
+                "Geometry": {
+                        "Gear Thickness": 12,
+                        "Move Planet Up": -1.65,
+                        "Rotate Planet": -31.72,
+                        "Planet Carrier Pitch Centre Radius": 43.235,
+                        "Ring Gear External Radius": 88.13,
+                        "Ring Gear Rotation": -11.613,
+                        "Planet Axle Radius": 14.66
+                },
+                "Material": {
+                        "Young's Modulus": 200,
+                        "Poisson Ratio": 0.3
+                }
+        }
+}

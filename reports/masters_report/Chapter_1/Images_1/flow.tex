@@ -1,0 +1,51 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{forest}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta}
+\begin{document}
+% addaswyd o ateb Emma: https://tex.stackexchange.com/a/342102/
+\forestset{
+  skan tree/.style={
+    for tree={
+      grow=0,
+      rounded corners,
+      draw,
+      top color=white,
+      bottom color=white,%blue!20,
+      edge={Latex-},
+      align=center,
+      child anchor=parent,
+      %parent anchor=children,
+      anchor=parent,
+      tier/.wrap pgfmath arg={tier ##1}{level()},
+      s sep+=20pt,
+      l sep+=20pt,
+      edge path'={
+        (.child anchor) -- ++(-20pt,0) -- (!u.parent anchor)
+      },
+    },
+    before typesetting nodes={
+      for tree={
+        content/.wrap value={\strut ##1},
+      },
+    },
+  },
+}
+\begin{forest}
+  skan tree
+  [Wind turbine\\ maintenance,top color=black!20
+  	  [Bearings \\ Generators]
+	  [Planetary Gearbox,top color=black!20
+	    [Time based \\ maintenance]
+	    [Vibration-based \\condition monitoring,top color=black!20
+	      [Prognostics,top color=black!20
+	      	[Hybrid method,top color=black!20]
+	        [Data driven]
+	        [Physics based]
+	      ]
+	      [Diagnostics]
+	    ]
+	  ]
+	  ]
+\end{forest}
+\end{document}

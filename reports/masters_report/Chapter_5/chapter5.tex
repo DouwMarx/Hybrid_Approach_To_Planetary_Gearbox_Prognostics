@@ -1,0 +1,141 @@
+%%
+%%  Department of Electrical, Electronic and Computer Engineering
+%%  MEng Dissertation / PhD Thesis - Chapter 5
+%%  Copyright (C) 2011-2016 University of Pretoria.
+%%
+
+\chapter{Discussion}
+
+\chapter{FEM}
+Take note that this section should not be here but as of 2020/03/28 there is not certainty of whether all edits before 2019/14 had been incorporated (Date from drive download)
+
+This chapter explains how the finite element method is used to compute the time-varying gears mesh stiffness (TVMS) of gears with a tooth root crack. 
+
+
+% Consider explaining what FEM is and what Meshes do?
+% https://www.simscale.com/forum/t/how-to-create-a-fea-report/49395 website that gives an overview of how to document a FEM simulation
+
+
+\section{Simulation Objective}
+Under the assumption that the measured vibration response is related to the stiffness in the planet gear tooth under investigation, determining the gear mesh stiffness through a non data driven approach such as FEM fits in well with the hybrid modelling philosophy that is the subject of this dissertation. The TVMS as calculated by the FEM is used inside a lumped mass model to determine the expected vibration response for a given crack length. 
+
+\section{Simulation Overview}
+The FEM simulation is implemented using a commercial FEM package MSC Marc 2019 student edition \cite{MSCMarc2019}. The PyMentat plugin \cite{Marc_Py2003} that provides a interface between the Python programming language and the Marc Mentat software was extensively used to automate the simulation. 
+
+The Marc Mentat software  is a nonlinear bla bla crack growth and contact. refenernce the user guide introduction I guess. Why use marc and what are its capabilities
+	
+The simulation consists of two main parts. The first simulation makes used of principles from linear fracture mechanics to simulate root tooth crack growth in a planet gear. In the second part, the time varying mesh stiffness of the gear system is determined for a range of crack lengths with cracked gear meshes being obtained from the first part of the simulation
+
+
+\section{Crack growth simulation}
+
+\subsection{Summary}
+The crack growth simulation matches the results found in practice. The mesh can be generated correctly for the following TVMS simulation.
+
+\subsection{Introduction}
+This simulation was also used by this guy. 
+The crack should be naturally grown also to generate the required meshes.
+Crack growth simulation can be performed with various methods - in this case we use crack splitting not to mess up the rest of the mesh
+
+\subsection{Objectives}
+Measure: The number of cycles, Stress intensity
+How data is obtained: Explain perhaps how the LEFM calcs work?
+
+\subsection{Model}
+Perhaps show entire model with mesh (Ring, sun and planet)
+
+The correct involute gear geometry was generated from measurement of the experimental setup using the KHK gear calculator \cite{KHK2015}. See Appendix \ref{A:Gear_Geom} for full list of gear specifications as generated from measurement of the gear. 
+
+
+\subsection{Mesh}
+The mesh used for the planet gear was refined with based on the following reasoning. A high mesh density was used on the gear tooth edges where there would be contact interaction between meshes. Seeing that the planet gear mesh will be used for determining the planet-sun mesh stiffness as well as the planet-ring mesh stiffness, this mesh refinement is performed on both sides of the planet gear teeth. 
+
+The planet gear geometry is simplified to decrease computational cost
+
+
+This is a 2D plane strain analysis as in \ref{People who use plane strain analysis}. Take note that this assumption is more valid in simulations where the face width of the gear is large compared to the gear tooth height. In this case, where the face width and gear tooth height are similar in dimension, the plane strain analysis is chosen simply because it is expected to outperform the plane stress analysis. 
+
+\subsection{Model details}
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
+% \usepackage{lscape}
+
+	\begin{table}[]
+		\centering
+		\resizebox{\textwidth}{!}{%
+			\begin{tabular}{|l|l|}
+				\hline
+				Number of Nodes    &                   \\
+				Number of Elements &                   \\
+				Element types      &                   \\
+				Analysis Type      & Non linear Static \\
+				Degrees of Freedom & Plane Strain      \\ \hline
+			\end{tabular}%
+		}
+	\end{table}
+
+
+\subsection{Material Data}
+Material data obtained from ? Stuur dalk weer vir metalurgies 'n email en hoor hoe mens tipies uitvind watter materiaal die rat kan wees
+
+Youngs modulus poisson ratio perhaps density, paris law parameters
+
+
+\subsection{Loads and boundary conditions}
+Application of the load is shown in Figure
+speak about load magnitude and direction. Highest point of single tooth contact yada yada
+
+
+Show the boundary conditions
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+\begin{table}[]
+	\centering
+	\resizebox{\textwidth}{!}{%
+		\begin{tabular}{@{}|ll|ll|ll|ll|@{}}
+			\toprule
+			\multicolumn{2}{|l|}{Model details}    & \multicolumn{2}{l|}{Material Properties} & \multicolumn{2}{l|}{Loads}                                  & \multicolumn{2}{l|}{Boundary conditions}           \\ \midrule
+			Number of Nodes    &                   & Poisson Ratio            & 0.3           & Long rambling about highest point of tooth contact & 10000N & Long rambling about glued bodies & Fixed           \\
+			Number of Elements &                   &                          &               &                                                    &        &                                  & Z rotation free \\
+			Element types      &                   &                          &               &                                                    &        &                                  &                 \\
+			Analysis Type      & Non linear Static &                          &               &                                                    &        &                                  &                 \\
+			Degrees of Freedom & Plane Strain      &                          &               &                                                    &        &                                  &                 \\ \bottomrule
+		\end{tabular}%
+	}
+\end{table}
+
+
+\subsection{Results}
+
+Figure \ref{F:Crack_result} shows a comparison between the experimental crack growth result and the FEM result
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.9]{Chapter_1/Images_1/flow}
+	\caption{Position of work in research hierarchy}
+	\label{F:Hierarchy}
+\end{figure}
+
+
+
+
+\section{Gear mesh stiffness simulation}
+
+
+
+
+
+
+\section{}
+
+
+\section{title}
+
+\section{Chapter Abstract}
+
+Chapter overview chapter overview chapter overview chapter overview
+chapter overview chapter overview chapter overview chapter overview
+chapter overview.
+
+%% End of File.

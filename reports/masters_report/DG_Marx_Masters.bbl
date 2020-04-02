@@ -1,0 +1,374 @@
+\begin{thebibliography}{41}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[IRE(2019)]{IRENA2019}
+{Renewable Energy Statistics}.
+\newblock Technical report, The International Renewable Energy Agency, Abu
+  Dhabi, 2019.
+
+\bibitem[Arulampalam et~al.(2002)Arulampalam, Maskell, Gordon, and
+  Clapp]{Arulampalam2002}
+Sanjeev~M. Arulampalam, Simon Maskell, Neil Gordon, and Tim Clapp.
+\newblock {A Tutorial on Particle Filters for Online Nonlinear and Non-Gaussian
+  Bayesian Tracking}.
+\newblock \emph{IEEE Transactions on signal processing}, 50\penalty0
+  (2):\penalty0 174--188, 2002.
+
+\bibitem[Belsak and Flasker(2007)]{Belsak2007}
+Ales Belsak and Joze Flasker.
+\newblock {Detecting cracks in the tooth root of gears}.
+\newblock \emph{Engineering Failure Analysis}, 14\penalty0 (8 SPEC.
+  ISS.):\penalty0 1466--1475, 2007.
+\newblock ISSN 13506307.
+\newblock \doi{10.1016/j.engfailanal.2007.01.013}.
+
+\bibitem[Blunt and Keller(2006)]{Blunt2006}
+David~M. Blunt and Jonathan~A. Keller.
+\newblock {Detection of a fatigue crack in a UH-60A planet gear carrier using
+  vibration analysis}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 20\penalty0
+  (8):\penalty0 2095--2111, 2006.
+\newblock ISSN 08883270.
+\newblock \doi{10.1016/j.ymssp.2006.05.010}.
+
+\bibitem[Caesarendra and Tjahjowidodo(2017)]{Caesarendra2017}
+Wahyu Caesarendra and Tegoeh Tjahjowidodo.
+\newblock {A review of feature extraction methods in vibration-based condition
+  monitoring and its application for degradation trend estimation of low-speed
+  slew bearing}.
+\newblock \emph{Machines}, 5\penalty0 (4), 2017.
+\newblock ISSN 20751702.
+\newblock \doi{10.3390/machines5040021}.
+
+\bibitem[Chaari et~al.(2006)Chaari, Fakhfakh, Hbaieb, Louati, and
+  Haddar]{Chaari2006}
+Fakher Chaari, Tahar Fakhfakh, Riadh Hbaieb, Jamel Louati, and Mohamed Haddar.
+\newblock {Influence of manufacturing errors on the dynamic behavior of
+  planetary gears}.
+\newblock \emph{International Journal of Advanced Manufacturing Technology},
+  27\penalty0 (7-8):\penalty0 738--746, 2006.
+\newblock ISSN 02683768.
+\newblock \doi{10.1007/s00170-004-2240-2}.
+
+\bibitem[Chaari et~al.(2008)Chaari, Baccar, Abbes, and Haddar]{Chaari2008}
+Fakher Chaari, Walid Baccar, Mohamed~Slim Abbes, and Mohamed Haddar.
+\newblock {Effect of spalling or tooth breakage on gearmesh stiffness and
+  dynamic response of a one-stage spur gear transmission}.
+\newblock \emph{European Journal of Mechanics, A/Solids}, 27\penalty0
+  (4):\penalty0 691--705, 2008.
+\newblock ISSN 09977538.
+\newblock \doi{10.1016/j.euromechsol.2007.11.005}.
+
+\bibitem[Cheng et~al.(2012)Cheng, Hu, and Zhang]{Cheng2012}
+Zhe Cheng, Niaoqing Hu, and Xiaofei Zhang.
+\newblock {Crack level estimation approach for planetary gearbox based on
+  simulation signal and GRA}.
+\newblock \emph{Journal of Sound and Vibration}, 331\penalty0 (26):\penalty0
+  5853--5863, 2012.
+\newblock ISSN 0022460X.
+\newblock \doi{10.1016/j.jsv.2012.07.035}.
+
+\bibitem[Coppe et~al.(2010)Coppe, Haftka, Kim, and Yuan]{Coppe2010}
+Alexandra Coppe, Raphael~T. Haftka, Nam~H. Kim, and Fuh~Gwo Yuan.
+\newblock {Uncertainty reduction of damage growth properties using structural
+  health monitoring}.
+\newblock \emph{Journal of Aircraft}, 47\penalty0 (6):\penalty0 2030--2038,
+  2010.
+\newblock ISSN 00218669.
+\newblock \doi{10.2514/1.C000279}.
+
+\bibitem[{De Smidt}(2009)]{Smidt2009}
+Marc~Ryan {De Smidt}.
+\newblock \emph{{Internal Vibration Monitoring of a Planetary gearbox}}.
+\newblock PhD thesis, University of Pretoria, 2009.
+
+\bibitem[Gordon et~al.(1993)Gordon, Salmond, and Smith]{Gordon1993}
+N.J. Gordon, D.J. Salmond, and A.F.~M. Smith.
+\newblock {Novel approach to non-linear and non-Gaussian Baysian state
+  estimation}.
+\newblock \emph{Proc. Inst. Elect. Eng.}, 140\penalty0 (2):\penalty0 107--113,
+  1993.
+
+\bibitem[Jardine et~al.(2006)Jardine, Lin, and Banjevic]{Jardine2006}
+Andrew~K.S. Jardine, Daming Lin, and Dragan Banjevic.
+\newblock {A review on machinery diagnostics and prognostics implementing
+  condition-based maintenance}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 20\penalty0
+  (7):\penalty0 1483--1510, 2006.
+\newblock ISSN 08883270.
+\newblock \doi{10.1016/j.ymssp.2005.09.012}.
+
+\bibitem[Lei et~al.(2014)Lei, Lin, Zuo, and He]{Lei2014}
+Yaguo Lei, Jing Lin, Ming~J. Zuo, and Zhengjia He.
+\newblock {Condition monitoring and fault diagnosis of planetary gearboxes: A
+  review}.
+\newblock \emph{Measurement: Journal of the International Measurement
+  Confederation}, 48\penalty0 (1):\penalty0 292--305, 2014.
+\newblock ISSN 02632241.
+\newblock \doi{10.1016/j.measurement.2013.11.012}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.measurement.2013.11.012}.
+
+\bibitem[Lei et~al.(2016)Lei, Liu, Lin, and Lu]{Lei2016}
+Yaguo Lei, Zongyao Liu, Jing Lin, and Fanbo Lu.
+\newblock {Phenomenological models of vibration signals for condition
+  monitoring and fault diagnosis of epicyclic gearboxes}.
+\newblock \emph{Journal of Sound and Vibration}, 369:\penalty0 266--281, 2016.
+\newblock ISSN 10958568.
+\newblock \doi{10.1016/j.jsv.2016.01.016}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.jsv.2016.01.016}.
+
+\bibitem[Lei et~al.(2018)Lei, Li, Guo, Li, Yan, and Lin]{Lei2018}
+Yaguo Lei, Naipeng Li, Liang Guo, Ningbo Li, Tao Yan, and Jing Lin.
+\newblock {Machinery health prognostics: A systematic review from data
+  acquisition to RUL prediction}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 104:\penalty0
+  799--834, 2018.
+\newblock ISSN 10961216.
+\newblock \doi{10.1016/j.ymssp.2017.11.016}.
+\newblock URL \url{https://doi.org/10.1016/j.ymssp.2017.11.016}.
+
+\bibitem[Lewicki and Ballarini(1997)]{Ballarini1997}
+D.~G. Lewicki and R.~Ballarini.
+\newblock {Effect of Rim Thickness on Gear Crack Propagation Path}.
+\newblock \emph{Journal of Mechanical Design}, 119\penalty0 (1):\penalty0
+  88--95, mar 1997.
+\newblock ISSN 1050-0472.
+\newblock \doi{10.1115/1.2828793}.
+\newblock URL
+  \url{https://asmedigitalcollection.asme.org/mechanicaldesign/article/119/1/88/432259/Effect-of-Rim-Thickness-on-Gear-Crack-Propagation}.
+
+\bibitem[Li and Lee(2005)]{Li2005a}
+C.~James Li and Hyungdae Lee.
+\newblock {Gear fatigue crack prognosis using embedded model, gear dynamic
+  model and fracture mechanics}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 19\penalty0
+  (4):\penalty0 836--846, 2005.
+\newblock ISSN 08883270.
+\newblock \doi{10.1016/j.ymssp.2004.06.007}.
+
+\bibitem[Li et~al.(2005)Li, Gu, Harris, Ball, Bennett, and Travis]{Li2005}
+Yuhua Li, Fengshou Gu, Georgina Harris, Andrew Ball, Nick Bennett, and Ken
+  Travis.
+\newblock {The measurement of instantaneous angular speed}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 19\penalty0
+  (4):\penalty0 786--805, 2005.
+\newblock ISSN 08883270.
+\newblock \doi{10.1016/j.ymssp.2004.04.003}.
+
+\bibitem[Liao and Kottig(2014)]{Liao2014}
+Linxia Liao and Felix Kottig.
+\newblock {Review of Hybrid Prognostics Approaches for Remaining Useful Life
+  Prediction of Engineered Systems, and an Application to Battery Life
+  Prediction}.
+\newblock \emph{IEEE Transactions on Reliability}, 63\penalty0 (1):\penalty0
+  191--207, mar 2014.
+\newblock ISSN 0018-9529.
+\newblock \doi{10.1109/TR.2014.2299152}.
+\newblock URL \url{http://ieeexplore.ieee.org/document/6712934/}.
+
+\bibitem[Liao and K{\"{o}}ttig(2016)]{Liao2016}
+Linxia Liao and Felix K{\"{o}}ttig.
+\newblock {A hybrid framework combining data-driven and model-based methods for
+  system remaining useful life prediction}.
+\newblock \emph{Applied Soft Computing}, 44:\penalty0 191--199, jul 2016.
+\newblock ISSN 15684946.
+\newblock \doi{10.1016/j.asoc.2016.03.013}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.asoc.2016.03.013
+  https://linkinghub.elsevier.com/retrieve/pii/S1568494616301223}.
+
+\bibitem[Lin and Parker(1999)]{Lin1999}
+Jian Lin and R.~G. Parker.
+\newblock {Analytical characterization of the unique properties of planetary
+  gear free vibration}.
+\newblock \emph{Journal of Vibration and Acoustics, Transactions of the ASME},
+  121\penalty0 (3):\penalty0 316--321, 1999.
+\newblock ISSN 15288927.
+\newblock \doi{10.1115/1.2893982}.
+
+\bibitem[Lin et~al.(2016)Lin, Tu, Liu, and Li]{Lin2016}
+Yonggang Lin, Le~Tu, Hongwei Liu, and Wei Li.
+\newblock {Fault analysis of wind turbines in China}.
+\newblock \emph{Renewable and Sustainable Energy Reviews}, 55:\penalty0
+  482--490, 2016.
+\newblock ISSN 18790690.
+\newblock \doi{10.1016/j.rser.2015.10.149}.
+
+\bibitem[Ma et~al.(2015)Ma, Zeng, Feng, Pang, Wang, and Wen]{Ma2015}
+Hui Ma, Jin Zeng, Ranjiao Feng, Xu~Pang, Qibin Wang, and Bangchun Wen.
+\newblock {Review on dynamics of cracked gear systems}.
+\newblock \emph{Engineering Failure Analysis}, 55:\penalty0 224--245, 2015.
+\newblock ISSN 13506307.
+\newblock \doi{10.1016/j.engfailanal.2015.06.004}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.engfailanal.2015.06.004}.
+
+\bibitem[McFadden and Smith(1985)]{McFadden1985}
+P~D McFadden and J~D Smith.
+\newblock {An Explanation for the Asymmetry of the Modulation Sidebands about
+  the Tooth Meshing Frequency in Epicyclic Gear Vibration}.
+\newblock \emph{Proceedings of the Institution of Mechanical Engineers, Part C:
+  Journal of Mechanical Engineering Science}, 199\penalty0 (1):\penalty0
+  65--70, jan 1985.
+\newblock ISSN 0954-4062.
+\newblock \doi{10.1243/PIME_PROC_1985_199_092_02}.
+\newblock URL
+  \url{http://journals.sagepub.com/doi/10.1243/PIME{\_}PROC{\_}1985{\_}199{\_}092{\_}02}.
+
+\bibitem[McNames(2002)]{McNames2002}
+James McNames.
+\newblock {Fourier series analysis of epicyclic gearbox vibration}.
+\newblock \emph{Journal of Vibration and Acoustics, Transactions of the ASME},
+  124\penalty0 (1):\penalty0 150--160, 2002.
+\newblock ISSN 15288927.
+\newblock \doi{10.1115/1.1403735}.
+
+\bibitem[Miao and Zhou(2015)]{Miao2015}
+Qiang Miao and Qinghua Zhou.
+\newblock {Planetary gearbox vibration signal characteristics analysis and
+  fault diagnosis}.
+\newblock \emph{Shock and Vibration}, 2015, 2015.
+\newblock ISSN 10709622.
+\newblock \doi{10.1155/2015/126489}.
+
+\bibitem[Morris(2011)]{Morris2011}
+Lindsay Morris.
+\newblock {Direct Drive vs. Gearbox: Progress on Both Fronts}, 2011.
+\newblock URL
+  \url{https://www.power-eng.com/2011/03/01/direct-drive-vs-gearbox-progress-on-both-fronts/{\#}gref}.
+
+\bibitem[Nie and Wang(2013)]{Nie2013}
+Mengyan Nie and Ling Wang.
+\newblock {Review of condition monitoring and fault diagnosis technologies for
+  wind turbine gearbox}.
+\newblock \emph{Procedia CIRP}, 11\penalty0 (Cm):\penalty0 287--290, 2013.
+\newblock ISSN 18781659.
+\newblock \doi{10.1016/j.cbpc.2017.12.002}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.procir.2013.07.018}.
+
+\bibitem[Orchard et~al.(2008)Orchard, Kacprzynski, Goebel, Saha, and
+  Vachtsevanos]{Orchard2008}
+Marcos Orchard, Gregory Kacprzynski, Kai Goebel, Bhaskar Saha, and George
+  Vachtsevanos.
+\newblock {Advances in uncertainty representation and management for particle
+  filtering applied to prognostics}.
+\newblock \emph{2008 International Conference on Prognostics and Health
+  Management, PHM 2008}, \penalty0 (May 2014), 2008.
+\newblock \doi{10.1109/PHM.2008.4711433}.
+
+\bibitem[Orchard and Vachtsevanos(2007)]{Orchard2007}
+Marcos~E. Orchard and George~J. Vachtsevanos.
+\newblock {A Particle Filtering Approach for On-Line Failure Prognosis in a
+  Planetary Carrier Plate}.
+\newblock \emph{International Journal of Fuzzy Logic and Intelligent Systems},
+  7\penalty0 (4):\penalty0 221--227, dec 2007.
+\newblock ISSN 1598-2645.
+\newblock \doi{10.5391/IJFIS.2007.7.4.221}.
+\newblock URL
+  \url{http://koreascience.or.kr/journal/view.jsp?kj=E1FLA5{\&}py=2007{\&}vnc=v7n4{\&}sp=221}.
+
+\bibitem[Pandya and Parey(2013)]{Pandya2013}
+Yogesh Pandya and Anand Parey.
+\newblock {Failure path based modified gear mesh stiffness for spur gear pair
+  with tooth root crack}.
+\newblock \emph{Engineering Failure Analysis}, 27:\penalty0 286--296, 2013.
+\newblock ISSN 13506307.
+\newblock \doi{10.1016/j.engfailanal.2012.08.015}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.engfailanal.2012.08.015}.
+
+\bibitem[Patricks et~al.(2007)Patricks, Orchards, Zhang, Koelemay, Kacprzynski,
+  Ferri, and Vachtsevanos]{Patricks2007}
+Romano Patricks, Marcos~E. Orchards, Bin Zhang, Michael~D. Koelemay, Gregory~J.
+  Kacprzynski, Aldo~A. Ferri, and George~J. Vachtsevanos.
+\newblock {An integrated approach to helicopter planetary gear fault diagnosis
+  and failure prognosis}.
+\newblock \emph{AUTOTESTCON (Proceedings)}, pages 547--552, 2007.
+\newblock ISSN 1088-7725.
+\newblock \doi{10.1109/AUTEST.2007.4374266}.
+
+\bibitem[Saha and Goebel()]{Saha2007}
+B~Saha and K~Goebel.
+\newblock {Battery Data Set}.
+\newblock Technical report, NASA Ames Research Center, Moffett Field, CA.
+\newblock URL \url{http://ti.arc.nasa.gov/project/prognostic-data-repository}.
+
+\bibitem[Salameh et~al.(2018)Salameh, Cauet, Etien, Sakout, and
+  Rambault]{Salameh2018}
+Jack~P. Salameh, Sebastien Cauet, Erik Etien, Anas Sakout, and Laurent
+  Rambault.
+\newblock {Gearbox condition monitoring in wind turbines: A review}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 111:\penalty0
+  251--264, 2018.
+\newblock ISSN 10961216.
+\newblock \doi{10.1016/j.ymssp.2018.03.052}.
+\newblock URL \url{https://doi.org/10.1016/j.ymssp.2018.03.052}.
+
+\bibitem[Sch{\"{o}}n(2005)]{Schon2005}
+Peter~Paul Sch{\"{o}}n.
+\newblock {Unconditionally convergent time domain adaptive and time-frequency
+  techniques for epicyclic gearbox vibration}.
+\newblock \penalty0 (June), 2005.
+\newblock URL \url{http://www.up.ac.za/academic/mae/dsg/index.htm}.
+
+\bibitem[Urbanek et~al.(2012)Urbanek, Barszcz, Zimroz, and Antoni]{Urbanek2012}
+Jacek Urbanek, Tomasz Barszcz, Rados{\l}aw Zimroz, and Jerome Antoni.
+\newblock {Application of averaged instantaneous power spectrum for diagnostics
+  of machinery operating under non-stationary operational conditions}.
+\newblock \emph{Measurement: Journal of the International Measurement
+  Confederation}, 45\penalty0 (7):\penalty0 1782--1791, 2012.
+\newblock ISSN 02632241.
+\newblock \doi{10.1016/j.measurement.2012.04.006}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.measurement.2012.04.006}.
+
+\bibitem[Wan et~al.(2014)Wan, Cao, Zi, He, and He]{Wan2014}
+Zhiguo Wan, Hongrui Cao, Yanyang Zi, Wangpeng He, and Zhengjia He.
+\newblock {An improved time-varying mesh stiffness algorithm and dynamic
+  modeling of gear-rotor system with tooth root crack}.
+\newblock \emph{Engineering Failure Analysis}, 42:\penalty0 157--177, 2014.
+\newblock ISSN 13506307.
+\newblock \doi{10.1016/j.engfailanal.2014.04.005}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.engfailanal.2014.04.005}.
+
+\bibitem[Xia et~al.(2018)Xia, Dong, Xiao, Du, Pan, and Xi]{Xia2018}
+Tangbin Xia, Yifan Dong, Lei Xiao, Shichang Du, Ershun Pan, and Lifeng Xi.
+\newblock {Recent advances in prognostics and health management for advanced
+  manufacturing paradigms}.
+\newblock \emph{Reliability Engineering and System Safety}, 178\penalty0
+  (December 2017):\penalty0 255--268, 2018.
+\newblock ISSN 09518320.
+\newblock \doi{10.1016/j.ress.2018.06.021}.
+\newblock URL \url{https://doi.org/10.1016/j.ress.2018.06.021}.
+
+\bibitem[Zhao et~al.(2013)Zhao, Tian, and Zeng]{Zhao2013}
+Fuqiong Zhao, Zhigang Tian, and Yong Zeng.
+\newblock {Uncertainty quantification in gear remaining useful life prediction
+  through an integrated prognostics method}.
+\newblock \emph{IEEE Transactions on Reliability}, 62\penalty0 (1):\penalty0
+  146--159, 2013.
+\newblock ISSN 00189529.
+\newblock \doi{10.1109/TR.2013.2241216}.
+
+\bibitem[Zhao et~al.(2018)Zhao, Tian, Liang, and Xie]{Zhao2018a}
+Fuqiong Zhao, Zhigang Tian, Xihui Liang, and Mingjiang Xie.
+\newblock {An Integrated Prognostics Method for Failure Time Prediction of
+  Gears Subject to the Surface Wear Failure Mode}.
+\newblock \emph{IEEE Transactions on Reliability}, 67\penalty0 (1):\penalty0
+  316--327, 2018.
+\newblock ISSN 00189529.
+\newblock \doi{10.1109/TR.2017.2781147}.
+
+\bibitem[Zimroz et~al.(2014)Zimroz, Bartelmus, Barszcz, and
+  Urbanek]{Zimroz2014}
+Radoslaw Zimroz, Walter Bartelmus, Tomasz Barszcz, and Jacek Urbanek.
+\newblock {Diagnostics of bearings in presence of strong operating conditions
+  non-stationarity - A procedure of load-dependent features processing with
+  application to wind turbine bearings}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 46\penalty0
+  (1):\penalty0 16--27, 2014.
+\newblock ISSN 08883270.
+\newblock \doi{10.1016/j.ymssp.2013.09.010}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.ymssp.2013.09.010}.
+
+\end{thebibliography}
