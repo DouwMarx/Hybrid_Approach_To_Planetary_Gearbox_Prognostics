@@ -7,6 +7,28 @@ import os
 import json
 
 
+
+def file_paths():
+    """
+    Manages file paths
+    """
+    global run_dir_dir, mesh_dir, run_input_files_dir, tables_dir,fem_data_raw_dir
+    #Imports with pyMentat are finicky. For that reason, definitions.py cannot be imported and the code below is required.
+    pymentat_dir = os.path.dirname(os.path.abspath(__file__))
+    make_fem_data_dir = os.path.dirname(pymentat_dir)
+    src_data_dir = os.path.dirname(make_fem_data_dir)
+    src_dir = os.path.dirname(src_data_dir)
+    root_dir = os.path.dirname(src_dir)
+
+    run_dir_dir = os.path.join(root_dir,"models\\fem\\run_dir")
+    mesh_dir = os.path.join(root_dir, "models\\fem\\mesh")
+    tables_dir = os.path.join(root_dir, "models\\fem\\tables")
+    run_input_files_dir = os.path.join(root_dir, "models\\fem\\run_input_files")
+
+    fem_data_raw_dir = os.path.join(root_dir,"data\\external\\fem\\raw")
+    return
+
+
 # Preliminary Calculations
 ########################################################################################################################
 #name
@@ -29,8 +51,16 @@ def load_run_file():
         E,\
         v
 
+
+
+    file_paths() # Sets global variables for file paths
+
     run_file = py_get_string("run_file")
-    run_file_path = "..\\Run_Files\\" + run_file
+    run_file_path = run_input_files_dir + "\\" + run_file
+
+    print(" ")
+    print(" ")
+    print("Begin simulation, run file: ", run_file)
 
     # Open the input file
     with open(run_file_path) as json_file:
@@ -40,7 +70,7 @@ def load_run_file():
         ########################################################################################################################
         # Mesh
         ring_mesh = input["Mesh"]["Ring Mesh"]
-        planet_bdf_dir = input["Mesh"]["Planet Meshes"]
+        planet_meshes = input["Mesh"]["Planet Meshes"]
 
         # Loadcase
         total_rotation = input["Load Case"]["Total Rotation"] #The total angular distance rotated [rad]
@@ -62,11 +92,11 @@ def load_run_file():
 
         planet_axle_radius = input["Geometry"]["Planet Axle Radius"]  # Internal radius of the planet gear [mm]
 
-        #  Material
+        # Material Parameters
+        ##############################################################################################################
         E = input["Material"]["Young's Modulus"] # MPa
         v = input["Material"]["Poisson Ratio"]
     return
-
 
 def Required_Planet_Axle_Shear(applied_moment):
     """
@@ -78,10 +108,9 @@ def Required_Planet_Axle_Shear(applied_moment):
 
     return Shear_per_unit_length
 
-def Preliminary_Calculations(mesh_name):
+def Preliminary_Calculations():
     global model_name, R_carrier_axle_adjusted, applied_shear, motion_table, moment_table, n_loadstep
     model_name = run_file[0:-5]
-                #Ring mesh1  #Planet mesh1         #Crack length
 
     R_carrier_axle_adjusted = planet_carrier_pcr + move_planet_up  # Adjusted carrier axle height with similar effect as backlash
 
@@ -91,16 +120,16 @@ def Preliminary_Calculations(mesh_name):
     moment_table = "moment_" + str(n_increments)
     n_loadstep = n_increments*2 #+1 # Make sure there is a loadstep for each datapoint in the provided motion and moment tables
 
-
-# Py_Mentat code
+# Py_Mentat TVMS code
 ########################################################################################################################
 def import_ring(bdf_file):
     # Prevents log from opening up
     py_send("*prog_option import_nastran:show_log:off") 
-    
+
     # Import the planet mesh
-    string = '*import nastran ' + '"' + '..\\Mesh\\' + bdf_file + '.bdf"'
-    py_send(string)
+    planet_mesh = '*import nastran ' + '"' + mesh_dir + "\\" + bdf_file + '"'
+
+    py_send(planet_mesh)
     
     # Create a deformable contact body of the ring elements
     py_send("*add_contact_body_elements all_existing  *new_cbody mesh *contact_option state:solid *contact_option skip_structural:off ") 
@@ -143,8 +172,8 @@ def import_planet(bdf_file):
     py_send("*prog_option import_nastran:show_log:off") 
     
     # Import the planet mesh
-    string = '*import nastran ' + '"' + '..\\Mesh\\' + bdf_file + '.bdf"'
-    py_send(string)
+    planet_mesh = '*import nastran ' + '"' + mesh_dir + "\\" + planet_meshes + "\\" + bdf_file + '"'
+    py_send(planet_mesh)
     
     py_send("*select_elements_cbody Ring") # Select existing contact body elements so that the new ones can be selected
     
@@ -232,8 +261,10 @@ def import_planet(bdf_file):
     py_send("*apply_option edge_load_mode:length")  # Set edge shear force specification to be unit length
     py_send("*add_apply_edges all_selected")
 
-    py_send("*arrow_length 4") #Ensures the boundary conditions do not overpower the sketch
+    py_send("*arrow_length 2") #Ensures the boundary conditions do not overpower the sketch
     py_send("*redraw")
+
+    py_send("*fill_view")
     return
 
 
@@ -311,7 +342,7 @@ def geometrical_properties_and_element_types():
     return
 
 
-def job(name):
+def job(mesh_name):
     py_send("*new_job structural") # Start a new job
     py_send("*add_job_loadcases lcase1")  # Use loadcase 1
     py_send("*job_option strain:large")  # Use large strain formulation
@@ -348,15 +379,14 @@ def job(name):
     t_start = time.time()
     # Check if file is being modified
     while run == True:
-        fname = "..\\Run_Dir\\" + model_name + "_job1" + ".sts"
+        fname = run_dir_dir + "\\" + model_name + "_" + mesh_name[0:-4] + "_job1" + ".sts"
 
-        time.sleep(5)  # Check every 10 seconds if the simulation is done running
+        time.sleep(5)  # Check every 5 seconds if the simulation is done running
         t = os.path.getmtime(fname)
-
 
         if t_prev == t:
             run = False
-            print("Done with mesh ", name," in ",time.time()-t_start, " seconds")
+            print("Done with mesh ", model_name + " :" + mesh_name," in ",time.time()-t_start, " seconds")
         else:
             t_prev = t
 
@@ -364,52 +394,81 @@ def job(name):
 
 
 def tables():
-    """Creates tables from generated text files"""
+    """Creates marc tables from generated text files"""
     
-    py_send('*md_table_read_any "' + "..\\Tables\\" + motion_table + '.txt"') #Imports the motion table
+    py_send('*md_table_read_any "' + tables_dir + "\\" + motion_table + '.txt"') #Imports the motion table
     py_send('*set_md_table_type 1 time') # X axis of table is time
     
-    py_send('*md_table_read_any "' + "..\\Tables\\" + moment_table + '.txt"') #Imports the moment table
+    py_send('*md_table_read_any "' + tables_dir + "\\" + moment_table + '.txt"') #Imports the moment table
     py_send('*set_md_table_type 1 time') # X axis of table is time
     return()
 
-def create_model():
+def create_model(planet_mesh):
     py_send("*new_model yes") # Start a new model without saving
-    py_send('*set_save_formatted off *save_as_model "' + str(model_name) + '.mud" yes')
+    py_send('*set_save_formatted off *save_as_model "' + str(model_name) + "_" + planet_mesh[0:-4] + '.mud" yes')
     py_send("*select_clear")
     return
 
-def run_Post_Proc_TVMS():
-    py_send("*py_file_run Post_Proc_TVMS.py")
+
+#  Post Processing the TVMS simulation
+#####################################################################################
+def open_file(planet_mesh):
+    py_send("*post_open " + run_dir_dir + "\\" + model_name + "_" + planet_mesh[0:-4] + "_job1.t16")
+    py_send("*post_next")
+    py_send("*fill_view")
+
+def angle_pos_history_plot(planet_mesh):
+    "Makes a history plot of the angular displacement of the planet axle rigid body"
+    py_send("*history_collect 0 999999999 1")
+    py_send("*history_clear")
+    py_send("*prog_option history_plot:data_carrier_type_x:global")
+    py_send("*set_history_global_variable_x Time")
+
+    py_send("*prog_option history_plot:data_carrier_type_y:cbody")  # This refers to y axis
+    py_send("*set_history_data_carrier_cbody_y Carrier_Axle")
+    py_send("*set_history_cbody_variable_y Angle Pos")
+
+    py_send("*history_add_curve")
+    py_send("*history_fit")
+
+    py_send("*history_write " + fem_data_raw_dir + "\\" + planet_mesh[0:-4] + "_planet_angle" + ".txt yes")
+    return
+
+
+def post_processing(planet_mesh):
+    py_send("*post_close")
+    open_file(planet_mesh)
+    angle_pos_history_plot(planet_mesh)
+    return
 
 def main():
 
     load_run_file()
 
-    for crack_length in range(1):
+    for cracked_mesh in os.listdir(mesh_dir + "\\" + planet_meshes):
+        if cracked_mesh.endswith('.bdf'):
 
-        name = "m1_a" + str(crack_length) + "mm"
-        Preliminary_Calculations(name)
+            Preliminary_Calculations()
 
-        create_model()
+            create_model(cracked_mesh)
 
-        tables()
+            tables()
 
-        import_ring(ring_mesh)
+            import_ring(ring_mesh)
 
-        import_planet(name)
+            import_planet(cracked_mesh)
 
-        contact()
+            contact()
 
-        loadcase()
+            loadcase()
 
-        geometrical_properties_and_element_types()
+            geometrical_properties_and_element_types()
 
-        material_properties()
+            material_properties()
 
-        job(name)
+            job(cracked_mesh)
 
-        #run_Post_Proc_TVMS()
+            post_processing(cracked_mesh)
 
     return 
 
