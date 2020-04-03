@@ -1,13 +1,13 @@
 {
-        "Description": "Description and intention of the simulation",
+        "Description": "Description of the simulation",
         "TVMS Properties": {
                 "Mesh": {
-                        "Ring Mesh": "Ring_Marc_Mesh_0305",
-                        "Planet Meshes": "Test_Mesh_Iter"
+                        "Ring Mesh": "Ring_Marc_Mesh_0305.bdf",
+                        "Planet Meshes": "run_1_planet_meshes"
                 },
                 "Load Case": {
                         "Total Rotation": 0.1,
-                        "Number Of Loadsteps": 5,
+                        "Number Of Loadsteps": 4,
                         "Applied Moment": 4
                 },
                 "Contact": {

@@ -7,6 +7,8 @@ Created on Tue Mar 10 08:09:07 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
+import definitions
+import os
 
 plt.close("all")
 
@@ -54,19 +56,15 @@ class TVMS(object):
 
 n_increments = 10
 l = []
-for crack in range(1,4):
-    mesh_name = "m1_a" + str(crack) + "mm"
-    name = "Mr_1" + "..." + "Mp_" + mesh_name + "..." + "a_" + str(2.5) + "n_" + str(n_increments) + "_job1_angle"
-
-
-
-    obj = TVMS("..\\Results\\" + name + ".txt")
-
+data_dir = definitions.root + "\\data\\external\\fem\\raw"
+for crack_length_result in os.listdir(data_dir):
+    print(crack_length_result)
+    tvms_obj = TVMS(data_dir + "\\" + crack_length_result)
     #obj.plot_angle_measurements()
-    ideal,deflect = obj.measure_stiffness(Plot_Test=True)
+    ideal,deflect = tvms_obj.measure_stiffness(Plot_Test=True)
     l.append(deflect)
 
 #print(np.array(l))
 
-plt.figure()
-plt.contour(np.array(l))
+#plt.figure()
+#plt.contour(np.array(l))

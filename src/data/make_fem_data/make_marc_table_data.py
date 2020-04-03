@@ -7,12 +7,7 @@ Created on Fri Feb 28 14:27:42 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-#a = np.random.rand(9,2)
-
-#print(a)
-
-#np.savetxt("numpy_test.txt",a)
+import definitions
 
 
 class Marc_Tables(object):
@@ -30,9 +25,9 @@ class Marc_Tables(object):
              
         #Save the tables in a format that Marc can read
          if write == True:
-            motion_name = "..\\Tables\\motion_" + str(self.number_of_increments) + ".txt"
-            moment_name = "..\\Tables\\moment_" + str(self.number_of_increments) + ".txt"
-            time_name = "..\\Tables\\time_" + str(self.number_of_increments) + ".txt"
+            motion_name = definitions.root + "\\models\\fem\\tables\\motion_" + str(self.number_of_increments) + ".txt"
+            moment_name = definitions.root + "\\models\\fem\\tables\\moment_" + str(self.number_of_increments) + ".txt"
+            time_name = definitions.root + "\\models\\fem\\tables\\time_" + str(self.number_of_increments) + ".txt"
             np.savetxt(motion_name,self.motion)
             np.savetxt(moment_name,self.moment)
             np.savetxt(time_name,self.time)
@@ -100,7 +95,7 @@ class Marc_Tables(object):
         return
         
     
-table_generator = Marc_Tables(200, plot=True, write=True)
+table_generator = Marc_Tables(50, plot=True, write=True)
 
 
 
