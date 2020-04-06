@@ -1,0 +1,30 @@
+{
+        "Description": "correct geometry with Marc SE node limit constraints. ",
+        "TVMS Properties": {
+                "Mesh": {
+                        "Ring Mesh": "ring_course_correct_geom.bdf",
+                        "Planet Meshes": "run_2_planet_meshes"
+                },
+                "Load Case": {
+                        "Total Rotation": 2,
+                        "Number Of Loadsteps": 50,
+                        "Applied Moment": 1
+                },
+                "Contact": {
+                        "Friction Coefficient": 0.07
+                },
+                "Geometry": {
+                        "Gear Thickness": 12,
+                        "Move Planet Up": -0.05,
+                        "Rotate Planet": 82.09,
+                        "Planet Carrier Pitch Centre Radius": 43.32,
+                        "Ring Gear External Radius": 89.03,
+                        "Ring Gear Rotation": 55,
+                        "Planet Axle Radius": 14.185
+                },
+                "Material": {
+                        "Young's Modulus": 200,
+                        "Poisson Ratio": 0.3
+                }
+        }
+}

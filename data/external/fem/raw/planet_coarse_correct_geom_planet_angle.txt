@@ -1,0 +1,11 @@
+HISTORY PLOT
+lcase1
+
+Curve 1
+X : Time
+Y : Angle Pos Carrier_Axle
+
+       X              Y       
+------------------------------
+   0.000000e+00   0.000000e+00
+   1.000000e-02  -4.518417e-03

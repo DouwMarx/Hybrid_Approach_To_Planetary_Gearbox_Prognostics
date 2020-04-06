@@ -331,10 +331,12 @@ def geometrical_properties_and_element_types():
     py_send("*geometry_option assumedstrn:on") # Assumed strain active
     py_send("*add_geometry_elements all_existing") #Add this property to all of the geometry
     
-    #Element types
+    #Element types (This has to be changed depending on whether input mesh is first or second order elements
     #py_send("*element_type 124 all_existing") #Change all of the elements to plane stress full integration second order
-    py_send("*element_type 3 all_existing") # Plane stress full integration quad 1st order
-    py_send("*element_type 201 all_existing") # Plane stress full integration tri 1st order
+    #py_send("*element_type 3 all_existing") # Plane stress full integration quad 1st order
+    #py_send("*element_type 201 all_existing") # Plane stress full integration tri 1st order
+    py_send("*element_type 26 all_existing") # Plane stress full integration quad 2nd order
+    py_send("*element_type 124 all_existing") # Plane stress full integration tri 2ndorder
     
     #Flip elements to the appropriate orientation
     py_send("*check_upside_down") # Find and select the upside-down elements
