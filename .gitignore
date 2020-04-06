@@ -224,6 +224,8 @@ static
 #DATA 
 *.MAT
 *.XLSX
+!author_moddelling_comparisson.xlsx
+!
 *.pgdata
 *.h5
 
