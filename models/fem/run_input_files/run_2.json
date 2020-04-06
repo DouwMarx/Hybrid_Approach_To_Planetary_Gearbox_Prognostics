@@ -6,9 +6,9 @@
                         "Planet Meshes": "run_2_planet_meshes"
                 },
                 "Load Case": {
-                        "Total Rotation": 2,
-                        "Number Of Loadsteps": 50,
-                        "Applied Moment": 1
+                        "Total Rotation": 0.45,
+                        "Number Of Loadsteps": 500,
+                        "Applied Moment": 4
                 },
                 "Contact": {
                         "Friction Coefficient": 0.07
@@ -23,7 +23,7 @@
                         "Planet Axle Radius": 14.185
                 },
                 "Material": {
-                        "Young's Modulus": 200,
+                        "Young's Modulus": 200000,
                         "Poisson Ratio": 0.3
                 }
         }

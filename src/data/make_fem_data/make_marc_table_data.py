@@ -95,7 +95,7 @@ class Marc_Tables(object):
         return
         
     
-table_generator = Marc_Tables(50, plot=True, write=True)
+table_generator = Marc_Tables(20, plot=False, write=True)
 
 
 

@@ -22,7 +22,7 @@ class TVMS(object):
         return
     
     def read_text_file(self,file):
-        a = np.loadtxt(file, skiprows =9)
+        a = np.loadtxt(file, skiprows=9)
         return a
     
     def plot_angle_measurements(self):
@@ -41,7 +41,7 @@ class TVMS(object):
         i_even = np.arange(0,l-1,2).astype(int)
         i_odd = np.arange(1,l,2).astype(int)
         
-        ideal_angle = self.angle[i_odd][1:] #The actaul angle, toutching under no load
+        ideal_angle = self.angle[i_odd][1:]  # The actual angle, touching under no load
         deflected_angle = self.angle[i_even][1:]
 
         deflection_angle = deflected_angle - ideal_angle # The first value from no load to initial contact is discarded
@@ -49,18 +49,21 @@ class TVMS(object):
         if Plot_Test ==True:
             plt.figure()
             plt.scatter(ideal_angle, deflection_angle)
+            plt.plot(ideal_angle, deflection_angle)
             plt.xlabel("Ideal, Infinite stiffness angle")
             plt.ylabel("Angle of deflection")
 
         return ideal_angle,deflection_angle
 
+
 n_increments = 10
 l = []
 data_dir = definitions.root + "\\data\\external\\fem\\raw"
-for crack_length_result in os.listdir(data_dir):
+for crack_length_result in ["planet_coarse_correct_geom_planet_angle.txt"]: #os.listdir(data_dir):
     print(crack_length_result)
     tvms_obj = TVMS(data_dir + "\\" + crack_length_result)
     #obj.plot_angle_measurements()
+    tvms_obj.plot_angle_measurements()
     ideal,deflect = tvms_obj.measure_stiffness(Plot_Test=True)
     l.append(deflect)
 
