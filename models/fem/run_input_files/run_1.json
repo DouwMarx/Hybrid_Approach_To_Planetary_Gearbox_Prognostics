@@ -1,5 +1,5 @@
 {
-        "Description": "incorrect geometry, quick demo",
+        "Description": "correct geometry with Marc SE node limit constraints. ",
         "TVMS Properties": {
                 "Mesh": {
                         "Ring Mesh": "Ring_Marc_Mesh_0305.bdf",

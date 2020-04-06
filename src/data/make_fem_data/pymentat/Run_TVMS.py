@@ -75,7 +75,7 @@ def load_run_file():
         # Loadcase
         total_rotation = input["Load Case"]["Total Rotation"] #The total angular distance rotated [rad]
         n_increments = input["Load Case"]["Number Of Loadsteps"] #int
-        applied_moment = input["Load Case"]["Number Of Loadsteps"]  # Moment on planet gear [Nm]
+        applied_moment = input["Load Case"]["Applied Moment"]  # Moment on planet gear [Nm]
 
         # Contact
         friction_coefficient = input["Contact"]["Friction Coefficient"]  # Dynamic friction coefficient for lubricated Cast iron on Cast iron https://www.engineeringtoolbox.com/friction-coefficients-d_778.html
@@ -331,10 +331,12 @@ def geometrical_properties_and_element_types():
     py_send("*geometry_option assumedstrn:on") # Assumed strain active
     py_send("*add_geometry_elements all_existing") #Add this property to all of the geometry
     
-    #Element types
+    #Element types (This has to be changed depending on whether input mesh is first or second order elements
     #py_send("*element_type 124 all_existing") #Change all of the elements to plane stress full integration second order
-    py_send("*element_type 3 all_existing") # Plane stress full integration quad 1st order
-    py_send("*element_type 201 all_existing") # Plane stress full integration tri 1st order
+    #py_send("*element_type 3 all_existing") # Plane stress full integration quad 1st order
+    #py_send("*element_type 201 all_existing") # Plane stress full integration tri 1st order
+    py_send("*element_type 26 all_existing") # Plane stress full integration quad 2nd order
+    py_send("*element_type 124 all_existing") # Plane stress full integration tri 2ndorder
     
     #Flip elements to the appropriate orientation
     py_send("*check_upside_down") # Find and select the upside-down elements
@@ -348,8 +350,12 @@ def job(mesh_name):
     py_send("*job_option strain:large")  # Use large strain formulation
     py_send("*job_option dimen:pstress")  # Plane stress
     py_send("*job_contact_table ctable1")  # Set up initial contact to be contact table 1
-    py_send("*job_option follow:on")  # Enables follower force
+    #py_send("*job_option follow:on")  # Enables follower force
     py_send("*job_option friction_model:coul_stick_slip")  # Use Stick slip friction model
+    #py_send("*job_option contact_method: node_segment") # Use node to segnment contact
+    #py_send("*job_option friction_model:coulomb_bilinear") # Use bilinear coulomb (less accurate than stick slip)
+
+
 
     #Solver
     py_send("*update_job")
@@ -392,7 +398,6 @@ def job(mesh_name):
 
     return
 
-
 def tables():
     """Creates marc tables from generated text files"""
     
@@ -431,7 +436,7 @@ def angle_pos_history_plot(planet_mesh):
     py_send("*history_add_curve")
     py_send("*history_fit")
 
-    py_send("*history_write " + fem_data_raw_dir + "\\" + planet_mesh[0:-4] + "_planet_angle" + ".txt yes")
+    py_send("*history_write " + fem_data_raw_dir + "\\" + run_file + "_" + planet_mesh[0:-4] + "_planet_angle" + ".txt yes")
     return
 
 
