@@ -59,7 +59,7 @@ class TVMS(object):
 n_increments = 10
 l = []
 data_dir = definitions.root + "\\data\\external\\fem\\raw"
-for crack_length_result in ["planet_coarse_correct_geom_planet_angle.txt"]: #os.listdir(data_dir):
+for crack_length_result in ["run_2.json_planet_coarse_correct_geom_planet_angle.txt"]: #os.listdir(data_dir):
     print(crack_length_result)
     tvms_obj = TVMS(data_dir + "\\" + crack_length_result)
     #obj.plot_angle_measurements()

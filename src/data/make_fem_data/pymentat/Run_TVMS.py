@@ -436,7 +436,7 @@ def angle_pos_history_plot(planet_mesh):
     py_send("*history_add_curve")
     py_send("*history_fit")
 
-    py_send("*history_write " + fem_data_raw_dir + "\\" + run_file + "_" + planet_mesh[0:-4] + "_planet_angle" + ".txt yes")
+    py_send("*history_write " + fem_data_raw_dir + "\\" + run_file[0:-5] + "_" + planet_mesh[0:-4] + "_planet_angle" + ".txt yes")
     return
 
 
