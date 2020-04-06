@@ -217,6 +217,9 @@ static
 *.out
 *.sts
 *.t16
+*.t23
+*.t32
+*.t01
 *.mud
 *.bdf
 
