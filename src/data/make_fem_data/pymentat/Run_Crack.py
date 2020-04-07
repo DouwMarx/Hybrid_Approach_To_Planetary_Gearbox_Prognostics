@@ -39,7 +39,7 @@ planet_axle_radius = 29.32 / 2 #Internal radius of the planet gear [mm]
 
 
 #  Material
-E = 200  # MPa
+E = 200000  # MPa
 v = 0.3
 
 def import_planet(bdf_file):

@@ -3,6 +3,8 @@ See Marc user guide volume 1 and PyMentat Manual
 
 To code src/make_fem_results:
 
+
+For TVMS calculation
 -Open Marc Mentat
 -Select the current directory to be .../Hybrid_Approach_To_Planetary_Gearbox_Prognostics/models/fem/run_dir
 -Run the command *define run_file "specific_run.json" (where "specific_run.json" lists the parameters for a simulation). Note use of *.
