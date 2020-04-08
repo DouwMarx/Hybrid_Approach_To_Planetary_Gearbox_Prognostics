@@ -49,7 +49,7 @@ class TVMS(object):
         if Plot_Test ==True:
             plt.figure()
             plt.scatter(ideal_angle, deflection_angle)
-            plt.plot(ideal_angle, deflection_angle)
+            #plt.plot(ideal_angle, deflection_angle)
             plt.xlabel("Ideal, Infinite stiffness angle")
             plt.ylabel("Angle of deflection")
 

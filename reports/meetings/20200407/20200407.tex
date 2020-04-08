@@ -1,0 +1,132 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\newcommand{\norm}[1]{\lVert#1\rVert}
+
+
+%Information to be included in the title page:
+\title{Sample title}
+\author{Anonymous}
+\institute{Overleaf}
+\date{2014}
+
+
+
+\begin{document}
+
+\begin{frame}
+\frametitle{Agenda}
+\begin{itemize}
+	\item Toetsbank aanpassings 
+	\item Toetse voor staat van inperking.
+	\item Eksperimentele kwessies 
+	\item Voorstel vir pad vorentoe
+	\item FEM
+	\item Hibriede metode
+	\item Modellering kwessies
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Toetsbank aanpassings}
+\begin{itemize}
+	\item  Fotos
+	\item Planeetrat nou verwyderbaar met die hulp van 'n magneet en bietjie geduld. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Toetse voor staat van inperking}
+\begin{itemize}
+	\item  Kontrole toets met een heel planeet rat, gevarieerde las ($\therefore{spoed}$) 
+	\item Hidropuls masjien kan nie krake groei in vol-breedte rat in 'n redelike tyd nie (Geen bewyse tans dat dit enigsins kan nie).
+	\item Rat se breedte is halveer, geen-kraak kontrole met half-breedte rat is gedoen.
+	\item Toetse onderbreek voor ek kon begin met kraak groei. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Eksperimentele Kwessies}
+\begin{itemize}
+	\item Konstante "energie" toetse teenoor konstante rem(stelling) toetse.
+	\item Gedagte van half-breedte ratte in eksperiment gegewe dat son- en planeetrat steeds vol-breedte is. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Voorstel vir pad vorentoe}
+\begin{itemize}
+	\item Gebruik solank bestaande 2 datastelle (2 rat breedtes) by verskillende RPM om  te eksperimenteer met FEM en LMM.
+	\begin{itemize}
+	  \item Hoe verteenwoordigend is die fisika modelle van die werklikheid? 
+	\item Gegewe die vol-breedte data, kan mens 'n voorspelling maak van die breedte van die half-breedte rat uit die versnellingsresponsie? 
+	\end{itemize}
+
+	\item As ek weer kans kry on die lab te gebruik, gaan aan met aan met half-breedte rat toetse. As dit werk, maak al die ratte half-breedte vir meer toetse of probeer dieselfde toets met vol-breedte. 
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{FEM}
+\begin{itemize}
+\item Haakplekke 
+\begin{itemize}		
+	\item Rat geometrie
+	\item MSC lisensies
+ \item Tuks rekenaar nie bereikbaar met TeamViewer
+ \end{itemize}
+\item Stand van sake 	
+\begin{itemize}
+	\item Nuwe geometrie (soos gemeet) met flou mesh
+	\item Python kode met $"runfile.json"$
+	\item TVMS wat lyk soos iets
+	\item Kraakgroei werk, binnekort data wat TVMS as funksie van kraaklengte wys. 
+\end{itemize}	 
+
+
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Hibriede metode}
+Lys van publikasies .xlsx
+
+\begin{subequations}
+	\begin{alignat}{2}
+	&\!\min_{a}        &\qquad& \norm{f(a)}\label{eq:optProb}\\
+	&\text{subject to} &      &   b \geq a \geq 0 ,\label{eq:constraint1}
+	\end{alignat}
+\end{subequations}
+
+\begin{equation}
+	f(a) = features(LMM(FEM(a))) - calibration(features(measured))
+\end{equation}
+
+\begin{itemize}
+	\item features: Signal processing and feature extraction function (Returns feature vector)
+	\item LMM: Lumped Mass Model (Returns solution to LMM DE for given TVMS)
+	\item FEM: Surrogate model built on FEM data
+	\item calibration: Data driven model (trained on healthy data) that reconciles physics based model with realty. 
+	\item measured: Measured acceleration signal
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Modellering kwessies}
+\begin{itemize}
+	\item Wat is die maklikste manier vir my om die regte features the gebruik? Is daar Python sagteware? Patricks 2007 gebruik FEM en LMM om features te kry wat die sensitiefste is vir kraaklengte verandering.
+	\item Chaari LMM vs Bartelmus LMM
+	\item Raamwerk vir kode in plek. Beplan on te werk met bestaande data en te kyk of analitiese resultate soortgelyk is aan eksperimentele resultate
+\end{itemize}
+\end{frame}
+
+
+\end{document}

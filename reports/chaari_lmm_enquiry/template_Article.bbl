@@ -1,0 +1,28 @@
+\begin{thebibliography}{2}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Chaari et~al.(2006)Chaari, Fakhfakh, Hbaieb, Louati, and
+  Haddar]{Chaari2006}
+F.~Chaari, T.~Fakhfakh, R.~Hbaieb, J.~Louati, and M.~Haddar.
+\newblock {Influence of manufacturing errors on the dynamic behavior of
+  planetary gears}.
+\newblock \emph{International Journal of Advanced Manufacturing Technology},
+  27\penalty0 (7-8):\penalty0 738--746, 2006.
+\newblock ISSN 02683768.
+\newblock \doi{10.1007/s00170-004-2240-2}.
+
+\bibitem[Liao and K{\"{o}}ttig(2016)]{Liao2016}
+L.~Liao and F.~K{\"{o}}ttig.
+\newblock {A hybrid framework combining data-driven and model-based methods for
+  system remaining useful life prediction}.
+\newblock \emph{Applied Soft Computing}, 44:\penalty0 191--199, jul 2016.
+\newblock ISSN 15684946.
+\newblock \doi{10.1016/j.asoc.2016.03.013}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.asoc.2016.03.013
+  https://linkinghub.elsevier.com/retrieve/pii/S1568494616301223}.
+
+\end{thebibliography}
