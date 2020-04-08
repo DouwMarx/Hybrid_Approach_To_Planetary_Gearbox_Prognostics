@@ -1,0 +1,104 @@
+\documentclass[]{article}
+\usepackage{graphicx}
+\usepackage{float}
+%\usepackage{natbib}
+\usepackage{booktabs}
+%opening
+\title{Lumped mass model selection for use in a hybrid approach to prognostics in a planetary gearbox}
+\author{}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+%Import the natbib package and sets a bibliography  and citation styles
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+
+
+\begin{document}
+	
+	\maketitle
+	
+	%\begin{abstract}
+	
+	%\end{abstract}
+	A simple lumped mass model is required for a planetary gearbox with a single planet gear.
+	
+	\section*{Problem introduction}
+	
+	This research problem concerns a hybrid prognostics method for crack length prediction in planetary gearboxes. The word "hybrid" in this context refers to the combination of physics-based and data-driven models in order to exploit the benefits of the respective approaches.
+	
+	\begin{itemize}
+		\item The cracks are initiated in the root of a planet gear tooth and grown in an external fatigue test rig. The cracked gears can be inserted into the gearbox without gearbox disassembly.
+		\item The crack length in the gear tooth will be inferred from accelerometer readings.
+		\item A single planet gear will be used in the gearbox to simplify the problem.
+	\end{itemize}
+	
+	An appropriate lumped mass model is required for use in the physics-based component of the hybrid prognostics strategy. A finite element model is used to compute the time-varying mesh stiffness.
+	
+	
+	\section*{Experimental setup}
+	Figure \ref{f:overall} shows the experimental setup. The gearbox under investigation (2) (speed up)  is driven by another gearbox (3) (speed down), used to increase the input torque. A hydraulic pump (1) is used to apply a load to the gearbox.
+	
+	
+	\begin{figure}[H]
+		\hspace*{-2cm} 
+		\includegraphics[scale=0.12]{overall.pdf}
+		\caption{Experimental setup}
+		\label{f:overall}
+	\end{figure}
+	
+	The specifications for the gearbox are listed in Table \ref{t:Bonfiglioli}.
+	
+	\begin{table}[H]
+		\centering
+		\caption{Bonfiglioli 300-L 1-5.77-PC-V01 B·E specifications}
+		\label{t:Bonfiglioli}
+		\begin{tabular}{@{}lll@{}}
+			\toprule
+			Symbol & Meaning & Value \\ \midrule
+			$z_r$ & Number of ring gear teeth & $62$ \\
+			$z_s$ & Number of sun gear teeth & $13$ \\
+			$z_p$ & Number of planet gear teeth & $24$ \\
+			&  &  \\
+			$N$ & Number of planet gears & $3$ \\
+			&  &  \\
+			$R$& Gear Ratio  & $5.77$  \\\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	\vspace{1cm}
+	
+	Figure \ref{f:internals} shows the planet carrier with planet gears inside the gearbox housing.
+	
+	\begin{figure}[H]
+		\includegraphics[width=\linewidth, angle=180]{internals.jpg}
+		\caption{Planet carrier and planet gears}
+		\label{f:internals}
+	\end{figure}
+	
+	
+	
+	Figure \ref{f:inspect} shows that the planet gear is accessible for removal in order to further grow a tooth root crack in an external fatigue rig.
+	
+	\begin{figure}[H]
+		\includegraphics[width=\linewidth]{front.jpg}
+		\caption{Inspection hole}
+		\label{f:inspect}
+	\end{figure}
+	
+	
+	\section*{Choice of lumped mass model}
+	
+	An appropriate lumped mass model should be selected to be used in the prognostics framework.
+	
+	Given that that main focus of the research project is the hybrid methodology, a simple, easy to solve lumped mass model would be ideal. An 18 degree of freedom model as presented in \cite{Chaari2006} was implemented but proved to be difficult to solve. 
+	
+	
+	%\bibliographystyle{plainnat}
+	\bibliography{lib}
+	%\bibliographystyle{agsm}
+	
+	
+	
+\end{document}

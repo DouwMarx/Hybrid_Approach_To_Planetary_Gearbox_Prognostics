@@ -8,7 +8,6 @@ Zp = 24
 
 Bonfiglioli = proc.PG(Zr,Zs,Zp)
 
-# Load the appropriate dataset
 
 #Load the dataset object
 filename = "g1_p0_v10_0.pgdata"
