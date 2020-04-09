@@ -1,0 +1,56 @@
+{
+        "Description": "Use correct geometry mesh. However mesh is to course for crack growth",
+        "Mesh": {
+                        "Ring Mesh": "ring_course_correct_geom.bdf",
+                        "Planet Mesh": "planet_course_correct_geom.bdf"
+                },
+
+        "Geometry": {
+                        "Gear Thickness": 12,
+                        "Planet Carrier Pitch Centre Radius": 43.32,
+                        "Ring Gear External Radius": 89.03,
+                        "Planet Axle Radius": 14.185
+                },
+        "Material": {
+                        "Young's Modulus": 200000,
+                        "Poisson Ratio": 0.3
+                },
+
+        "TVMS Properties": {
+
+                "Load Case": {
+                        "Total Rotation": 0.45,
+                        "Number Of Loadsteps": 500,
+                        "Applied Moment": 4
+                },
+                "Contact": {
+                        "Friction Coefficient": 0.07
+                },
+                "Position Adjustment": {
+                        "Move Planet Up": -0.05,
+                        "Rotate Planet": 82.09,
+                        "Ring Gear Rotation": 55
+                }
+        },
+        "Crack Properties": {
+                "Load Case": {
+                        "Number Of Loadsteps":11,
+                        "Applied Load": 20
+                },
+                "Crack Initialization": {
+                        "Cut Start Coordinate": [2.8,68],
+                        "Cut End Coordinate": [2.3,67.75]
+                },
+                "Crack Growth Parameters": {
+                        "Fatigue Time Period": 2,
+                        "Minimum Crack Growth Increment": 0.3,
+                        "Maximum Crack Growth Increment": 0.7,
+                        "Paris Law Threshold": 0,
+                        "Paris Law C": 1e-09,
+                        "Paris Law m": 2.25
+                },
+                "Position Adjustment": {
+                        "Rotate Planet": 112.09
+                }
+        }
+}
