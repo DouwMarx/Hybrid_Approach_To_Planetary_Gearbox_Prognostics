@@ -1,54 +1,124 @@
 from py_mentat import *
 import time
-import math
+import json
+import os
 
 # Simulation Parameters
 ########################################################################################################################
 
 
-planet_bdf = "Planet_Marc_Mesh_0311.bdf"
+def file_paths():
+    """
+    Manages file paths
+    """
+    global run_dir_dir, mesh_dir, run_input_files_dir, tables_dir,fem_data_raw_dir
+    #Imports with pyMentat are finicky. For that reason, definitions.py cannot be imported and the code below is required.
+    pymentat_dir = os.path.dirname(os.path.abspath(__file__))
+    make_fem_data_dir = os.path.dirname(pymentat_dir)
+    src_data_dir = os.path.dirname(make_fem_data_dir)
+    src_dir = os.path.dirname(src_data_dir)
+    root_dir = os.path.dirname(src_dir)
 
-model_name = "crack_script_dev"
+    run_dir_dir = os.path.join(root_dir,"models\\fem\\run_dir")
+    mesh_dir = os.path.join(root_dir, "models\\fem\\mesh")
+    tables_dir = os.path.join(root_dir, "models\\fem\\tables")
+    run_input_files_dir = os.path.join(root_dir, "models\\fem\\run_input_files")
 
-
-
-# Loadcase
-time = 11        # Set the number of steps to be the same as the time
-n_steps = time
-Applied_Load = 20
-
-# Crack
-crack_start_coord = [2.8, 68.5] # x,y coordinate of crack initiator start
-crack_end_coord = [1.9, 68] # x,y coordinate of crack initiator start
-
-fatigue_time_period = 2 #[seconds]
-Maximum_Crack_Growth_Increment = 1 #[mm]
-Paris_Law_Threshold = 0 #[MPa sqrt(mm)]
-Paris_Law_C = 1e-09  # [m/(cycle*MPa m^0.5)]
-Paris_Law_m = 2.25
-
-Minimum_Growth_Increment = 0.5 #[mm]
-
-# Geometry
-gear_thickness = 12
+    fem_data_raw_dir = os.path.join(root_dir,"data\\external\\fem\\raw")
+    return
 
 
-R_carrier_axle_adjusted = 86.47 / 2 # Pitch Centre Radius of planet carrier axle
+# Preliminary Calculations
+########################################################################################################################
+#name
+def load_run_file():
+    """Loads the .json file that defines the simulation parameters an is later used to store the important simulation results"""
+    global run_file,\
+        total_rotation,\
+        ring_mesh, planet_mesh,\
+        n_increments,\
+        applied_load,\
+        friction_coefficient,\
+        gear_thickness,\
+        move_planet_up ,\
+        rotate_planet,\
+        planet_carrier_pcr,\
+        ring_gear_external_radius,\
+        ring_gear_rotation,\
+        planet_axle_radius,\
+        E,\
+        v,\
+        crack_start_coord ,\
+        crack_end_coord,\
+        fatigue_time_period ,\
+        maximum_crack_growth_increment , \
+        minimum_crack_growth_increment, \
+        paris_law_threshold ,\
+        paris_law_C ,\
+        paris_law_m,\
+        time
 
-planet_axle_radius = 29.32 / 2 #Internal radius of the planet gear [mm]
 
 
-#  Material
-E = 200000  # MPa
-v = 0.3
+    file_paths() # Sets global variables for file paths
+
+    run_file = py_get_string("run_file")
+    run_file_path = run_input_files_dir + "\\" + run_file
+
+    print(" ")
+    print(" ")
+    print("Begin crack simulation, run file: ", run_file)
+
+    # Open the input file
+    with open(run_file_path) as json_file:
+        input = json.load(json_file)
+
+        # Simulation Parameters
+        ########################################################################################################################
+        # Mesh
+        planet_mesh = input["Mesh"]["Planet Mesh"]
+
+        # Loadcase
+
+        n_increments = input["Crack Properties"]["Load Case"]["Number Of Loadsteps"]  # int , Uneven number
+        # Loadcase
+        time = n_increments  # Set the number of steps to be the same as the time
+
+        applied_load = input["Crack Properties"]["Load Case"]["Applied Load"]  # Cyclic edge force maximum magnitude [N/m]
+
+        # Geometry
+        gear_thickness = input["Geometry"]["Gear Thickness"]  # [mm]
+
+        rotate_planet = input["Crack Properties"]["Position Adjustment"]["Rotate Planet"]  # Angle the planet gear should be rotated [degrees]
+        planet_carrier_pcr = input["Geometry"]["Planet Carrier Pitch Centre Radius"]  # Pitch Centre Radius of planet carrier axle
+
+        planet_axle_radius = input["Geometry"]["Planet Axle Radius"]  # Internal radius of the planet gear [mm]
+
+        # Material Parameters
+        ##############################################################################################################
+        E = input["Material"]["Young's Modulus"] # MPa
+        v = input["Material"]["Poisson Ratio"]
+
+        # Crack
+        crack_start_coord = input["Crack Properties"]["Crack Initialization"]["Cut Start Coordinate"]  # x,y coordinate of crack initiator start
+        crack_end_coord = input["Crack Properties"]["Crack Initialization"]["Cut End Coordinate"]  # x,y coordinate of crack initiator end
+
+        fatigue_time_period = input["Crack Properties"]["Crack Growth Parameters"]["Fatigue Time Period"] #[s]
+        maximum_crack_growth_increment = input["Crack Properties"]["Crack Growth Parameters"]["Maximum Crack Growth Increment"] #[mm]
+        minimum_crack_growth_increment = input["Crack Properties"]["Crack Growth Parameters"]["Minimum Crack Growth Increment"]  # [mm]
+        paris_law_threshold = input["Crack Properties"]["Crack Growth Parameters"]["Maximum Crack Growth Increment"]  # [MPa sqrt(mm)]
+        paris_law_C = input["Crack Properties"]["Crack Growth Parameters"]["Paris Law C"]  # [m/(cycle*MPa m^0.5)]
+        paris_law_m = input["Crack Properties"]["Crack Growth Parameters"]["Paris Law m"]
+    return
+
 
 def import_planet(bdf_file):
     # Prevents log from opening up
     py_send("*prog_option import_nastran:show_log:off")
 
     # Import the planet mesh
-    string = '*import nastran ' + '"' + '..\\Mesh\\' + bdf_file + '"'
-    py_send(string)
+    mesh = '*import nastran ' + '"' + mesh_dir + "\\" + planet_mesh + '"'
+    py_send(mesh)
 
     # Create a deformable contact body of the planet elements
     py_send("*new_cbody mesh *contact_option state:solid *contact_option skip_structural:off")
@@ -56,8 +126,10 @@ def import_planet(bdf_file):
     py_send("*add_contact_body_elements all_existing")
 
 
-    # Add a fixed displacement constraint
-
+    py_send("*prog_option move:mode:rotate")
+    py_send("*set_move_centroid y " + str(planet_carrier_pcr)) # Rotate the planet about this point
+    py_send("*set_move_rotation z " + str(rotate_planet))
+    py_send("*move_elements all_existing")
     return
 
 def crack_init():
@@ -80,17 +152,17 @@ def crack_init():
     py_send("*crack_option crack_growth_dir:max_hoop_stress")  # Let crack grow in the direction of maximum hoop stress
     py_send("*crack_param fatigue_time_period " + str(fatigue_time_period)) # Time over which the stress intensities for growth is calculated
     py_send("*crack_option crack_growth_incr:scaled")  # User defined, Allows you to use high cycle fatigue
-    py_send("*crack_param crack_growth_incr " + str(Maximum_Crack_Growth_Increment))
+    py_send("*crack_param crack_growth_incr " + str(maximum_crack_growth_increment))
     py_send("*crack_option high_cycle_fatigue:on") # Make use of high cycle fatigue calculation
     py_send("*crack_option high_cycle_fatigue_meth:paris") # Use Paris Law
     py_send("*crack_option crack_growth_scale_meth:constant")  # Sets scale method to be constant rather than exponential or fatigue law
     py_send("*crack_option crack_growth_incr_meth:strs_int")  # Use stress intensity fator as basis for the paris law
     py_send("*crack_option crack_growth_paris_form:basic") # Make use of the basic paris law. Not square root Paris law
-    py_send("*crack_param paris_law_threshold_k " + str(Paris_Law_Threshold)) # Set the Paris Law threashold to be zero
-    py_send("*crack_param paris_law_c_k " + str(Paris_Law_C))
+    py_send("*crack_param paris_law_threshold_k " + str(paris_law_threshold)) # Set the Paris Law threashold to be zero
+    py_send("*crack_param paris_law_c_k " + str(paris_law_C))
 
-    py_send("*crack_param paris_law_m_k " + str(Paris_Law_m))
-    py_send("*crack_param min_growth_incr_k " + str(Minimum_Growth_Increment))
+    py_send("*crack_param paris_law_m_k " + str(paris_law_m))
+    py_send("*crack_param min_growth_incr_k " + str(minimum_crack_growth_increment))
 
 
     #  Add the crack initiator
@@ -106,7 +178,7 @@ def boundary_conditions():
     py_send("*select_clear")
     py_send("*select_method_point_dist")
     py_send("*set_select_distance " + str(planet_axle_radius * 1.01))
-    py_send("*select_nodes 0.000000000000e+00   " + str(R_carrier_axle_adjusted) + "  0.000000000000e+00") #Select all nodes on the inside edge of the gear
+    py_send("*select_nodes 0.000000000000e+00   " + str(planet_carrier_pcr) + "  0.000000000000e+00") #Select all nodes on the inside edge of the gear
 
     py_send("*new_apply *apply_type fixed_displacement")
     py_send("*apply_name Fixed_Axle")
@@ -133,7 +205,7 @@ def boundary_conditions():
 
     py_send("*new_apply *apply_type edge_load")
     py_send("*apply_name Meshing_Force")
-    py_send("*apply_dof p *apply_dof_value p " + str(Applied_Load))
+    py_send("*apply_dof p *apply_dof_value p " + str(applied_load))
     py_send("*apply_dof_table p table1")
     py_send("*add_apply_edges all_selected")
 
@@ -175,7 +247,7 @@ def loadcase():
     py_send("*new_loadcase *loadcase_type struc:static")  # Create a new loadcase
 
     py_send("*loadcase_value time " + str(time))  # Set the number of loadcase steps to be used
-    py_send("*loadcase_value nsteps " + str(n_steps))  # Set the number of loadcase steps to be used
+    py_send("*loadcase_value nsteps " + str(n_increments))  # Set the number of loadcase steps to be used
 
     return
 
@@ -194,7 +266,7 @@ def material_properties():
 def geometrical_properties_and_element_types():
     """Sets the geometrical properties and element types so that a 2D analysis can be performed"""
 
-    py_send("*new_geometry *geometry_type mech_three_shell")  # New plane stress geometry
+    py_send("*new_geometry *geometry_type mech_three_shell")  # New shell geometry
 
 
     py_send("*geometry_param thick " + str(gear_thickness))  # Set the thickness of the geometry
@@ -203,7 +275,12 @@ def geometrical_properties_and_element_types():
     # Element types
     # py_send("*element_type 124 all_existing") #Change all of the elements to plane stress full integration second order
     #  py_send("*element_type 3 all_existing")  # Plane stress full integration quad 1st order
-    py_send("*element_type 201 all_existing")  # Plane stress full integration tri 1st order
+    #py_send("*element_type 201 all_existing")  # Plane stress full integration tri 1st order
+    #py_send("*element_type 26 all_existing") # Plane stress full integration quad 2nd order
+    #py_send("*element_type 124 all_existing") # Plane stress full integration tri 2nd order
+    py_send("*element_type 139 all_existing")
+    py_send("*element_type 49 all_existing") #
+    py_send("*element_type 72 all_existing") #
 
     # Flip elements to the appropriate orientation
     py_send("*check_upside_down")  # Find and select the upside-down elements
@@ -230,7 +307,7 @@ def job():
     #py_send("*job_param nthreads 8")  # Use multiple threads for solution
 
     # Job results
-    py_send("*add_post_var von_mises")  # Add equivalent von mises stress
+    #py_send("*add_post_var von_mises")  # Add equivalent von mises stress
 
     # Run the Job
     py_send("*update_job")
@@ -269,23 +346,19 @@ def tables():
 
 def create_model():
     py_send("*new_model yes")  # Start a new model without saving
-    py_send('*set_save_formatted off *save_as_model "' + str(model_name) + '.mud" yes')
+    py_send('*set_save_formatted off *save_as_model "' + run_file[0:-5] + "_crack" + '.mud" yes')
     py_send("*select_clear")
     return
 
 
 def main():
+    load_run_file()
+
     create_model()
 
     tables()
 
-    #import_ring(ring_mesh)
-
-    import_planet(planet_bdf)
-
-    #contact()
-
-    #loadcase()
+    import_planet(planet_mesh)
 
     geometrical_properties_and_element_types()
 

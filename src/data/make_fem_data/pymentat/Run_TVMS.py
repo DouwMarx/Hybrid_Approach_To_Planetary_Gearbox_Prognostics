@@ -7,7 +7,6 @@ import os
 import json
 
 
-
 def file_paths():
     """
     Manages file paths
