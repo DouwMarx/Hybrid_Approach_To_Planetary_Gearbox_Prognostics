@@ -1,15 +1,15 @@
 {
-        "Description": "Try automated crack sim with old 2nd order mesh, quads only ",
+        "Description": "Use correct geometry mesh. However mesh is to course for crack growth",
         "Mesh": {
                         "Ring Mesh": "ring_course_correct_geom.bdf",
-                        "Planet Mesh": "Planet_Marc_Mesh_0305.bdf"
+                        "Planet Mesh": "planet_course_correct_geom.bdf"
                 },
 
         "Geometry": {
                         "Gear Thickness": 12,
                         "Planet Carrier Pitch Centre Radius": 43.32,
                         "Ring Gear External Radius": 89.03,
-                        "Planet Axle Radius": 16
+                        "Planet Axle Radius": 14.185
                 },
         "Material": {
                         "Young's Modulus": 200000,
@@ -38,19 +38,19 @@
                         "Applied Load": 20
                 },
                 "Crack Initialization": {
-                        "Cut Start Coordinate": [2.8,68.5],
-                        "Cut End Coordinate": [1.9,68]
+                        "Cut Start Coordinate": [2.8,68],
+                        "Cut End Coordinate": [2.3,67.75]
                 },
                 "Crack Growth Parameters": {
                         "Fatigue Time Period": 2,
-                        "Minimum Crack Growth Increment": 0.5,
-                        "Maximum Crack Growth Increment": 1,
+                        "Minimum Crack Growth Increment": 0.3,
+                        "Maximum Crack Growth Increment": 0.7,
                         "Paris Law Threshold": 0,
                         "Paris Law C": 1e-09,
                         "Paris Law m": 2.25
                 },
                 "Position Adjustment": {
-                        "Rotate Planet": 0
+                        "Rotate Planet": 112.09
                 }
         }
 }

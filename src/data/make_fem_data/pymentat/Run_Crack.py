@@ -1,4 +1,5 @@
 from py_mentat import *
+from py_post import *
 import time
 import json
 import os
@@ -82,7 +83,7 @@ def load_run_file():
 
         n_increments = input["Crack Properties"]["Load Case"]["Number Of Loadsteps"]  # int , Uneven number
         # Loadcase
-        time = n_increments  # Set the number of steps to be the same as the time
+        #time = n_increments  # Set the number of steps to be the same as the time
 
         applied_load = input["Crack Properties"]["Load Case"]["Applied Load"]  # Cyclic edge force maximum magnitude [N/m]
 
@@ -246,7 +247,7 @@ def loadcase():
     """Sets up the loadcase"""
     py_send("*new_loadcase *loadcase_type struc:static")  # Create a new loadcase
 
-    py_send("*loadcase_value time " + str(time))  # Set the number of loadcase steps to be used
+    py_send("*loadcase_value time " + str(n_increments))  # Set the number of loadcase steps to be used
     py_send("*loadcase_value nsteps " + str(n_increments))  # Set the number of loadcase steps to be used
 
     return
@@ -278,9 +279,15 @@ def geometrical_properties_and_element_types():
     #py_send("*element_type 201 all_existing")  # Plane stress full integration tri 1st order
     #py_send("*element_type 26 all_existing") # Plane stress full integration quad 2nd order
     #py_send("*element_type 124 all_existing") # Plane stress full integration tri 2nd order
-    py_send("*element_type 139 all_existing")
-    py_send("*element_type 49 all_existing") #
-    py_send("*element_type 72 all_existing") #
+    #py_send("*element_type 139 all_existing")
+    #py_send("*element_type 49 all_existing") # Second order tri thin shell
+
+
+    # Change tri elements to collapsed quads so that crack propagation by mesh splitting is possible
+    py_send("*set_change_class quad8")
+    py_send("*change_elements_class all_existing")
+
+    py_send("*element_type 22 all_existing") # Second order quad thick shell
 
     # Flip elements to the appropriate orientation
     py_send("*check_upside_down")  # Find and select the upside-down elements
@@ -313,14 +320,26 @@ def job():
     py_send("*update_job")
     py_send("*save_model")
     py_send("*submit_job 1 *monitor_job")
-    # print("sleep_start")
-    # time.sleep(20)
-    # print("sleep_end")
 
-    # py_send("*update_job")
-    # py_send("*post_open_default") #Open the default post file
-    # py_send("*post_monitor")
+
+    run = True
+    t_prev = 99
+    t_start = time.time()
+    # Check if file is being modified
+    while run == True:
+        fname = run_dir_dir + "\\" + run_file[0:-5] + "_crack" + "_job1" + ".sts"
+
+        time.sleep(5)  # Check every 5 seconds if the simulation is done running
+        t = os.path.getmtime(fname)
+
+        if t_prev == t:
+            run = False
+            print("Done with crack simulation ", run_file[0:-5]," in ", time.time()-t_start, " seconds")
+        else:
+            t_prev = t
+
     return
+
 
 
 def tables():
@@ -346,9 +365,65 @@ def tables():
 
 def create_model():
     py_send("*new_model yes")  # Start a new model without saving
-    py_send('*set_save_formatted off *save_as_model "' + run_file[0:-5] + "_crack" + '.mud" yes')
+    py_send('*set_save_formatted off *save_as_model "' + run_file[0:-5] + '_crack' + '.mud" yes')
     py_send("*select_clear")
     return
+
+
+name = 'crack_script_dev_job1'
+n_increm = 11
+
+def open_file():
+    py_send("*post_open " + run_dir_dir + "\\" + run_file[0:-5] + '_crack' + "_job1.t16")
+    py_send("*post_next")
+    py_send("*fill_view")
+    py_send("*zoom_box")
+    py_send("*zoom_box(2,0.472408,0.085288,0.525084,0.149254)")
+    return
+
+def extract_meshes():
+    p = post_open(run_dir_dir + "\\" + run_file[0:-5] + '_crack' + "_job1.t16")
+    ninc = p.increments()
+    p.moveto(ninc - 1)
+    n = p.global_values()
+    #for i in range(0, n):
+    #    print(p.global_value_label(i),p.global_value(i))
+
+
+    mesh_extract = True
+    new_dir = mesh_dir + "\\" + run_file[0:-5] + "_planet_meshes"
+
+
+    try:
+        # Create target Directory
+        os.mkdir(new_dir)
+
+    except FileExistsError:
+        print("run file ", run_file[0:-5], " already ran: Overwriting")
+
+
+    for i in range(n_increm):
+        ninc = p.increments()
+        p.moveto(ninc - i)
+        py_send("*post_next")
+        if mesh_extract == True:
+            crack_length = p.global_value(n-3)
+            print(p.global_value_label(n-3), crack_length)
+
+            py_send("*export nastran '" + new_dir + "\\" + str(crack_length) + "mm.bdf' yes")
+
+        mesh_extract = not mesh_extract
+    return
+
+
+
+def post():
+    #py_send("*post_close")
+
+    open_file()
+
+    extract_meshes()
+
 
 
 def main():
@@ -371,6 +446,8 @@ def main():
     loadcase()
 
     job()
+
+    post()
 
     return
 
