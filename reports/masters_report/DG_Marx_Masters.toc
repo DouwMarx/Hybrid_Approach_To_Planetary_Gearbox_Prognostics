@@ -35,29 +35,31 @@
 \contentsline {section}{\numberline {3.3}Lumped mass modelling of planetary gearbox}{45}{section.3.3}%
 \contentsline {chapter}{\numberline {4}Research scope}{49}{chapter.4}%
 \contentsline {section}{\numberline {4.1}Proposed Hybrid approach}{49}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Possible simplifications}{51}{section.4.2}%
-\contentsline {chapter}{\numberline {5}Discussion}{53}{chapter.5}%
-\contentsline {chapter}{\numberline {6}FEM}{54}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Simulation Objective}{54}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Simulation Overview}{54}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Crack growth simulation}{55}{section.6.3}%
-\contentsline {subsection}{\numberline {6.3.1}Summary}{55}{subsection.6.3.1}%
-\contentsline {subsection}{\numberline {6.3.2}Introduction}{55}{subsection.6.3.2}%
-\contentsline {subsection}{\numberline {6.3.3}Objectives}{55}{subsection.6.3.3}%
-\contentsline {subsection}{\numberline {6.3.4}Model}{55}{subsection.6.3.4}%
-\contentsline {subsection}{\numberline {6.3.5}Mesh}{55}{subsection.6.3.5}%
-\contentsline {subsection}{\numberline {6.3.6}Model details}{56}{subsection.6.3.6}%
-\contentsline {subsection}{\numberline {6.3.7}Material Data}{56}{subsection.6.3.7}%
-\contentsline {subsection}{\numberline {6.3.8}Loads and boundary conditions}{56}{subsection.6.3.8}%
-\contentsline {subsection}{\numberline {6.3.9}Results}{57}{subsection.6.3.9}%
-\contentsline {section}{\numberline {6.4}Gear mesh stiffness simulation}{57}{section.6.4}%
-\contentsline {section}{\numberline {6.5}}{57}{section.6.5}%
-\contentsline {section}{\numberline {6.6}title}{57}{section.6.6}%
-\contentsline {section}{\numberline {6.7}Chapter Abstract}{57}{section.6.7}%
+\contentsline {section}{\numberline {4.2}Bayesian state estimation problem}{51}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Possible simplifications}{57}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Discussion}{59}{chapter.5}%
+\contentsline {chapter}{\numberline {6}FEM}{60}{chapter.6}%
+\contentsline {section}{\numberline {6.1}not yet discussed}{60}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Simulation Objective}{60}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Simulation Overview}{60}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Crack growth simulation}{61}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}Summary}{61}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.2}Introduction}{61}{subsection.6.4.2}%
+\contentsline {subsection}{\numberline {6.4.3}Objectives}{61}{subsection.6.4.3}%
+\contentsline {subsection}{\numberline {6.4.4}Model}{61}{subsection.6.4.4}%
+\contentsline {subsection}{\numberline {6.4.5}Mesh}{61}{subsection.6.4.5}%
+\contentsline {subsection}{\numberline {6.4.6}Model details}{62}{subsection.6.4.6}%
+\contentsline {subsection}{\numberline {6.4.7}Material Data}{62}{subsection.6.4.7}%
+\contentsline {subsection}{\numberline {6.4.8}Loads and boundary conditions}{62}{subsection.6.4.8}%
+\contentsline {subsection}{\numberline {6.4.9}Results}{63}{subsection.6.4.9}%
+\contentsline {section}{\numberline {6.5}Gear mesh stiffness simulation}{63}{section.6.5}%
+\contentsline {section}{\numberline {6.6}}{63}{section.6.6}%
+\contentsline {section}{\numberline {6.7}title}{63}{section.6.7}%
+\contentsline {section}{\numberline {6.8}Chapter Abstract}{63}{section.6.8}%
 \renewcommand *\cftchappresnum {Chapter\ }
-\contentsline {chapter}{References}{58}{section.6.7}%
+\contentsline {chapter}{References}{64}{section.6.8}%
 \renewcommand *\cftchappresnum {Addendum\ }
-\contentsline {chapter}{\numberline {A}Gearbox test bench design considerations }{64}{appendix.A}%
-\contentsline {chapter}{\numberline {B}Simplifications made to implement the hybrid model}{66}{appendix.B}%
-\contentsline {chapter}{\numberline {C}Hybrid model variants and their applicability to planetary gearbox prognostics}{67}{appendix.C}%
-\contentsline {chapter}{\numberline {D}Particulars of gear geometry}{69}{appendix.D}%
+\contentsline {chapter}{\numberline {A}Gearbox test bench design considerations }{70}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Simplifications made to implement the hybrid model}{72}{appendix.B}%
+\contentsline {chapter}{\numberline {C}Hybrid model variants and their applicability to planetary gearbox prognostics}{73}{appendix.C}%
+\contentsline {chapter}{\numberline {D}Particulars of gear geometry}{75}{appendix.D}%
