@@ -1,60 +1,39 @@
-%%
-%%  Department of Electrical, Electronic and Computer Engineering
-%%  MEng Dissertation / PhD Thesis - Chapter 4
-%%  Copyright (C) 2011-2016 University of Pretoria.
-%%
-%% End of File.
+\documentclass[]{article}
+\usepackage{graphicx}
+\usepackage{float}
+%\usepackage{natbib}
+\usepackage{booktabs}
+%opening
+\title{Lumped mass model selection for use in a hybrid approach to prognostics in a planetary gearbox}
+\author{}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{listings}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+%\usepackage{aligned}
+
+%Import the natbib package and sets a bibliography  and citation styles
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+
+\setlength{\parskip}{1em}
 
 
-\chapter{Research scope} \label{S:Scope}
-
-This section proposes a hybrid approach for the prognostics of planetary gearboxes. The prognostics relates to the tooth root fatigue crack failure mode. 
-
-\section{Proposed Hybrid approach}
-
-Several variants of hybrid methods that could be applied to planetary gearbox prognostics are listed in Appendix \ref{A:Hybrid}. However, the applicability of a hybrid model that incorporates two data-driven models and a physics-based model to planetary gearbox condition monitoring will be investigated. This approach, as applied to Lithium-Ion battery prognostics by \cite{Liao2016} can also be viewed as being part of the "estimating the current or future health state using a data-driven model and then using a physics-based model to predict the RUL" subcategory of the hybrid method mentioned by \cite{Xia2018}.
-
-To quantify the effectiveness of the proposed hybrid methodology, the results from the hybrid method can be compared to two other approaches. Firstly, a particle filter-based approach where future measurements are not predicted and used. Secondly, the results can be compared to a purely data-driven model trained on the entire run to failure dataset. 
-
-Figure \ref{F:Hybrid} shows a schematic explaining the proposed hybrid method
-
-\begin{figure}[H]
-	\centering
-	\hspace*{-1cm}   
-	\includegraphics[width=1.2\textwidth]{Chapter_4/Images_4/Hybrid_approach_for_planetary_gears}
-	\caption{Proposed hybrid approach}
-	\label{F:Hybrid}
-\end{figure}
-
-Features are extracted from the vibration signal and is used as a measurement in the state estimation problem. To relate the real world vibration features with vibration features extracted from the LMM, a data-driven model will be constructed from healthy machine data. The simulation and experimental setup would both be run at different operating conditions to gather the data required to establish this mapping. The physics-based model used in the state estimation problem is the Paris crack propagation law that is implemented using a particle filter. The lumped mass model is therefore used as a part of the measurement model. Alternatively, parameters in the lumped mass model that are not exactly known, can also be inferred using the particle filter. The second data-driven model is used to predict future measurements to be used in the physics-based model. A support vector regression model or recurrent neural network can, for instance, be used to achieve this prediction. 
-
-As time progresses, the Paris law parameters will be learned and the measurement prediction model will grow more accurate as it gathers more data points. The first data-driven model that relates the measured vibration features to the LMM vibration features can also be updated with this new information that includes damage. The RUL of the gearbox, based on the crack length in the gear, can then be calculated with confidence bands.
-
-The anticipated scope of research required to validate the hybrid method is listed below.
-\begin{itemize}
-	\item Obtain a dataset by testing planet gears with increasingly long, machined tooth root cracks.
-	\item Find the most appropriate vibration features to be used as measurements for the hybrid model
-	\item Find the most appropriate model to use as the measurement model
-	\item Find the most appropriate model to use as the future measurement prediction model
-	\item Evaluate the effectiveness of the hybrid approach as compared to a purely data-driven approach
-\end{itemize}
-
-
-
-
-%The  proposed hybrid method can be considered a hybrid method from different perspectives. Firstly, the crack propagation law can be considered the physics based model. However, the lumped mass system system is an additional physics based model. The total hybrid model therefore constitutes the combination of two data driven models and two physics based models. 
-
-
+\begin{document}
+	
 \section{Bayesian state estimation problem}
 
 The Bayesian state estimation problem consists of two parts. During model based prediction, an a-priori estimate of a future state is obtained by projecting the current state though a system model that attempts to model the physical system. As a measurement containing information about the actual system state becomes available, the current belief of the system state, as expressed by the prediction step, can then be updated with the measurement information in the update step \citep{Fang2018}. 
 
 Consider the nonlinear discrete-time system:
 \begin{equation}
-	\left\{\begin{aligned}
-	x_{k+1} &=f\left(x_{k}\right)+w_{k} \\
-	y_{k} &=h\left(x_{k}\right)+v_{k}
-	\end{aligned}\right.
+\left\{\begin{aligned}
+x_{k+1} &=f\left(x_{k}\right)+w_{k} \\
+y_{k} &=h\left(x_{k}\right)+v_{k}
+\end{aligned}\right.
 \end{equation}
 
 \begin{itemize}
@@ -71,7 +50,7 @@ As there is uncertainty in the system state, it is modelled as a random vector. 
 
 The prediction step in the Bayesian state estimation problem is given as 
 \begin{equation}
-	p\left(x_{k} | \mathbb{Y}_{k-1}\right)=\int p\left(x_{k} | x_{k-1}\right) p\left(x_{k-1} | \mathbb{Y}_{k-1}\right) \mathrm{d} x_{k-1}
+p\left(x_{k} | \mathbb{Y}_{k-1}\right)=\int p\left(x_{k} | x_{k-1}\right) p\left(x_{k-1} | \mathbb{Y}_{k-1}\right) \mathrm{d} x_{k-1}
 \end{equation}
 
 where 
@@ -85,7 +64,7 @@ where
 The update step is given by
 
 \begin{equation}
-	p\left(x_{k} | \mathbb{Y}_{k}\right)=\frac{p\left(y_{k} | x_{k}\right) p\left(x_{k} | \mathbb{Y}_{k-1}\right)}{p\left(y_{k} | \mathbb{Y}_{k-1}\right)}
+p\left(x_{k} | \mathbb{Y}_{k}\right)=\frac{p\left(y_{k} | x_{k}\right) p\left(x_{k} | \mathbb{Y}_{k-1}\right)}{p\left(y_{k} | \mathbb{Y}_{k-1}\right)}
 \end{equation}
 
 where 
@@ -129,13 +108,13 @@ For the crack prediction problem there are numerous uncertainties in the process
 		\item Numerical accuracy of solution to LMM differential equation
 	\end{itemize}
 	\item Signal processing and Feature extraction
-		\begin{itemize}
+	\begin{itemize}
 		\item Uncertainty in time synchronous averaging techniques
-		\end{itemize}
+	\end{itemize}
 	\item Data driven mapping between physics based model and reality
-		\begin{itemize}
+	\begin{itemize}
 		\item Uncertainty that data driven model will no longer be applicable when the system state changes ie. the system is being in a less healthy state than when the data driven mapping was trained and thereby having a different mapping between the actual measurements and the physics based model.
-		\end{itemize}
+	\end{itemize}
 \end{itemize}
 
 
@@ -154,14 +133,14 @@ Problems associated with the computational cost  can be addressed by considering
 A typical crack growth estimation problem would have a state vector
 \begin{equation}
 x =	\left[\begin{array}{l}
-	a
-	\end{array}\right]
+a
+\end{array}\right]
 \end{equation}
 
 Where $a$ is the tooth root crack length. Important Paris Law parameters could also be incorporated in the state vector leading to a simultaneous state and parameter estimation problem.
 
 \begin{equation}
- x = \left[\begin{array}{l}
+x = \left[\begin{array}{l}
 a \\
 m\\
 C
@@ -205,42 +184,19 @@ where
 
 \textbf{3) Why is the Paris law used as state transition model $h$ rather than a data driven model of the FEM crack growth result. The FEM simulation could be more representative than the Paris law and is computed already to obtain the appropriate and mesh for TVMS calculation and the SIFs for crack growth.}
 
+
 \textbf{4) Instead of gradually gaining certainty about the Paris Law parameters, could you rather gradually gain certainty about which of the previously ran FEM crack simulations (with a design space of various Paris law parameters) are the most relevant given the measurements?. This could also be formulated as an optimisation problem: Given the measurements to date, which of the crack growth FEM simulations and LMM parameters do I expect to give to most accurate RUL prediction?}
 
 \textbf{5) Seeing that crack growth is a rather slow process, could it make sense to directly incorporate the FEM inside the state transition model $f$ and evaluate the FEM at each time step? Could the model uncertainty be dominated by the uncertainty of a single parameter rendering a certain sophisticated model section meaningless?}
 
 \textbf{6) Why not track the RUL as health state directly rather than the crack length? In fact, $x_{k}$ could either be the crack length, mesh stiffness or RUL? RUL would be a convenient health state as this is the variable we are ultimately looking for. Furthermore, the Ground truth RUL could possibly be more easily measureable (using the Hydropuls machine cycle counter) while measuring crack length with the microscope leads to ground truth measurement error.}
-	
+
 
 The measurement function $h$ would consist of a TVMS FEM simulation surrogate model feeding into a lumped mass model. Finally features would be computed from the computed LMM response. The measurement noise associated with $h$ would be assumed Gaussian. 
 
 \textbf{7) Would it make sense to apply another Bayesian updating procedure on the measurement model parameters using healthy data to estimate the measurement model parameters? (Rather than using the healthy data for a data driven mapping between the physics based model and reality) This would also give measurement uncertainty that can be used in the state estimation problem.}
 
-
-
-
-\section{Possible simplifications}
-This section lists simplifications that could help focus the research on the feasibility of the hybrid approach rather than other closely related fields that would contribute to the complexity of the problem. Possible simplifications include:
-
-\begin{itemize}
-	\item Make use of a regular fixed axis gearbox
-	\item Build a data-driven, black-box measurement model that directly maps crack length to vibration features based on experimental data. Although this approach will not be particularly valuable from a condition monitoring perspective (due to the requirement of run-to-failure data), this method could provide a simpler way of testing the value of future measurement prediction, without having to delve too deep into the modelling and physics of the problem.  
-	\item \cite{Smidt2009} shows that increased sensitivity to planet gear damage is observed when measuring a gearbox that makes use of a single planet gear. Tests can, therefore, be conducted using a single planet gear to reduce smearing of the frequency spectrum due to modulation.
-	\item Make use of an analytical gear mesh stiffness model rather than a FEM model. The additional accuracy gained by using a FEM model could likely be meaningless, considering that other components of the overall model be comparatively much less accurate.
-	\item  It is more difficult to diagnose faults on planet gears seeing that they perform the most complicated motion, namely rotating around their own centres and revolving around the centre of the sun gear \citep{Lei2014}. Therefore, the investigation can be simplified by introducing faults in the sun or ring gear tooth rather than the planet gears. However, due to how the gearbox is constructed and the current availability of parts, this investigation would be significantly more expensive. 
-	\item Make use of the extended Kalman filter rather than the Bootstrap filter in the state estimation problem. This will speed up the computation time significantly and thereby simplify troubleshooting.  
-	\item Make use of time-synchronous averaging techniques to extract vibration features rather than time-frequency techniques that require sophisticated filtering algorithms. 
-	\item Conduct all tests at constant load and speed.
-	\item Make use of a simpler dynamics model with 6 DOF's by Bartelmus. 
-	\item Make use of the basic Paris law equations without the addition of factors such as crack closure retardation. 
-	\item Use the tooth mesh stiffness as the damage state in the model. State tracking is then performed on the mesh stiffness and not the crack length. The mesh stiffness at the critical crack length is considered to be the point of failure.
-\end{itemize}
-
-
-%A potential pitfall of this method is the assumption that the data-driven measurement model is applicable in an unhealthy operating condition even though it will be trained on healthy data only.
-
-%At this stage the whole business rests on whether the response from the dynamic model can actually match reality to some extent and whether we could perhaps update its parameters with Bayesian state estimateion as well 
-
-%The hybrid methodology is well suited to the prediction of root crack growth seeing that the problem is well understood. 
-
-%The hybrid approach should bring something new to the table particularly for planetary gearboxes. And it perhaps does. which can serve as a motivation to not make the simplification of applying it to fixed axis gearboxes first.
+	
+	
+	
+\end{document}
