@@ -56,18 +56,10 @@ class TVMS(object):
         return ideal_angle,deflection_angle
 
 
-n_increments = 10
-l = []
 data_dir = definitions.root + "\\data\\external\\fem\\raw"
 for crack_length_result in ["run_2.json_planet_coarse_correct_geom_planet_angle.txt"]: #os.listdir(data_dir):
     print(crack_length_result)
     tvms_obj = TVMS(data_dir + "\\" + crack_length_result)
-    #obj.plot_angle_measurements()
+
     tvms_obj.plot_angle_measurements()
-    ideal,deflect = tvms_obj.measure_stiffness(Plot_Test=True)
-    l.append(deflect)
-
-#print(np.array(l))
-
-#plt.figure()
-#plt.contour(np.array(l))
+    ideal, deflect = tvms_obj.measure_stiffness(Plot_Test=True)
