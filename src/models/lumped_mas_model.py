@@ -846,7 +846,7 @@ class DE_Integration(object):
         k = self.PG.K_b + self.PG.K_e(t) - self.PG.Omega_c**2 * self.PG.K_Omega
 
 
-        c = self.PG.Omega_c*self.PG.G +  (0.03*m + 0.03*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
+        c = self.PG.Omega_c*self.PG.G +  (1e12*m + 1e12*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
                                                         # that the DE integration converges
 
         F = self.PG.T
@@ -868,30 +868,7 @@ class DE_Integration(object):
 
         return E, Q
 
-    def X_dot(self,X, t):
-        """
-        This first order system of differential equations to be solved
-
-        Parameters
-        ----------
-        X  : 2x(9+3xN) x 1 numpy array
-             The state of the system
-
-        t   : float
-              Time [s]
-
-        Returns
-        -------
-        X_dot  : 2x(9+3xN) x 1 numpy array
-                Derivative of X at a given time step
-
-        """
-        E_mat, Q_vec = self.E_Q(t)
-
-        X_dot = np.dot(E_mat,np.array([X]).T) + Q_vec
-        return X_dot[:,0]
-
-    def X_dot_new(self, Xu, t):
+    def X_dot(self, Xu, t):
 
         Xk = np.zeros(6)
 
@@ -964,97 +941,9 @@ class DE_Integration(object):
         return x,y
 
     def Run_Integration(self, X_0, t):
-        #sol = inter.odeint(self.X_dot, X_0, t,full_output=1)
-        sol = inter.odeint(self.X_dot_new, X_0, t)#,full_output=1)
-        return sol
-
-
-class DE_int(object):
-    """
-    This class is used to create mass matrix objects
-    """
-
-    def __init__(self, k1,k2,m1,m2):
-        """Initializes the DE integration object
-
-        Parameters
-        ----------
-        PG_obj: A Planetary gearbox object
-            """
-
-        self.k1 = k1
-        self.k2 = k2
-        self.m1 = m1
-        self.m2 = m2
-
-    def E_Q(self,t):
-        """
-        Converts the second order differential equation to first order (E matrix and Q vector)
-
-        Parameters
-        ----------
-        t  : Float
-             Time
-
-        Returns
-        -------
-        E  : 2x(9+3xN) x 2x(9+3xN) Numpy array
-
-        Based on Runge-kutta notes
-
-        """
-        m = np.array([[self.m1, 0],[0, self.m2]])
-        k = -np.array([[-self.k1-self.k2,self.k2],[self.k2,-self.k2]])
-        c = np.zeros((2,2))
-
-
-        F = np.zeros((2,1))
-
-        c_over_m = np.linalg.solve(m, c)
-        k_over_m = np.linalg.solve(m, k)
-        F_over_m = np.linalg.solve(m, F)
-
-        dim = 2*(2) # Matrix dimension
-        half_dim = int(dim/2)
-
-        E = np.zeros((dim, dim))
-        E[half_dim:, 0:half_dim] = -k_over_m
-        E[half_dim:, half_dim:] = -c_over_m
-        E[0:half_dim, half_dim:] = np.eye(half_dim)
-
-        Q = np.zeros((dim, 1))
-        Q[half_dim:, 0] = F_over_m[:,0]
-
-        return E, Q
-
-    def X_dot(self,X, t):
-        """
-        This first order system of differential equations to be solved
-
-        Parameters
-        ----------
-        X  : 2x(9+3xN) x 1 numpy array
-             The state of the system
-
-        t   : float
-              Time [s]
-
-        Returns
-        -------
-        X_dot  : 2x(9+3xN) x 1 numpy array
-                Derivative of X at a given time step
-
-        """
-        E_mat, Q_vec = self.E_Q(t)
-
-        X_dot = np.dot(E_mat,np.array([X]).T) + Q_vec
-        return X_dot[:,0]
-
-
-    def Run_Integration(self, X_0, t):
-        #sol = inter.odeint(self.X_dot, X_0, t,full_output=1)
         sol = inter.odeint(self.X_dot, X_0, t)#,full_output=1)
         return sol
+
 
 
 class Planetary_Gear(object):
