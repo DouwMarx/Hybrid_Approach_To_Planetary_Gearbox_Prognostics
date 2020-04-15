@@ -178,7 +178,7 @@ class K_b(object):
     """
 
     def __init__(self, PG_obj):
-        """Initializes the gyroscopic matrix object
+        """Initializes the bearing stiffness matrix object
 
         Parameters
         ----------
@@ -186,10 +186,11 @@ class K_b(object):
             """
 
         self.k_p = PG_obj.k_atr[2] # The bearing stiffness taken for all bearings
+        #self.kru
         self.PG = PG_obj
         self.K_b_mat = self.K_b()
 
-    def K_jb(self):
+    def K_jb(self, gear):
         '''
         A single 3x3 component on the diagonal of the bearing stiffness matrix
 
@@ -206,9 +207,11 @@ class K_b(object):
         K_jb[0, 0] = self.k_p
         K_jb[1, 1] = self.k_p
 
-        #K_jb[2, 2] = self.k_p
+        if gear == "ring":
+            K_jb[2, 2] = 10e9  # self.k_p  #  The ring resists rotational motion
 
-        #K_jb[2, 2] = self.k_p
+        else:
+            K_jb[2, 2] = 0         # Planet and sun gears are free to rotate
 
         return K_jb
 
@@ -221,17 +224,10 @@ class K_b(object):
         G    :3x(3+N) x 3x(3+N) numpy array
         '''
         K_b = np.zeros((self.PG.N*3+9, self.PG.N*3+9))
-        #for b in range(3):
-        for b in range(1,3): #because all Kcb is zero ?
-            lb = 3 * b
-            ub = 3 * (b + 1)
-            K_b[lb:ub, lb:ub] = self.K_jb()
 
-        # K_b[0, 0] = 10e9
-        # K_b[1, 1] = 10e9
-        # K_b[2, 2] = 10e9
-
-        K_b[5,5] = 10e9  #  Set the torsional stiffness of the ring gear
+        K_b[0:3, 0:3] = self.K_jb("carrier")
+        K_b[3:6, 3:6] = self.K_jb("ring")
+        K_b[6:9, 6:9] = self.K_jb("sun")
 
         return K_b
 
@@ -267,13 +263,9 @@ class K_e(object):
         k_sp: float
               The sun-planet mesh stiffness at a specific point in time
         """
-        GMF_sp = 300
-        #two = 2*self.k_atr[0]
-        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp,0.7)+1)
-
-
-        #c = t[1]
-        #return (c * two + (1-c) * self.k_atr[0])
+        #GMF_sp = 500
+        return self.k_atr[0]# + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
+        #return self.k_atr[0]
 
     def k_rp(self,t):
         """
@@ -289,14 +281,9 @@ class K_e(object):
         k_sp: float
               The sun-planet mesh stiffness at a specific point in time
         """
-        GMF_rp = 300
-        #two = 2*self.k_atr[0]
-        return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp,0.7)+1) #Note that the duty cycle is set like this now
-
-
-        c = t[0]
-        #return (c*two + (1-c)*self.k_atr[0])
-
+        #GMF_rp = 300
+        #return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.7)+1) #Note that the duty cycle is set like this now
+        return self.k_atr[1]
 
     def Kp_s2(self, p, t):
         """
@@ -326,7 +313,7 @@ class K_e(object):
 
         Kp_s2[1, 0] = -np.cos(phi_sp)*np.sin(alpha_s)
         Kp_s2[1, 1] = -np.cos(phi_sp) * np.cos(alpha_s)
-        Kp_s2[1, 2] = -np.cos(phi_sp)   #This term is negative in Chaari but positive in Parker 1999
+        Kp_s2[1, 2] = np.cos(phi_sp)   #This term is negative in Chaari but positive in Parker 1999
 
         Kp_s2[2, 0] = -np.sin(alpha_s)
         Kp_s2[2, 1] = -np.cos(alpha_s)
@@ -463,14 +450,14 @@ class K_e(object):
         Kp_r1 = np.zeros((3, 3))
 
         Kp_r1[0, 0] = np.sin(phi_rp)**2
-        Kp_r1[0, 1] = -np.cos(phi_rp) * np.cos(alpha_r)
-        Kp_r1[0, 2] = np.sin(phi_rp)   # This term is positvie in Chaari and negative in Parker
+        Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)# in Parker #-np.cos(phi_rp) * np.cos(alpha_r)
+        Kp_r1[0, 2] = -np.sin(phi_rp)   # This term is positvie in Chaari and negative in Parker
 
-        Kp_r1[1, 0] = -np.cos(phi_rp)*np.cos(alpha_r)
+        Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp) #In Parker
         Kp_r1[1, 1] = np.cos(phi_rp)**2
         Kp_r1[1, 2] = np.cos(phi_rp)
 
-        Kp_r1[2, 0] = np.sin(phi_rp) # This term is positvie in Chaari and negative in Parker
+        Kp_r1[2, 0] = -np.sin(phi_rp) # This term is positvie in Chaari and negative in Parker
         Kp_r1[2, 1] = np.cos(phi_rp)
         Kp_r1[2, 2] = 1
 
@@ -564,8 +551,6 @@ class K_e(object):
         """
 
         alpha_s = self.PG.alpha_s
-
-        Kp_s3 = np.zeros((3, 3))
 
         Kp_s3 = np.zeros((3, 3))
 
@@ -689,7 +674,7 @@ class K_e(object):
 
     def Off_Diag(self, t):
         """
-        Creates off diagonal rectangular sections for stiffness matrix
+        Creates off diagonal rectangular sections (lower left) for stiffness matrix
 
         Parameters
         ----------
@@ -700,14 +685,23 @@ class K_e(object):
         -------
         Cols   : (3xN)x9 numpy array
         """
-        Cols = np.zeros((3*self.PG.N,9))
+        #Cols = np.zeros((3*self.PG.N, 9))
 
-        for p in range(1,self.PG.N+1):
-            Cols[3*(p-1):3*(p+1-1), 0:3] = self.Kp_c2(p, t)
-            Cols[3 * (p - 1):3 * (p + 1 - 1), 3:6] = self.Kp_r2(p, t)
-            Cols[3 * (p - 1):3 * (p + 1 - 1), 6:9] = self.Kp_s2(p, t)
+        #for p in range(1,self.PG.N+1):
+            #Cols[3 * (p - 1):3 * (p +1 - 1), 0:3] = self.Kp_c2(p, t)
+            #Cols[3 * (p - 1):3 * (p + 1 - 1), 3:6] = self.Kp_r2(p, t)
+            #Cols[3 * (p - 1):3 * (p + 1 - 1), 6:9] = self.Kp_s2(p, t)
 
-        return Cols
+        #return Cols
+
+        rect = np.zeros((9,self.PG.N*3))
+
+        for p in range(1,self.PG.N +1):
+            rect[0:3,(p-1)*3:p*3] = self.Kp_c2(p, t)
+            rect[3:6, (p - 1) * 3:p * 3] = self.Kp_r2(p, t)
+            rect[6:9, (p - 1) * 3:p * 3] = self.Kp_s2(p, t)
+
+        return rect
 
     def Right_Bottom(self, t):
         """
@@ -768,9 +762,13 @@ class K_e(object):
         Ke[0:9,0:9] = self.Left_Top(t)
         Ke[9:, 9:] = self.Right_Bottom(t)
 
+        #off_diag = self.Off_Diag(t)
+        #Ke[9:, 0:9] = off_diag
+        #Ke[0:9, 9:] = off_diag.T
+
         off_diag = self.Off_Diag(t)
-        Ke[9:, 0:9] = off_diag
-        Ke[0:9, 9:] = off_diag.T
+        Ke[9:, 0:9] = off_diag.T
+        Ke[0:9, 9:] = off_diag
         return Ke
 
 
@@ -810,7 +808,6 @@ class T(object):
 
         return T_vec
 
-
 class DE_Integration(object):
     """
     This class is used to create mass matrix objects
@@ -846,7 +843,7 @@ class DE_Integration(object):
         k = self.PG.K_b + self.PG.K_e(t) - self.PG.Omega_c**2 * self.PG.K_Omega
 
 
-        c = self.PG.Omega_c*self.PG.G +  (1e12*m + 1e12*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
+        c = self.PG.Omega_c*self.PG.G +  (0.03*m + 0.03*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
                                                         # that the DE integration converges
 
         F = self.PG.T
@@ -868,15 +865,16 @@ class DE_Integration(object):
 
         return E, Q
 
-    def X_dot(self, Xu, t):
+    def X_dot(self, X, t):
 
-        Xk = np.zeros(6)
+        #Xk = np.zeros(6)
 
         E, Q = self.E_Q(t)
-        Euk, Euu, Qu = self.Prepare_E_and_Q(E, Q)
-        #print(np.max(np.linalg.eigvals(Euu)))
+        #Euk, Euu, Qu = self.Prepare_E_and_Q(E, Q)
 
-        X_dot = np.dot(Euk, np.array([Xk]).T) + np.dot(Euu, np.array([Xu]).T) + Qu
+        X_dot = np.dot(E, np.array([X]).T) + Q
+
+        #X_dot = np.dot(Euk, np.array([Xk]).T) + np.dot(Euu, np.array([Xu]).T) + Qu
 
         return(X_dot[:,0])
 
@@ -903,7 +901,6 @@ class DE_Integration(object):
 
         return Euk, Euu, Qu
 
-
     def X_0(self):
         """
         Used to easily set up the initial conditions for differntial equation integration
@@ -918,38 +915,29 @@ class DE_Integration(object):
                Initial conditions
 
         """
-        dim = 2 * (9 + 3 * self.PG.N - 3)  # Matrix dimension
+        dim = 2 * (9 + 3 * self.PG.N)  # Matrix dimension
         #X_0 = np.zeros((dim, 1))
         X_0 = np.zeros(dim)
 
         #X_0[6] = 0.00000001
         #X_0[5] = 0.00000001
 
-        for i in range(self.PG.N):
-            x, y = self.Initialplanet(i+1)
-            X_0[6+3*i] = x
-            X_0[6+3*i+1] = y
-            X_0[6+3*i+1] = 0.016*self.PG.phi_p_list[i]
-
+        #for i in range(self.PG.N):
+         #   x, y = self.Initialplanet(i+1)
+         #   X_0[6+3*i] = x
+          #  X_0[6+3*i+1] = y
+          #  X_0[6+3*i+1] = 0.016*self.PG.phi_p_list[i]
 
         return X_0
-
-    def Initialplanet(self,p):
-        R = 0.024 + 0.016 # Initial radial distance of planets from origin sun plus planet radius
-        x = np.cos(self.PG.phi_p_list[p-1])*R
-        y = np.sin(self.PG.phi_p_list[p-1])*R
-        return x,y
 
     def Run_Integration(self, X_0, t):
         sol = inter.odeint(self.X_dot, X_0, t)#,full_output=1)
         return sol
 
-
-
 class Planetary_Gear(object):
 
     def __init__(self, N, M_atr, Geom_atr,k_atr,Opp_atr):
-        """Initializes the gyroscopic matrix object
+        """Initializes the planetary gear  object
 
         Parameters
         ----------
@@ -977,8 +965,8 @@ class Planetary_Gear(object):
 
         self.k_atr = k_atr        # The stiffness attributes of the planetary gearbox
 
-        if np.shape(M_atr)[1]-3!=self.N:
-            raise ValueError( "Number of planet gears not in agreement with Mass attribute array size")
+        if np.shape(M_atr)[1]-3 != self.N:
+            raise ValueError("Number of planet gears not in agreement with Mass attribute array size")
 
         self.matrix_shape = 3 * (3 + self.N)  # The dimension of matrices such as M,G,K
 
@@ -1019,71 +1007,3 @@ class Planetary_Gear(object):
         out = phi_p + self.alpha_r
         return out
 
-class Modal(object):
-    """
-    Used to perform modal analysis
-    """
-
-    def __init__(self, PG_obj):
-        """Initializes the DE integration object
-
-        Parameters
-        ----------
-        PG_obj: A Planetary gearbox object
-            """
-
-        self.PG = PG_obj
-
-    def Modify(self,Matrix):
-
-        """Rearanges the equations to have known values at top of matrix"""
-
-        #
-        # Muk = M[3:, 0:3]
-        #  = E_known_at_top[6:, 6:]
-        #
-        # Qu = Q_known_at_top[6:,:]
-
-        return Euk, Euu, Qu
-
-
-    def X_0(self):
-        """
-        Used to easily set up the initial conditions for differntial equation integration
-
-        Parameters
-        ----------
-
-
-        Returns
-        -------
-        X_0  : 2x(9+3xN) x 1 numpy array
-               Initial conditions
-
-        """
-        dim = 2 * (9 + 3 * self.PG.N - 3)  # Matrix dimension
-        #X_0 = np.zeros((dim, 1))
-        X_0 = np.zeros(dim)
-
-        #X_0[6] = 0.00000001
-        #X_0[5] = 0.00000001
-
-        for i in range(self.PG.N):
-            x, y = self.Initialplanet(i+1)
-            X_0[6+3*i] = x
-            X_0[6+3*i+1] = y
-            X_0[6+3*i+1] = 0.016*self.PG.phi_p_list[i]
-
-
-        return X_0
-
-    def Initialplanet(self,p):
-        R = 0.024 + 0.016 # Initial radial distance of planets from origin sun plus planet radius
-        x = np.cos(self.PG.phi_p_list[p-1])*R
-        y = np.sin(self.PG.phi_p_list[p-1])*R
-        return x,y
-
-    def Run_Integration(self, X_0, t):
-        #sol = inter.odeint(self.X_dot, X_0, t,full_output=1)
-        sol = inter.odeint(self.X_dot_new, X_0, t)#,full_output=1)
-        return sol

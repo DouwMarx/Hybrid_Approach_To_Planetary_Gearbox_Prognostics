@@ -1,6 +1,7 @@
 import src.models.lumped_mas_model as pglmm
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy as sci
 #import importlib  #This allows me to reload my own module every time
 #importlib.reload(pglmm)
 #from pglmm import *
@@ -41,7 +42,7 @@ Geom_atr_ud = np.array([alpha_s, alpha_r])
 #  Stiffness properties
 ########################################################################################################################
 k_Sp = 2*10**8  # [N/m]  # Sun-planet gear mesh stiffness, Peak value?
-k_rp = 2*10**8  # [N/m]  # Sun-ring   gear mesh stiffness
+k_rp = 2*10**8  # [N/m]  # Ring Planet   gear mesh stiffness
 
 k_p = 10**8     # [N/m]  # Bearing stiffness (Planet bearing?)
 
@@ -50,8 +51,8 @@ k_atr_ud = np.array([k_Sp, k_rp, k_p])
 
 #  Operating conditions
 ########################################################################################################################
-Omega_c = (2*np.pi*8570/60)/(1 + 70/30)#100*2*np.pi*60  # [rad/s]  # Constant angular speed of planet carrier
-T_s = 4 # [N/m]  # Sun torque applied to the sun gear
+Omega_c = 0#2*np.pi*1285/60#(2*np.pi*8570/60)/(1 + 70/30)#100*2*np.pi*60  # [rad/s]  # Constant angular speed of planet carrier
+T_s = 10 # [N/m]  # Sun torque applied to the sun gear
 
 
 Opp_atr_ud = np.array([Omega_c, T_s])
@@ -169,81 +170,57 @@ Opp_atr_ud = np.array([Omega_c, T_s])
 
 
 PG = pglmm.Planetary_Gear(N, M_atr_ud, Geom_atr_ud, k_atr_ud, Opp_atr_ud)
-t = np.linspace(0,0.1,100)
+t = np.linspace(0,0.005,1000000)
 
 d1 = pglmm.DE_Integration(PG)
 X0 = d1.X_0()
 
-# #X0[4] = 0.00001
+#X0[4] = 0.00001
 # #X0[0] = 10
 #
-sol = d1.Run_Integration(X0, t)
 
-#
-plt.figure()
-plt.plot(sol)
-
-
-def try_match_chaari():
-    #t = 0
-
-    # t = np.array([0.8, 0.8])
-    #
-    # def obj(t):
-    #     K = PG.K_b + PG.K_e(t)
-    #
-    #     val, vec = sci.linalg.eig(K, PG.M)
-    #
-    #     summation =0
-    #     for f in [0, 1998,3166,3938,7998,8889,10490]:
-    #         summation += np.min((np.real(np.sqrt(val) / (np.pi * 2)) - f)**2)/(1+f)**2
-    #
-    #     return summation
-
-    import scipy.optimize as opt
-
-    #sol = opt.minimize(obj,t,bounds=((0.5,1),(0.5,1)),tol=10e-10)
-    #print(sol)
-    #t = sol["x"]
-
+def run_sol():
+    sol = d1.Run_Integration(X0, t)
 
     #
 
-    #
-    # for i in range(len(val)):
-    #     print([np.sqrt(val[i])/(np.pi*2),vec[i][0:3]])
-    #
-    # # Muu = PG.M[3:, 3:]
-    # # Kuu = K[3:, 3:]
-    # # #
-    # # #
-    # # val, vec = sci.linalg.eig(Kuu, Muu)
-    # # #
-    # # print(np.sort(np.sqrt(val)/(np.pi*2)))
+    lables = ("x_c",
+              "y_c",
+              "u_c",
+              "zeta_1",
+              "nu_1",
+              "u_1")
+    plt.figure("Displacements")
+    p = plt.plot(t, sol[:,0:3*3+4*3])
+    plt.legend(iter(p),lables)
 
-
-    # t1 = np.linspace(0.5,0.9,100)
-    # t2 = np.linspace(0.5,0.9,100)
-    #
-    # T1,T2 = np.meshgrid(t1,t2)
-
-    # fvals = []
-    # for t_1 in t1:
-    #     for t_2 in t2:
-    #         fvals.append(obj([t_1, t_2]))
-    #
-    # fig = plt.figure()
-    # ax = fig.gca(projection='3d')
-    #
-    # surf = ax.plot_surface(T1,T2,np.array(fvals).reshape(len(t1),len(t1)))
-    # plt.show()
+    plt.figure("Velocities")
+    p = plt.plot(t, sol[:,3*3+4*3:])
+    plt.legend(iter(p),lables)
+    #plt.ylim([-1,1])
     return
+
+
+
+K = PG.K_b + PG.K_e(0) - (10000*PG.Omega_c)**2 * PG.K_Omega
+
+val, vec = sci.linalg.eig(K, PG.M)
+val = np.sort(val)
+
+
+
+for i in range(len(val)):
+    print([np.sqrt(val[i])/(np.pi*2)])
+
+
+
+
 
 def plots():
     #Making plots for MSS report
-    PG = Planetary_Gear(N, M_atr_ud, Geom_atr_ud, k_atr_ud, Opp_atr_ud)  # Create the planetary gear object
-    ke1 = K_e(PG)
-    kb1 = K_b(PG)
+    PG = pglmm.Planetary_Gear(N, M_atr_ud, Geom_atr_ud, k_atr_ud, Opp_atr_ud)  # Create the planetary gear object
+    ke1 = pglmm.K_e(PG)
+    kb1 = pglmm.K_b(PG)
 
     t = 1
     K = PG.K_b + PG.K_e(t)
@@ -257,7 +234,7 @@ def plots():
     plt.plot(traange, stiffness, "k")
     plt.xlabel("Time [s]")
     plt.ylabel("Gear Mesh Stiffness [N/m]")
-    plt.savefig("TVMS.pdf")
+    #plt.savefig("TVMS.pdf")
 
     import matplotlib
 
@@ -266,16 +243,14 @@ def plots():
     for t in [0, 0.0025]:
         plt.figure()
         Kmat = PG.K_e(t) + PG.K_b + PG.K_Omega
-        plt.imshow(Kmat, vmin=-400000000.0, vmax=1600000000.0, cmap="gist_heat")
-        cbar = plt.colorbar()#norm=matplotlib.colors.LogNorm())
+        #plt.imshow(Kmat, vmin=-400000000.0, vmax=1600000000.0, cmap="gist_heat")
+        plt.imshow(Kmat/np.abs(Kmat+0.1))
+        cbar = plt.colorbar()
         cbar.ax.set_ylabel("Stiffness [N/m]")
         plt.axis('off')
-        #name = "Mesh_stiff" + str(count) + ".pdf"
-
-        name = "Total_stiff" + str(count) + ".pdf"
-        plt.savefig(name)
 
         count+=1
-        #print(np.min(Kmat))
-        #print(np.max(Kmat))
+
     return
+
+#plots()
