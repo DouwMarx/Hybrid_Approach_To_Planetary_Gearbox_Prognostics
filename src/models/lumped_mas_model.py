@@ -207,7 +207,8 @@ class K_b(object):
         K_jb[0, 0] = self.k_p
         K_jb[1, 1] = self.k_p
 
-        if gear == "ring":
+        #if gear == "ring":
+        if gear == "ring" or "carrier":
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
         else:
@@ -263,8 +264,8 @@ class K_e(object):
         k_sp: float
               The sun-planet mesh stiffness at a specific point in time
         """
-        #GMF_sp = 500
-        return self.k_atr[0]# + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
+        GMF_sp = 100
+        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
         #return self.k_atr[0]
 
     def k_rp(self,t):
@@ -805,8 +806,8 @@ class T(object):
         """
         T_vec = np.zeros((9+3*self.N, 1))
 
-        T_vec[2, 0] = -(1+70/30)*self.T_s
-        T_vec[8, 0] = self.T_s
+        #T_vec[2, 0] = -(1+70/30)*self.T_s
+        T_vec[8, 0] = self.T_s # Sun
 
         return T_vec
 
@@ -848,8 +849,18 @@ class DE_Integration(object):
 
         c = self.PG.Omega_c*self.PG.G +  (0.03*m + 0.03*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
                                                         # that the DE integration converges
-
         F = self.PG.T
+
+        #convert to units 1kN = 1 g . micro_m / micro_s^2,
+        # 1kg * 1e3 = g
+        # 1N/m * 1e-9 = N/nano_m,
+        # 1N/(m/s) * 1e-3 = N/(nano_m/micro_s)
+        # 1N * 1 = N
+
+        #m = m/1E3
+        #k = k/1E9
+        #c = c/1E3
+        #F = F
 
         c_over_m = np.linalg.solve(m, c)
         k_over_m = np.linalg.solve(m, k)
