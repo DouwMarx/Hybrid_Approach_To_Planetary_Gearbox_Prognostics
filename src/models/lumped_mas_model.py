@@ -186,7 +186,7 @@ class K_b(object):
             """
 
         self.k_p = PG_obj.k_atr[2] # The bearing stiffness taken for all bearings
-        #self.kru
+        self.kru = PG_obj.k_atr[3]
         self.PG = PG_obj
         self.K_b_mat = self.K_b()
 
@@ -208,7 +208,7 @@ class K_b(object):
         K_jb[1, 1] = self.k_p
 
         if gear == "ring":
-            K_jb[2, 2] = 10e9  # self.k_p  #  The ring resists rotational motion
+            K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
         else:
             K_jb[2, 2] = 0         # Planet and sun gears are free to rotate
@@ -804,9 +804,12 @@ class T(object):
 
         """
         T_vec = np.zeros((9+3*self.N, 1))
+
+        T_vec[2, 0] = -(1+70/30)*self.T_s
         T_vec[8, 0] = self.T_s
 
         return T_vec
+
 
 class DE_Integration(object):
     """
@@ -933,6 +936,7 @@ class DE_Integration(object):
     def Run_Integration(self, X_0, t):
         sol = inter.odeint(self.X_dot, X_0, t)#,full_output=1)
         return sol
+
 
 class Planetary_Gear(object):
 
