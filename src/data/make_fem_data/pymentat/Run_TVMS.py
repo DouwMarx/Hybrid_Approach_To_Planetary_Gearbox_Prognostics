@@ -61,31 +61,34 @@ def load_run_file():
 
     # Open the input file
     with open(run_file_path) as json_file:
-        input = json.load(json_file)["TVMS Properties"]
+        input = json.load(json_file)
 
         # Simulation Parameters
         ################################################################################################################
         # Mesh
         ring_mesh = input["Mesh"]["Ring Mesh"]
-        planet_meshes = input["Mesh"]["Planet Meshes"]
+        planet_meshes = mesh_dir + "\\" + run_file[0:-5] + "_" + "planet_meshes"
+
+        if os.path.isdir(planet_meshes) == False:
+            raise FileNotFoundError("Crack simulation for " + run_file + " not yet run.")
 
         # Loadcase
-        total_rotation = input["Load Case"]["Total Rotation"] #The total angular distance rotated [rad]
-        n_increments = input["Load Case"]["Number Of Loadsteps"] #int
-        applied_moment = input["Load Case"]["Applied Moment"]  # Moment on planet gear [Nm]
+        total_rotation = input["TVMS Properties"]["Load Case"]["Total Rotation"] #The total angular distance rotated [rad]
+        n_increments = input["TVMS Properties"]["Load Case"]["Number Of Loadsteps"] #int
+        applied_moment = input["TVMS Properties"]["Load Case"]["Applied Moment"]  # Moment on planet gear [Nm]
 
         # Contact
-        friction_coefficient = input["Contact"]["Friction Coefficient"]  # Dynamic friction coefficient for lubricated Cast iron on Cast iron https://www.engineeringtoolbox.com/friction-coefficients-d_778.html
+        friction_coefficient = input["TVMS Properties"]["Contact"]["Friction Coefficient"]  # Dynamic friction coefficient for lubricated Cast iron on Cast iron https://www.engineeringtoolbox.com/friction-coefficients-d_778.html
 
         # Geometry
         gear_thickness =input["Geometry"]["Gear Thickness"] # [mm]
 
-        move_planet_up = input["Geometry"]["Move Planet Up"]#-1.65  # Distance the planet gear should be moved up [mm]
-        rotate_planet = input["Geometry"]["Rotate Planet"]#-1.72 - (360 / 24) * 2  # Angle the planet gear should be rotated [degrees]
+        move_planet_up = input["TVMS Properties"]["Position Adjustment"]["Move Planet Up"]#-1.65  # Distance the planet gear should be moved up [mm]
+        rotate_planet = input["TVMS Properties"]["Position Adjustment"]["Rotate Planet"]#-1.72 - (360 / 24) * 2  # Angle the planet gear should be rotated [degrees]
         planet_carrier_pcr = input["Geometry"]["Planet Carrier Pitch Centre Radius"]  # Pitch Centre Radius of planet carrier axle
 
         ring_gear_external_radius = input["Geometry"]["Ring Gear External Radius"]  # External Radius of Ring gear [mm]
-        ring_gear_rotation = input["Geometry"]["Ring Gear Rotation"] #-(360 / 62) * 2  # Angle the ring gear should be rotated
+        ring_gear_rotation = input["TVMS Properties"]["Position Adjustment"]["Ring Gear Rotation"] #-(360 / 62) * 2  # Angle the ring gear should be rotated
 
         planet_axle_radius = input["Geometry"]["Planet Axle Radius"]  # Internal radius of the planet gear [mm]
 
@@ -169,7 +172,7 @@ def import_planet(bdf_file):
     py_send("*prog_option import_nastran:show_log:off") 
     
     # Import the planet mesh
-    planet_mesh = '*import nastran ' + '"' + mesh_dir + "\\" + planet_meshes + "\\" + bdf_file + '"'
+    planet_mesh = '*import nastran ' + '"' + planet_meshes + "\\" + bdf_file + '"'
     py_send(planet_mesh)
     
     py_send("*select_elements_cbody Ring") # Select existing contact body elements so that the new ones can be selected
@@ -434,7 +437,7 @@ def main():
 
     load_run_file()
 
-    for cracked_mesh in os.listdir(mesh_dir + "\\" + planet_meshes):
+    for cracked_mesh in os.listdir(planet_meshes):
         if cracked_mesh.endswith('.bdf'):
 
             Preliminary_Calculations()
