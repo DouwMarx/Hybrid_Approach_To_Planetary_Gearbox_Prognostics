@@ -51,8 +51,6 @@ def load_run_file():
         E,\
         v
 
-
-
     file_paths() # Sets global variables for file paths
 
     run_file = py_get_string("run_file")
@@ -67,7 +65,7 @@ def load_run_file():
         input = json.load(json_file)["TVMS Properties"]
 
         # Simulation Parameters
-        ########################################################################################################################
+        ################################################################################################################
         # Mesh
         ring_mesh = input["Mesh"]["Ring Mesh"]
         planet_meshes = input["Mesh"]["Planet Meshes"]
@@ -234,19 +232,6 @@ def import_planet(bdf_file):
     py_send("*apply_dof ry *apply_dof_value ry")
     
     py_send("*add_apply_nodes " + str(ID_Control_Node) + " # | End of List")
-            
-    #Add moment to auxilary control node
-    #py_send("*new_apply *apply_type point_load")
-    #py_send("*apply_dof my *apply_dof_value my")
-    #py_send("*apply_dof mx *apply_dof_value mx")
-    #py_send("*apply_dof z *apply_dof_value z")
-    #py_send("*apply_dof y *apply_dof_value y")
-    #py_send("*apply_dof x *apply_dof_value x")
-    #py_send("*apply_dof mz *apply_dof_value mz 1e2") #Set the moment magnitude here
-    #py_send("*apply_dof_table mz " + moment_table) # Associate a table with this moment
-    #py_send("*apply_name Planet_Torque")
-    #py_send("*add_apply_nodes " + str(ID_Auxilary_Node) + " # | End of List")
-
 
     #Add a shear load to the planet inside to induce a moment
     py_send("*select_clear")
