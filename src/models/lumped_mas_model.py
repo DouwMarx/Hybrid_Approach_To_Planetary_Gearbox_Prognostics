@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import scipy.integrate as inter
 import scipy as sci
 
+
 class M(object):
     """
     This class is used to create mass matrix objects
@@ -284,7 +285,7 @@ class K_e(object):
         """
         #GMF_rp = 300
         #return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.7)+1) #Note that the duty cycle is set like this now
-        return self.k_atr[1]
+        return self.k_atr[1] + t*0
 
     def Kp_s2(self, p, t):
         """
@@ -846,8 +847,7 @@ class DE_Integration(object):
         m = self.PG.M
         k = self.PG.K_b + self.PG.K_e(t) - self.PG.Omega_c**2 * self.PG.K_Omega
 
-
-        c = self.PG.Omega_c*self.PG.G +  (0.03*m + 0.03*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
+        c = self.PG.Omega_c*self.PG.G #+ (0.003*m + 0.003*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
                                                         # that the DE integration converges
         F = self.PG.T
 
@@ -881,14 +881,8 @@ class DE_Integration(object):
 
     def X_dot(self, X, t):
 
-        #Xk = np.zeros(6)
-
         E, Q = self.E_Q(t)
-        #Euk, Euu, Qu = self.Prepare_E_and_Q(E, Q)
-
         X_dot = np.dot(E, np.array([X]).T) + Q
-
-        #X_dot = np.dot(Euk, np.array([Xk]).T) + np.dot(Euu, np.array([Xu]).T) + Qu
 
         return(X_dot[:,0])
 
@@ -930,17 +924,10 @@ class DE_Integration(object):
 
         """
         dim = 2 * (9 + 3 * self.PG.N)  # Matrix dimension
-        #X_0 = np.zeros((dim, 1))
-        X_0 = np.zeros(dim)
 
+        X_0 = np.zeros(dim)
         #X_0[6] = 0.00000001
         #X_0[5] = 0.00000001
-
-        #for i in range(self.PG.N):
-         #   x, y = self.Initialplanet(i+1)
-         #   X_0[6+3*i] = x
-          #  X_0[6+3*i+1] = y
-          #  X_0[6+3*i+1] = 0.016*self.PG.phi_p_list[i]
 
         return X_0
 
@@ -951,7 +938,7 @@ class DE_Integration(object):
 
 class Planetary_Gear(object):
 
-    def __init__(self, N, M_atr, Geom_atr,k_atr,Opp_atr):
+    def __init__(self, N, M_atr, Geom_atr, k_atr, Opp_atr):
         """Initializes the planetary gear  object
 
         Parameters
@@ -996,6 +983,15 @@ class Planetary_Gear(object):
         self.K_e = K_e(self).Compiled  # This is a function. Takes the argument t [s]
         self.K_Omega = K_Omega(self).K_Omega_mat
         self.T = T(self).T_vec
+
+        self.K = lambda t: self.K_b + self.K_e(t) - self.Omega_c ** 2 * self.K_Omega
+
+        self.C = self.Omega_c*self.G + 0.03*self.M + 0.03*self.K(0)
+
+        self.k_sp = K_e(self).k_sp  # This is a function. Takes the argument t [s]
+        self.k_rp = K_e(self).k_rp  # This is a function. Takes the argument t [s]
+
+
 
     def phi_p(self, p):
         """
