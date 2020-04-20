@@ -9,7 +9,7 @@
                         "Gear Thickness": 12,
                         "Planet Carrier Pitch Centre Radius": 43.32,
                         "Ring Gear External Radius": 89.03,
-                        "Planet Axle Radius": 14.185
+                        "Planet Axle Radius": 14.19
                 },
         "Material": {
                         "Young's Modulus": 200000,
@@ -19,8 +19,8 @@
         "TVMS Properties": {
 
                 "Load Case": {
-                        "Total Rotation": 0.45,
-                        "Number Of Loadsteps": 10,
+                        "Total Rotation": 0.3,
+                        "Number Of Loadsteps": 50,
                         "Applied Moment": 4
                 },
                 "Contact": {
@@ -28,7 +28,7 @@
                 },
                 "Position Adjustment": {
                         "Move Planet Up": -0.05,
-                        "Rotate Planet": 82.09,
+                        "Rotate Planet": -15,
                         "Ring Gear Rotation": 55
                 }
         },
