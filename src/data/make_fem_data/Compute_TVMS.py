@@ -33,7 +33,19 @@ class TVMS(object):
         plt.ylabel("Angular Position [rad]")
         plt.legend()
         return
-    
+
+    @classmethod
+    def angular_deflection_to_linear_stiffnes(cls, deflection_angle):
+        moment = 4 #N.m
+        pitch_diameter = 54/1000 #m
+        r = 0.5*pitch_diameter
+
+        torsional_stiffness = moment/deflection_angle
+        linear_stiffness = torsional_stiffness/r**2
+        return linear_stiffness
+
+
+
     def measure_stiffness(self, Plot_Test = False):
         """Finds the indexes that will be used to compute the stiffness"""
 
@@ -57,9 +69,11 @@ class TVMS(object):
 
 
 data_dir = definitions.root + "\\data\\external\\fem\\raw"
-for crack_length_result in ["run_2.json_planet_coarse_correct_geom_planet_angle.txt"]: #os.listdir(data_dir):
+for crack_length_result in ["run_6_3.5mm_planet_angle.txt"]: #os.listdir(data_dir):
     print(crack_length_result)
     tvms_obj = TVMS(data_dir + "\\" + crack_length_result)
 
     tvms_obj.plot_angle_measurements()
     ideal, deflect = tvms_obj.measure_stiffness(Plot_Test=True)
+
+    print(tvms_obj.angular_deflection_to_linear_stiffnes(deflect))

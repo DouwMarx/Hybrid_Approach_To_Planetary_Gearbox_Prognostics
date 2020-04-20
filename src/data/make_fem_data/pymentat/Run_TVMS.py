@@ -387,7 +387,10 @@ def job(mesh_name):
 
 def tables():
     """Creates marc tables from generated text files"""
-    
+
+    if os.path.isfile(tables_dir + "\\" + motion_table + '.txt') == False:
+        raise FileNotFoundError("Tables for selected number of load-steps not generated: Generate using src/data/make_fem_data/make_marc_table_data")
+
     py_send('*md_table_read_any "' + tables_dir + "\\" + motion_table + '.txt"') #Imports the motion table
     py_send('*set_md_table_type 1 time') # X axis of table is time
     
