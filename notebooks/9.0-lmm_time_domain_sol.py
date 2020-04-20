@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import scipy as sci
 import models.lumped_mas_model.llm_models as lmm_models
 import importlib  #This allows me to reload my own module every time
+import definitions
 
 import src.features.proc_lib as proc
 importlib.reload(pglmm)
@@ -14,16 +15,16 @@ plt.close("all")
 PG = lmm_models.make_chaari_2006_1planet()
 #PG = lmm_models.make_lin_1999_model()
 
-t = np.linspace(0,1,1000000)
+t = np.linspace(0, 1, 100000)
 
 d1 = pglmm.DE_Integration(PG)
 X0 = d1.X_0()
-X0 = np.array([[-1.67427896e-15,  1.81686928e-07,  1.81686884e-08,  3.54914606e-08,
-       -9.08434456e-08, -9.75303772e-09, -3.54914583e-08, -9.08434387e-08,
-        9.88800572e-07, -3.34859651e-15,  3.81542498e-07, -5.11431563e-07,
-        4.10034386e-14,  9.21551453e-09,  9.21668277e-10,  1.80039978e-09,
-       -4.60827729e-09, -4.94760191e-10, -1.80045025e-09, -4.60840343e-09,
-        4.77182740e-08,  8.20079192e-14,  1.93539270e-08, -2.59430020e-08]]).T
+X0 = np.array([-1.67427896e-15,  1.81686928e-07,  1.81686884e-08,  3.54914606e-08,
+                -9.08434456e-08, -9.75303772e-09, -3.54914583e-08, -9.08434387e-08,
+                9.88800572e-07, -3.34859651e-15,  3.81542498e-07, -5.11431563e-07,
+                4.10034386e-14,  9.21551453e-09,  9.21668277e-10,  1.80039978e-09,
+                -4.60827729e-09, -4.94760191e-10, -1.80045025e-09, -4.60840343e-09,
+                4.77182740e-08,  8.20079192e-14,  1.93539270e-08, -2.59430020e-08])
 
 
 def fft(data, fs):
@@ -101,11 +102,14 @@ def run_sol():
     plt.xlabel("Time [s]")
     plt.ylabel("Mesh Stiffness [N/m")
 
-    d = sol[:,3]
-    freq, mag, phase = fft(d,np.average(np.diff(t)))
+    d = sol[:, 3]
+    freq, mag, phase = fft(d, 1/np.average(np.diff(t)))
     plt.figure()
     plt.plot(freq, mag)
 
     return sol
 
 s = run_sol()
+
+d = definitions.root + "\\" + "data\\external\\lmm\\"
+np.save(d + "Response_3_0.npy", s)
