@@ -266,8 +266,8 @@ class K_e(object):
               The sun-planet mesh stiffness at a specific point in time
         """
         GMF_sp = 100
-        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
-        #return self.k_atr[0]
+        #return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
+        return self.k_atr[0] + t*0
 
     def k_rp(self,t):
         """
