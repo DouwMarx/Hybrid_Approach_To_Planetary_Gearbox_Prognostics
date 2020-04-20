@@ -266,8 +266,8 @@ class K_e(object):
               The sun-planet mesh stiffness at a specific point in time
         """
         GMF_sp = 100
-        #return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
-        return self.k_atr[0] + t*0
+        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
+        #return self.k_atr[0] + t*0
 
     def k_rp(self,t):
         """
@@ -283,9 +283,9 @@ class K_e(object):
         k_sp: float
               The sun-planet mesh stiffness at a specific point in time
         """
-        #GMF_rp = 300
-        #return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.7)+1) #Note that the duty cycle is set like this now
-        return self.k_atr[1] + t*0
+        GMF_rp = 100
+        return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.7)+1) #Note that the duty cycle is set like this now
+        #return self.k_atr[1] + t*0
 
     def Kp_s2(self, p, t):
         """
@@ -934,6 +934,79 @@ class DE_Integration(object):
     def Run_Integration(self, X_0, t):
         sol = inter.odeint(self.X_dot, X_0, t)#,full_output=1)
         return sol
+
+    def X_dotdot(self, sol, t):
+        """
+        Calculates accelerations from computed displacements and velocities
+        Parameters
+        ----------
+        sol
+
+        Returns
+        -------
+
+        """
+        d = self.PG.matrix_shape
+        M = self.PG.M
+        K = self.PG.K
+        C = self.PG.C
+        f = self.PG.T
+
+        Minv = np.linalg.inv(M)
+
+        xdd = np.zeros((len(t), d))
+        for timestep, i in zip(t,range(len(t))):
+            acc = -np.dot(np.dot(Minv, K(timestep)), sol[i, 0:d].T) - np.dot(np.dot(Minv, C), sol[i, d:].T) + np.dot(Minv, f[:, 0])
+            xdd[i, :] = acc[:]
+
+        return xdd
+
+
+class Transmission_Path(object):
+    """
+    Models the transmission path of the vibration to the accelerometer
+
+    Based on Parra and Vicuna 2017 eq(2) and modified hamming function from Liang et al 2015 eq(3.1)
+    """
+
+    def __init__(self, PG_obj, solution):
+        """
+        Initialize transmission path object
+
+        solution: n_DOF x n_timesteps array
+        """
+        self.PG = PG_obj
+        self.sol = solution.T
+
+        return
+
+    def F_ri(self, planet,t_range):
+        return self.PG.k_rp(t_range)*self.d_ri(planet)
+
+    def d_ri(self, planet):
+        """
+        planet makes use of 1 based (non zero based) indexing
+        Parameters
+        ----------
+        planet: Planet number 1->N
+
+        Returns
+        -------
+
+        """
+        i = 9 + (planet-1)*3
+
+        phi_p = self.PG.phi_p(planet)
+        alpha_r = self.PG.alpha_r
+
+        t1 = + self.sol[3+1, :] * np.cos(phi_p)
+        t2 = - self.sol[3, :] * np.sin(phi_p)
+        t3 = + self.sol[i+1, :] * np.sin(alpha_r)
+        t4 = - self.sol[i, :] * np.cos(alpha_r)
+        t5 = + self.sol[3 + 2, :]
+        t6 = - self.sol[i + 2, :]
+
+        return t1 + t2 + t3 + t4 + t5 + t6
 
 
 class Planetary_Gear(object):
