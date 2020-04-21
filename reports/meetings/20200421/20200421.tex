@@ -1,0 +1,98 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\newcommand{\norm}[1]{\lVert#1\rVert}
+
+
+%Information to be included in the title page:
+\title{Sample title}
+\author{Anonymous}
+\institute{Overleaf}
+\date{2014}
+
+
+
+\begin{document}
+
+\begin{frame}
+\frametitle{Agenda}
+\begin{itemize}
+	\item Probleem uitleg
+	\item Lumped Mass model 
+	\item Pad vorentoe
+	\item Admin
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Probleem uitleg}
+ Insigte en gevolgtrekkings uit vergadering met Dr. Schmidt
+\begin{itemize}
+	\item Fokus op diagnostics/measurement model vir nou en behandel dit as 'n Bayesian inference probleem. Nog geen sprake van krake in die volgende drie punte.
+	\item Ons is op soek na 'n benadering vir die verspreiding $p(E,v,Kb,M...|Dexp,a = 0)$. 
+		\begin{itemize}
+			\item Hardloop 'n reeks simulasies met verskillende parameters om $p(E,v,Kb,M...|Dexp)$ te benader met behulp van Bayes se wet
+		\end{itemize}
+	\item Daar is 'n vrag vol veranderlikes waaroor mens onseker is. 
+		\begin{itemize}
+			\item Laat veranderlikes waarin daar 'n hoë sekerheid is (bv planeet-rat massa) uit die ondersoek.
+			\item Dit kan gebeur dat, alhoewel mens 'n lae sekerheid oor 'n sekere parameter het (dalk rollaer styfheid ), die parameter nie 'n groot invloed het uitset van die model nie. Doen eers 'n sensitiwiteit studie om te bepaal watter parameters die grootste invloed het op die uitset. $p(E,v,Kb,M...|Dexp)$ is dalk ekwivalent aan bv. $p(E,Mr|Dexp)$.
+		\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Probleem uitleg}
+
+\begin{itemize}
+
+	\item Nadat ons 'n benadering het vir $p(E,v,Kb,M...|Dexp)$ is dit denkbaar dat die model ($FEM->LMM$) nie "flexible" genoeg is om die verwantskap vas te vang nie. Gevolglik is die geraas nie wit nie en steeds 'n funksie van sekere parameters. Indien dit die geval is, kan mens 'n bykomende data-gedrewe model (NN,SVM) bylas wat hopelik die geraas wit maak. 
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Lumped Mass Model}
+\begin{itemize}
+	\item Lin en Parker 1999, Chaari 2006 
+	\item Natuurlike frekwensies
+	\item Oplossing van DV: Runge Kutta, Newmark Beta (watter betas om te gebruik)
+	\item Transmission Path Modelling: Liang 2015, Parra en Vicuna 2017
+	\item Boundary conditions
+		\begin{itemize}
+		\item Torsionele styfheid by son, planeet-draer of nie een van hulle nie?
+		\item Gedagte om aanvangswaardes te kies as die eindwaardes wanneer moment toegepas word en torsionele styfheid by planeet-draer te voeg.
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Voorstel vir pad vorentoe}
+\begin{itemize}
+	\item Betroubare oplossing van LMM
+	\item Kry redelik waardes vir al die onbekende parameters
+	
+	\item Sensitivity study
+	\begin{itemize}
+	  	\item Vir byvoorbeeld TVMS FEM: Verander mens E en v en kyk na hoe dramaties die styfheid verander of eerder hoe die uiteindelike vibrasie features verander? 
+	\end{itemize}
+ 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Admin}
+\begin{itemize}
+	\item Eta-wind data
+	\item Iemand by die universiteit wat dalk weer ons rekenaars kan aanskakel?
+	\item Enige ander rekenaar op kampus met MSC Marc, Apex waarna ek kan TeamViewer?
+	
+\end{itemize}
+\end{frame}
+
+
+\end{document}

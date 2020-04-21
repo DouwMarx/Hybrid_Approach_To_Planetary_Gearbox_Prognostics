@@ -144,7 +144,6 @@ def make_bonfiglioli_model():
 
     return PG
 
-
 def make_chaari_2006_model_experiment():
     # Chaari
     # # Number of planet gears

@@ -453,7 +453,7 @@ class K_e(object):
 
         Kp_r1[0, 0] = np.sin(phi_rp)**2
         Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)# in Parker #-np.cos(phi_rp) * np.cos(alpha_r)
-        Kp_r1[0, 2] = -np.sin(phi_rp)   # This term is positvie in Chaari and negative in Parker
+        Kp_r1[0, 2] = -np.sin(phi_rp)   # This term is positive in Chaari and negative in Parker
 
         Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp) #In Parker
         Kp_r1[1, 1] = np.cos(phi_rp)**2
