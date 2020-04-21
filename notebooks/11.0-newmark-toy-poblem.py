@@ -28,25 +28,31 @@ X0 = np.zeros((3, 1))
 
 Xd0 = np.ones((3, 1))
 
-betas = {"beta_1": 0.5,  # lambda 0.5
-         "beta_2": 1/4}     # beta 0.25
+for b1 in np.linspace(0.1,1,5):
+    for b2 in np.linspace(0.1, 1, 5):
 
-matrices = {"M": M,
-            "K": K,
-            "C": C,
-            "f": f}
+        betas = {"beta_1": b1,  # lambda 0.5
+                 "beta_2": b2}     # beta 0.25
 
-initial_conditions = {"X0": X0,
-                      "Xd0": Xd0}
+        matrices = {"M": M,
+                    "K": K,
+                    "C": C,
+                    "f": f}
 
-t = np.linspace(0, 10, 10000)
+        initial_conditions = {"X0": X0,
+                              "Xd0": Xd0}
 
-problem = n.Newmark_int(betas, matrices, initial_conditions, t)
+        t = np.linspace(0, 10, 10000)
 
-plt.figure()
-s = problem.solve()
-#plt.plot(t, s.T[:,0])#[:, 0:M.shape[0]])
-plt.plot(t, s.T)#[:, 0:M.shape[0]])
-plt.xlabel("time [s]")
-plt.ylabel("Response")
-#plt.ylim(-1E4, 1E4)
+        problem = n.Newmark_int(betas, matrices, initial_conditions, t)
+
+        plt.figure()
+        s = problem.solve()
+        #plt.plot(t, s.T[:,0])#[:, 0:M.shape[0]])
+        plt.plot(t, s.T)#[:, 0:M.shape[0]])
+        plt.xlabel("time [s]")
+        plt.ylabel("Response")
+
+        string = "beta1 = " + str(b1) + "beta2 = " + str(b2)
+        plt.text(0, 0, string)
+        #plt.ylim(-1E4, 1E4)

@@ -35,7 +35,7 @@ class Newmark_int(object):
 
         self.constants() #Initializes constants
 
-        self.udd0 = self.get_udd0()
+        self.udd0 = self.get_udd0()  # Compute initial accelerations
 
         self.U0 = np.vstack((self.u0, self.ud0, self.udd0))
         return
@@ -57,9 +57,6 @@ class Newmark_int(object):
         self.T1 = T1
         self.T2 = T2
 
-        ones = np.ones((1, self.dimensionality))
-        self.T1T2 = np.vstack((self.T1*ones, self.T2*ones))
-
 
         sqaure = np.ones((self.dimensionality,self.dimensionality))
         top = np.hstack((-T1*sqaure, -T3*sqaure, -T4*sqaure))
@@ -73,10 +70,9 @@ class Newmark_int(object):
         Computes the initial accelerations given the initial conditions
         Returns
         -------
-
         """
 
-        T1 = -np.dot(np.linalg.solve(self.M, self.K(0)), self.u0)
+        T1 = -np.dot(np.linalg.solve(self.M, self.K(self.time[0])), self.u0)
         T2 = -np.dot(np.linalg.solve(self.M, self.C), self.ud0)
         T3 = np.linalg.solve(self.M, self.f)
 
