@@ -228,9 +228,9 @@ static
 *.MAT
 *.XLSX
 !author_moddelling_comparisson.xlsx
-!
 *.pgdata
 *.h5
+*.npy
 
 
 #Crack measurement temporary info storage
