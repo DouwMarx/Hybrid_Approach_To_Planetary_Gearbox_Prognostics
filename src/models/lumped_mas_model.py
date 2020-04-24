@@ -933,9 +933,12 @@ class DE_Integration(object):
 
     def Run_Integration(self, X_0, t):
         sol = inter.odeint(self.X_dot, X_0, t)#,full_output=1)
-        return sol
 
-    def X_dotdot(self, sol, t):
+        #  Compute accelerations
+        acc = self.X_dotdot(sol)
+        return np.vstack(sol,acc)
+
+    def X_dotdot(self, sol):
         """
         Calculates accelerations from computed displacements and velocities
         Parameters
@@ -955,7 +958,7 @@ class DE_Integration(object):
         Minv = np.linalg.inv(M)
 
         xdd = np.zeros((len(t), d))
-        for timestep, i in zip(t,range(len(t))):
+        for timestep, i in zip(self.time_ramge,range(len(self.time_range))):
             acc = -np.dot(np.dot(Minv, K(timestep)), sol[i, 0:d].T) - np.dot(np.dot(Minv, C), sol[i, d:].T) + np.dot(Minv, f[:, 0])
             xdd[i, :] = acc[:]
 

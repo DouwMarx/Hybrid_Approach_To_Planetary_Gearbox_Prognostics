@@ -1,20 +1,16 @@
-import src.features.newmark as n
-import models.lumped_mas_model.llm_models as lmm
-import src.features.newmark as n
+
 import numpy as np
 import matplotlib.pyplot as plt
+import src.features.second_order_solvers as s
 
 plt.close("all")
 
-#PG = lmm.make_chaari_2006_model()
-PG = lmm.make_chaari_2006_1planet()
 
 Km = np.array([[400,-200,0],
               [-200, 400,-200],
               [0, -200, 200]])
 
 K = lambda time: Km
-
 
 C = np.array([[0.55,-0.2,0],
               [-0.2, 0.55,-0.2],
@@ -28,31 +24,19 @@ X0 = np.zeros((3, 1))
 
 Xd0 = np.ones((3, 1))
 
-for b1 in np.linspace(0.1,1,5):
-    for b2 in np.linspace(0.1, 1, 5):
 
-        betas = {"beta_1": b1,  # lambda 0.5
-                 "beta_2": b2}     # beta 0.25
+t = np.linspace(0, 10, 10000)
 
-        matrices = {"M": M,
-                    "K": K,
-                    "C": C,
-                    "f": f}
+lmm = s.LMM_sys(M, C, K, f, X0, Xd0, t)
+sol = lmm.solve_de("RK")
 
-        initial_conditions = {"X0": X0,
-                              "Xd0": Xd0}
+plt.figure()
+plt.plot(t, sol)
+plt.xlabel("time [s]")
+plt.ylabel("Response")
 
-        t = np.linspace(0, 10, 10000)
-
-        problem = n.Newmark_int(betas, matrices, initial_conditions, t)
-
-        plt.figure()
-        s = problem.solve()
-        #plt.plot(t, s.T[:,0])#[:, 0:M.shape[0]])
-        plt.plot(t, s.T)#[:, 0:M.shape[0]])
-        plt.xlabel("time [s]")
-        plt.ylabel("Response")
-
-        string = "beta1 = " + str(b1) + "beta2 = " + str(b2)
-        plt.text(0, 0, string)
-        #plt.ylim(-1E4, 1E4)
+plt.figure()
+plt.plot(t, sol[:,-3])
+plt.xlabel("time [s]")
+plt.grid()
+plt.ylabel("Acc")
