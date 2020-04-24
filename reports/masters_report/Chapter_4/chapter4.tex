@@ -237,6 +237,30 @@ This section lists simplifications that could help focus the research on the fea
 \end{itemize}
 
 
+\section{Hybrid methodology}
+In circumstances where unhealthy data is unavailable for training a model to predict crack length for a given acceleration signal, a physics-based model can be employed. For the physics-based model to be representative of reality, it it necessary that model parameters that govern the model output is selected appropriately. Although unhealthy data is unavailable it is reasonable to assume that healthy data is in fact available. The healthy data can therefore be used to gain more certainty about the unknown parameters in the physics based model. The assumption that has to be made is that the model is representative of realty to an extent that, although trained on healthy data, it would be valid in the unhealthy case as well. 
+
+The planet gear tooth root crack prognostics problem can be divided into two main parts. In the first part a diagnostics or measurement model is set up to infer crack length from the measured vibration signal. In the second part, the diagnostics or measurement model is used in the Bayesian state estimation problem together with a crack growth to ultimately predict remaining useful life. 
+
+
+
+
+
+\section{State estimation problem}
+We do have a state space system which is linear but it is time-varying?
+
+We do have a layout of the system from fist principles, futhermore, we are interested in a specific parameter like stiffness and as a result we will not be working with any of the canonical forms. Unless we want to make use of the canonical form or estimating all parameters and see how drastically different the stiffness is estimated each time.
+
+We are dealing with state space models with structured parametarization in a grey model seeing that we can exclude certain parameters by setting them to certain values. We are also not dealing with a case where the model structure should also be obtained by the optimisation algorithm.
+
+In grey box models you can specify complicated non-linear relationships between variables. On the other hand structured parametarization only deals with the state-space models? They are however very similar. stuctured parameterization is faster - no interdependencies between parameters but we cant dot this because the system is non linear from time dependence
+
+Dealing with non-linear grey box model because system matrix is time dependent.
+
+model I am dealing with is lumped linear time varying continuous time stochastic parametric grey box model
+
+
+We add an additive noise term to describe the descrepancey between real world and the differential equation
 %A potential pitfall of this method is the assumption that the data-driven measurement model is applicable in an unhealthy operating condition even though it will be trained on healthy data only.
 
 %At this stage the whole business rests on whether the response from the dynamic model can actually match reality to some extent and whether we could perhaps update its parameters with Bayesian state estimateion as well 
@@ -244,3 +268,6 @@ This section lists simplifications that could help focus the research on the fea
 %The hybrid methodology is well suited to the prediction of root crack growth seeing that the problem is well understood. 
 
 %The hybrid approach should bring something new to the table particularly for planetary gearboxes. And it perhaps does. which can serve as a motivation to not make the simplification of applying it to fixed axis gearboxes first.
+
+
+|
