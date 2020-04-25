@@ -42,15 +42,15 @@ if __name__ == '__main__':
     f = np.zeros((dim, 1))
     X0 = np.zeros((dim, 1))
     Xd0 = np.ones((dim, 1))
-    t = np.linspace(0, 1, 100)
+    t = np.linspace(0, 0.1, 10)
 
     #  Make data (Observations) and plot them (Could be noisey, if so, we assume this noise is gaussian)
     Y = make_measurements(1) #+ np.random.rand(len(t)) # Answer we are looking for is m1 = 1kg
 
-    plt.figure("Measurements")
-    plt.scatter(t, Y)
-    plt.xlabel("time [s]")
-    plt.ylabel("Response")
+    #plt.figure("Measurements")
+    #plt.scatter(t, Y)
+    #plt.xlabel("time [s]")
+    #plt.ylabel("Response")
 
 
     #if __name__ == '__main__':
@@ -74,13 +74,13 @@ if __name__ == '__main__':
 
         # Sampler to use
         #step = pm.NUTS()
-        trace = pm.sample(5000, cores=1, tune=10)#, chains=8, cores=4, step=step)
+        trace = pm.sample(5000, cores=1, init=None)#, tune=10)#, chains=8, cores=4, step=step)
 
-    map_estimate = pm.find_MAP(model = lmm_model)
-    print("Map_estimate", map_estimate)
+    #map_estimate = pm.find_MAP(model = lmm_model)
+    #print("Map_estimate", map_estimate)
 
     # summary of stats
-    print(pm.summary(trace))
+    #print(pm.summary(trace))
 
     # plot the result
     #plt.plot(t, sys_model_deterministic(map_estimate["m1"]))
