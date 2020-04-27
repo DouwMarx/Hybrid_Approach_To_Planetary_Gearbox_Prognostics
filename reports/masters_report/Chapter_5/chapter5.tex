@@ -9,7 +9,10 @@
 \chapter{FEM}
 Take note that this section should not be here but as of 2020/03/28 there is not certainty of whether all edits before 2019/14 had been incorporated (Date from drive download)
 
-This chapter explains how the finite element method is used to compute the time-varying gears mesh stiffness (TVMS) of gears with a tooth root crack. As discussed in \section{not yet discussed}, there are various ways of computing the time varying mesh stiffness of which the finite element method, although computationally intensive, is the most accurate. This section documents the use of the finite element method for computing the TVMS of gear system with cracked planet gear.
+This chapter explains how the finite element method is used to compute the time-varying gears mesh stiffness (TVMS) of gears with a tooth root crack. As discussed in section \cite{not yet discussed}, there are various ways of computing the time varying mesh stiffness of which the finite element method, although computationally intensive, is the most accurate. This section documents the use of the finite element method for computing the TVMS of gear system with cracked planet gear.
+
+
+\cite{Yu2017a} conducts a study comparing different ways of computing the TVMS. They consider 3D finite elements, 2D finite elements, an analytical approach, an improved analytical method incorporating fem results and an approximation based on ISO standards. Although the study is aimed at conventional fixed axis spur gears, the conclusions drawn are likely applicable to the planetary gearbox problem as well. They conclude that, although computationally expensive, the finite element models provide the most accurate and reliable results. They recommend using the 2D simplification in the finite element method without using too much accuracy. Analytical methods run in a much shorter time than the finite element methods but tend to overestimate the mesh stiffness during double tooth contact stiffness. This problem is addressed by the improved analytical method but this requires a FEM simulation. A 2D finite element method is therefore used to estimate the mesh stiffness in this case. 
 
 
 % Consider explaining what FEM is and what Meshes do?
