@@ -495,7 +495,16 @@ Dynamic simulation is used rather than mathematical models seeing that the physi
 \cite{Chen2013} makes use of matrices as in Chaari 2006 and Parker 2000
 
 In this model we will not be considering flexible ring gear as in \cite{Chen2015}
+
+
+A commonly used lumped mass model in literature is that of \cite{Kahraman1994} which has been used with some adaption by  \cite{Lin1999}, \cite{Chaari2006}, \cite{Chen2013},\cite{Chen2015}. The main focus of this investigation will be the specific model used by \cite{Lin1999}. In this model, the sun, ring, carrier and planets are all treated as rigid bodies with bearings and gear meshes modelled as linear springs. Each component of the gear box has two translational degrees of freedom in plane and one rotational degree of freedom around an axis orthogonal to the translational plane. No damping is explicitly modelled in the system. Rather, a proportional damping is considered as in \cite{Chaari2006}.
+
+Gyroscopic effects are this fraction of the typical stiffness matrix an will be neglected or not. Or gyroscopic stiffness is included although it does not really do anything. 
+
+All translations of components are defined relative to a rotating reference frame fixed to the carrier
 --------------------------------------------------------------
+
+
 In this section, a $21$ DOF lumped mass model of a planetary gearbox \citep{Chaari2006} is programmed. Each component of the gearbox has two translational degrees of freedom and a rotational degree of freedom.
 
 Figure \ref{F:model} shows a schematic of the lumped mass model. 
