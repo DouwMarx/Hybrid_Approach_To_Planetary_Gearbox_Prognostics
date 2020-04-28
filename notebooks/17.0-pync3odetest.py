@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import arviz as az
-import theano
+import theano.tensor as tt
 import time
 
 if __name__ == '__main__':
@@ -14,8 +14,15 @@ if __name__ == '__main__':
     plt.style.use('seaborn-darkgrid')
 
 
+    def func(t,p):
+        return np.sin(t*p[1])
+
+
     def SIR(y, t, p):
-        ds = -p[0]*y[0]*y[1]
+        v = func(t, p)
+
+
+        ds = -p[0]*y[0]*y[1]*v
         di = p[0]*y[0]*y[1] - p[1]*y[1]
         return [ds, di]
 
@@ -57,7 +64,7 @@ if __name__ == '__main__':
         Y = pm.Lognormal('Y', mu=pm.math.log(sir_curves), sd=sigma, observed=yobs)
 
         prior = pm.sample_prior_predictive()
-        trace = pm.sample(2000,tune=1000, target_accept=0.9, cores=1)
+        trace = pm.sample(1000, tune=500, target_accept=0.9, chains=1, cores=1)
         posterior_predictive = pm.sample_posterior_predictive(trace)
 
         data = az.from_pymc3(trace=trace, prior = prior, posterior_predictive = posterior_predictive)
