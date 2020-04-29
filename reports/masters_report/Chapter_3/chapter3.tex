@@ -501,7 +501,11 @@ A commonly used lumped mass model in literature is that of \cite{Kahraman1994} w
 
 Gyroscopic effects are this fraction of the typical stiffness matrix an will be neglected or not. Or gyroscopic stiffness is included although it does not really do anything. 
 
-All translations of components are defined relative to a rotating reference frame fixed to the carrier
+All translations of components are defined relative to a rotating reference frame fixed to the carrier as such, the vibration response obtained from the lumped mass model is not directly comparable to the response measured by an accelerometer mounted to the gearbox housing. The transmission path from the gearbox components in the rotating reference frame to the measured response of the accelerometer therefore needs to be modelled.
+
+\cite{Liang2015} considers the resultant vibration signal to be a weighted summation of each planet gear, arguing that, as the planet gear meshes with the sun gear and ring gear simultaneously, the planet gear vibration contains information about both the sun-planet and ring-planet meshes. The effect of the transmission path is modelled by a modified Hamming function with $\alpha$ parameter that controls the bandwidth of the Hamming function. The equation is given by 3.1 in the paper.
+
+\cite{Parra2017} on the other hand states that they consider ring and planet vibrations and says liang does not consider ring vibrations as well. 
 --------------------------------------------------------------
 
 
@@ -518,7 +522,7 @@ Figure \ref{F:model} shows a schematic of the lumped mass model.
 
 The equations of motion of the lumped mass system is given by 
 
-\begin{equation}
+\begin{equation}1
 M \ddot{x}+\Omega_{c} G \dot{x}+\left[K_{b}+K_{e}(t)-\Omega_{c}^{2} K_{\Omega}\right] x=T+F(t)
 \end{equation}
 
