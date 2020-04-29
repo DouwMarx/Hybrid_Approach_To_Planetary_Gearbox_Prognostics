@@ -13,7 +13,7 @@ plt.close("all")
 ############################################################################333
 Km = np.array([[400,-200,0],
               [-200, 400,-200],
-              [0, -200, 200]])
+              [0, -200, 200]])*10
 
 K = lambda time: Km
 
@@ -28,7 +28,7 @@ f = np.zeros((3, 1))
 X0 = np.zeros((3, 1))
 Xd0 = np.ones((3, 1))*0.8
 
-t = np.linspace(0, 10, 1000)
+t = np.linspace(0, 1, 36000)
 
 # Generate actual and measured response
 lmm = s.LMM_sys(M, C, K, f, X0, Xd0, t)
@@ -131,7 +131,7 @@ startpoint = np.array([1, 0, 0, 0, 0, 0, 0])
 #                                      bounds=bnds,
 #                                      method='L-BFGS-B',
 #                                      options={'disp': None, 'maxcor': 10, 'ftol': 2.220446049250313e-12, 'gtol': 1e-12, 'eps': 1e-12, 'maxfun': 15000, 'maxiter': 15000, 'iprint': -1, 'maxls': 20})
-optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True)#, popsize=10, maxiter=0)#, , popsize=100)
+optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True, disp=True)#, popsize=10, maxiter=0)#, , popsize=100)
 #optimum_m1_init_1state = opt.minimize(cost_m1_init_cond_meas1_state, x0=startpoint, bounds=bnds, method='L-BFGS-B', options={'disp': None, 'maxcor': 10, 'ftol': 2.220446049250313e-12, 'gtol': 1e-12, 'eps': 1e-12, 'maxfun': 15000, 'maxiter': 15000, 'iprint': -1, 'maxls': 20})
 #optimum_m1_init_1state = opt.basinhopping(cost_m1_init_cond_meas1_state, x0=startpoint)#, maxiter=0, popsize=100)
 print("Find m1 and initial conditions, measure 1 state")
@@ -140,8 +140,10 @@ print("Find m1 and initial conditions, measure 1 state")
 
 #best_sol, sols = pi.random_init(cost_m1_init_cond_meas1_state, startpoint, bnds, 100)
 
-print("Best solution")
+best_sol = optimum_m1_init_1state
+print("Solution")
 print(best_sol)
+print("in time", time.time()-t_start)
 
 
 
@@ -155,3 +157,17 @@ plt.ylabel("Response")
 
 solved = optiminum_plot(best_sol['x'])
 plt.plot(t, solved[:, -3])
+
+
+#  Differential evolution solution, 1000 data points default settings took a while to run, roughly 1.2 hrs to complete
+"""
+fun: 2.553117675886115
+jac: array([2416.60271789, 5038.75137827, 2564.27543404, 2566.55436597,
+            2399.37712347, 2767.67717837, 2680.42357097])
+message: 'Optimization terminated successfully.'
+nfev: 12102
+nit: 109
+success: True
+x: array([1.49996258e+00, 4.17769235e-04, 5.92793825e-04, 7.63468282e-04,
+          8.01023549e-01, 8.04059946e-01, 8.02279993e-01])
+"""

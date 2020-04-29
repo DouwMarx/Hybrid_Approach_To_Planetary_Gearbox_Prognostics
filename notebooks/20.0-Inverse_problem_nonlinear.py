@@ -86,8 +86,8 @@ startpoint = np.array([199, 0, 0, 0, 0, 0, 0])
 
 
 #print("Find m1 and initial conditions, measure 1 state")
-best_sol, sols = pi.random_init(cost_m1_init_cond_meas1_state, startpoint, bnds, 100)
-
+#best_sol, sols = pi.random_init(cost_m1_init_cond_meas1_state, startpoint, bnds, 100)
+optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True)
 #print("Best solution")
 #print(best_sol)
 
