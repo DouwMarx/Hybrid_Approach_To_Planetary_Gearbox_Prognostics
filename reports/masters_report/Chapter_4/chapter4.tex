@@ -216,7 +216,36 @@ The measurement function $h$ would consist of a TVMS FEM simulation surrogate mo
 
 \textbf{7) Would it make sense to apply another Bayesian updating procedure on the measurement model parameters using healthy data to estimate the measurement model parameters? (Rather than using the healthy data for a data driven mapping between the physics based model and reality) This would also give measurement uncertainty that can be used in the state estimation problem.}
 
+\section{Non linear system identification}
 
+In the problem we are dealing with we have a differential equation and we need to infer some of its parameters that we don't know. In the calibration problem we have to infer unknown quantities like the ring gear mass. In the diagnostics problem we have to infer the mesh stiffness from the measured vibration signal
+\cite{Schon2015}. Problem forumulation is given in equation 1
+
+Two main stategies to deal with the fact that the states $x_{1:T}$ are unknown
+
+\begin{itemize}
+	\item Marginalisation: Integrating the states out
+	 \begin{itemize}
+		\item Frequentistic: Prediction error, Direct maximisation of likelihood
+		\item Bayesian: Metropolis-Hastings to find posterior conditional to data
+	\end{itemize}
+
+	\item Data Augmentation: States are treated as auxillary variables to be inferred together with model parameters $\theta$
+	\begin{itemize}
+		\item Frequentistic: Expectation maximisation
+		\item Bayesian: Gibs sampler
+	\end{itemize}
+\end{itemize}
+
+we need to deal with sequential Monte carlo methods because are system is non-linear (time varying stiffness) and and the noise is therefore likely to be non-Gaussian. 
+
+We need some way to estimate the likelihood of the observations for a certain model parameter. Is the system was linear and Gaussian we could have used a Kalman filter 
+
+If we go for the marginalisation approach, we can use particle metropolis-hastings 
+
+If we go for the data augmentation approach, we can use particle gibs with ancestor sampling (PGAS)
+
+but particle filter is not always too happy with large dimensions...
 
 
 \section{Possible simplifications}
