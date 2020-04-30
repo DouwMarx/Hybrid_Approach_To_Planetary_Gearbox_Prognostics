@@ -41,7 +41,7 @@ t = np.linspace(0, 10, 10000)
 lmm = s.LMM_sys(M, C, K, f, X0, Xd0, t)
 true = lmm.solve_de("RK")
 
-measured = np.random.normal(true, 0.08)
+measured = np.random.normal(true, 0.16)
 
 
 
@@ -61,9 +61,15 @@ def cost_m1_init_cond_meas1_state(theta):
 
 def optiminum_plot(theta):
     M = np.eye(3)
-    M[0, 0] = theta[0]
     X0 = np.array([theta[1:4]]).T
     Xd0 = np.array([theta[4:]]).T
+
+    f = np.zeros((3, 1))
+    f[0, 0] = 100
+
+    def K(t):
+        freq = 10
+        return Km + np.array([[1, -1, 0], [-1, 0, 0], [0, 0, 1]]) * theta[0] * 0.5 * (1 + sig.square(t * 2 * np.pi * freq))
 
     lmm = s.LMM_sys(M, C, K, f, X0, Xd0, t)
     sol = lmm.solve_de("RK")
@@ -87,7 +93,7 @@ startpoint = np.array([199, 0, 0, 0, 0, 0, 0])
 
 #print("Find m1 and initial conditions, measure 1 state")
 #best_sol, sols = pi.random_init(cost_m1_init_cond_meas1_state, startpoint, bnds, 100)
-optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True)
+optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True,disp=True)
 #print("Best solution")
 #print(best_sol)
 
@@ -101,5 +107,18 @@ plt.xlabel("time [s]")
 plt.ylabel("Response")
 
 
-solved = optiminum_plot(best_sol['x'])
+solved = optiminum_plot(optimum_m1_init_1state['x'])
 plt.plot(t, solved[:, -3])
+
+#seconds, 10000 increments
+"""
+fun: 7.972368098771397
+jac: array([4523.23565154, 7656.9481001, 5296.76943186, 6081.52746508,
+            6232.87502188, 6039.05013463, 6685.63798678])
+message: 'Optimization terminated successfully.'
+nfev: 10649
+nit: 96
+success: True
+x: array([1.99996881e+02, -2.47569690e-05, -5.26822797e-05, -1.85527696e-05,
+          8.00634156e-01, 7.98542224e-01, 8.00497971e-01])
+"""
