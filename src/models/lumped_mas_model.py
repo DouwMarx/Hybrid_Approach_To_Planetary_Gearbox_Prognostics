@@ -266,10 +266,11 @@ class K_e(object):
               The sun-planet mesh stiffness at a specific point in time
         """
         GMF_sp = 100
-        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.7)+1)
+        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.5)+1)
+        #return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_sp) + 1)
         #return self.k_atr[0] + t*0
 
-    def k_rp(self,t):
+    def k_rp(self, t):
         """
         Time varying mesh stiffness of ring-planet mesh
 
@@ -284,8 +285,16 @@ class K_e(object):
               The sun-planet mesh stiffness at a specific point in time
         """
         GMF_rp = 100
-        return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.7)+1) #Note that the duty cycle is set like this now
+        return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.5)+1) #Note that the duty cycle is set like this now
+        #return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_rp) + 1)
         #return self.k_atr[1] + t*0
+
+
+        #A = 1;
+        #f = 2;
+        #smoothsq = (2 * A / pi) * atan(sin(2 * pi * t * f) / self.PG. );
+        #plot(t, smoothsq);
+        #axis([-0.2 2.2 - 1.6 1.6]);
 
     def Kp_s2(self, p, t):
         """
@@ -807,162 +816,10 @@ class T(object):
         """
         T_vec = np.zeros((9+3*self.N, 1))
 
-        #T_vec[2, 0] = -(1+70/30)*self.T_s
-        T_vec[8, 0] = self.T_s # Sun
+        #T_vec[2, 0] = self.T_s#-(1+70/30)*self.T_s
+        T_vec[8, 0] = -self.T_s  # Sun
 
         return T_vec
-
-
-class DE_Integration(object):
-    """
-    This class is used to create mass matrix objects
-    """
-
-    def __init__(self, PG_obj):
-        """Initializes the DE integration object
-
-        Parameters
-        ----------
-        PG_obj: A Planetary gearbox object
-            """
-
-        self.PG = PG_obj
-
-    def E_Q(self,t):
-        """
-        Converts the second order differential equation to first order (E matrix and Q vector)
-
-        Parameters
-        ----------
-        t  : Float
-             Time
-
-        Returns
-        -------
-        E  : 2x(9+3xN) x 2x(9+3xN) Numpy array
-
-        Based on Runge-kutta notes
-
-        """
-        m = self.PG.M
-        k = self.PG.K_b + self.PG.K_e(t) - self.PG.Omega_c**2 * self.PG.K_Omega
-
-        c = self.PG.Omega_c*self.PG.G #+ (0.003*m + 0.003*k)  # 0.03*m +0.03*k is proportional damping used to ensure that
-                                                        # that the DE integration converges
-        F = self.PG.T
-
-        #convert to units 1kN = 1 g . micro_m / micro_s^2,
-        # 1kg * 1e3 = g
-        # 1N/m * 1e-9 = N/nano_m,
-        # 1N/(m/s) * 1e-3 = N/(nano_m/micro_s)
-        # 1N * 1 = N
-
-        #m = m/1E3
-        #k = k/1E9
-        #c = c/1E3
-        #F = F
-
-        c_over_m = np.linalg.solve(m, c)
-        k_over_m = np.linalg.solve(m, k)
-        F_over_m = np.linalg.solve(m, F)
-
-        dim = 2*(9+3*self.PG.N) # Matrix dimension
-        half_dim = int(dim/2)
-
-        E = np.zeros((dim, dim))
-        E[half_dim:, 0:half_dim] = -k_over_m
-        E[half_dim:, half_dim:] = -c_over_m
-        E[0:half_dim, half_dim:] = np.eye(half_dim)
-
-        Q = np.zeros((dim, 1))
-        Q[half_dim:, 0] = F_over_m[:,0]
-
-        return E, Q
-
-    def X_dot(self, X, t):
-
-        E, Q = self.E_Q(t)
-        X_dot = np.dot(E, np.array([X]).T) + Q
-
-        return(X_dot[:,0])
-
-    def Prepare_E_and_Q(self, E, Q):
-
-        """Rearanges the equations to have known values at top of matrix"""
-        dim = 2*(9+3*self.PG.N) # Matrix dimension
-        half_dim = int(dim/2)
-
-        E_known_at_top = E[0:3,:]
-        E_known_at_top = np.vstack((E_known_at_top, E[half_dim:half_dim+3, :]))
-        E_known_at_top = np.vstack((E_known_at_top, E[3:half_dim, :]))
-        E_known_at_top = np.vstack((E_known_at_top, E[half_dim+3:, :]))
-
-        Q_known_at_top = Q[0:3,:]
-        Q_known_at_top = np.vstack((Q_known_at_top, Q[half_dim:half_dim+3, :]))
-        Q_known_at_top = np.vstack((Q_known_at_top, Q[3:half_dim, :]))
-        Q_known_at_top = np.vstack((Q_known_at_top, Q[half_dim+3:, :]))
-
-        Euk = E_known_at_top[6:, 0:6]
-        Euu = E_known_at_top[6:, 6:]
-
-        Qu = Q_known_at_top[6:,:]
-
-        return Euk, Euu, Qu
-
-    def X_0(self):
-        """
-        Used to easily set up the initial conditions for differntial equation integration
-
-        Parameters
-        ----------
-
-
-        Returns
-        -------
-        X_0  : 2x(9+3xN) x 1 numpy array
-               Initial conditions
-
-        """
-        dim = 2 * (9 + 3 * self.PG.N)  # Matrix dimension
-
-        X_0 = np.zeros(dim)
-        #X_0[6] = 0.00000001
-        #X_0[5] = 0.00000001
-
-        return X_0
-
-    def Run_Integration(self, X_0, t):
-        sol = inter.odeint(self.X_dot, X_0, t)#,full_output=1)
-
-        #  Compute accelerations
-        acc = self.X_dotdot(sol)
-        return np.vstack(sol,acc)
-
-    def X_dotdot(self, sol):
-        """
-        Calculates accelerations from computed displacements and velocities
-        Parameters
-        ----------
-        sol
-
-        Returns
-        -------
-
-        """
-        d = self.PG.matrix_shape
-        M = self.PG.M
-        K = self.PG.K
-        C = self.PG.C
-        f = self.PG.T
-
-        Minv = np.linalg.inv(M)
-
-        xdd = np.zeros((len(t), d))
-        for timestep, i in zip(self.time_ramge,range(len(self.time_range))):
-            acc = -np.dot(np.dot(Minv, K(timestep)), sol[i, 0:d].T) - np.dot(np.dot(Minv, C), sol[i, d:].T) + np.dot(Minv, f[:, 0])
-            xdd[i, :] = acc[:]
-
-        return xdd
 
 
 class Transmission_Path(object):
@@ -1067,8 +924,6 @@ class Planetary_Gear(object):
         self.k_sp = K_e(self).k_sp  # This is a function. Takes the argument t [s]
         self.k_rp = K_e(self).k_rp  # This is a function. Takes the argument t [s]
 
-
-
     def phi_p(self, p):
         """
         Determines the circumferential planet positions phi_p
@@ -1093,4 +948,17 @@ class Planetary_Gear(object):
     def phi_rp(self, phi_p):
         out = phi_p + self.alpha_r
         return out
+
+    def plot_tvms(self,time_range):
+        plt.figure("Ring Planet Stiffness")
+        plt.plot(time_range, self.k_rp(time_range))
+        plt.xlabel("Time [s]")
+        plt.ylabel("Mesh Stiffness [N/m")
+
+        plt.figure("Sun Planet Stiffness")
+        plt.plot(time_range, self.k_sp(time_range))
+        plt.xlabel("Time [s]")
+        plt.ylabel("Mesh Stiffness [N/m")
+
+        return
 
