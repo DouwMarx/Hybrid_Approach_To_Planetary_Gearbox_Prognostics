@@ -219,7 +219,7 @@ The measurement function $h$ would consist of a TVMS FEM simulation surrogate mo
 \section{Non linear system identification}
 
 In the problem we are dealing with we have a differential equation and we need to infer some of its parameters that we don't know. In the calibration problem we have to infer unknown quantities like the ring gear mass. In the diagnostics problem we have to infer the mesh stiffness from the measured vibration signal
-\cite{Schon2015}. Problem forumulation is given in equation 1
+\cite{Schon2015}. Problem formulation is given in equation 1
 
 Two main stategies to deal with the fact that the states $x_{1:T}$ are unknown
 
@@ -246,6 +246,16 @@ If we go for the marginalisation approach, we can use particle metropolis-hastin
 If we go for the data augmentation approach, we can use particle gibs with ancestor sampling (PGAS)
 
 but particle filter is not always too happy with large dimensions...
+
+
+
+\section{Signal Processing and Feature extraction}
+Due to the time-varying nature of the measured planet gear signal where the planet gear passes the transducer with each rotation of the carrier, it makes sense to employ time synchronous averaging. 
+
+Under the assumption that the vibration signal is dominated by the planet gear passing the transducer. This is especially the case here where we only have one planet gear.
+
+
+
 
 
 \section{Possible simplifications}
