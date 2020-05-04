@@ -195,7 +195,6 @@ def make_chaari_2006_model_experiment():
     PG = pglmm.Planetary_Gear(N, M_atr_ud, Geom_atr_ud, k_atr_ud, Opp_atr_ud)
     return PG
 
-
 def make_chaari_2006_1planet():
     # Chaari
     # # Number of planet gears

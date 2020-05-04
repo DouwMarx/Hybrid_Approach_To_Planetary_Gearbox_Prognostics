@@ -61,6 +61,7 @@ def cost_m1_init_cond_meas1_state(theta):
 
 def optiminum_plot(theta):
     M = np.eye(3)
+    M[0, 0] = 1.5
     X0 = np.array([theta[1:4]]).T
     Xd0 = np.array([theta[4:]]).T
 
@@ -93,7 +94,7 @@ startpoint = np.array([199, 0, 0, 0, 0, 0, 0])
 
 #print("Find m1 and initial conditions, measure 1 state")
 #best_sol, sols = pi.random_init(cost_m1_init_cond_meas1_state, startpoint, bnds, 100)
-optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True,disp=True)
+#optimum_m1_init_1state = opt.differential_evolution(cost_m1_init_cond_meas1_state, bnds, polish=True,disp=True)
 #print("Best solution")
 #print(best_sol)
 
@@ -107,7 +108,9 @@ plt.xlabel("time [s]")
 plt.ylabel("Response")
 
 
-solved = optiminum_plot(optimum_m1_init_1state['x'])
+solved = optiminum_plot(np.array([1.99972131e+02, -4.30809639e-04, -6.76035917e-04, -5.46227370e-04,
+          8.01660155e-01, 7.98372241e-01, 7.96708351e-01]))
+#solved = optiminum_plot(optimum_m1_init_1state['x'])
 plt.plot(t, solved[:, -3])
 
 #seconds, 10000 increments
