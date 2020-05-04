@@ -3,26 +3,7 @@ import scipy.integrate as inter
 import matplotlib.pyplot as plt
 
 class RungeKutta(object):
-    def __init__(self, M, C, K, f ,X0 ,Xd0, time_range, solver_options={"beta_1": 0.5, "beta_2": 0.25}):
-        self.M = M
-        self.C = C
-        self.K = K
-        self.X0 = X0
-        self.Xd0 = Xd0
-        self.f = f
-        self.solver_options = solver_options
 
-        self.time_range = time_range
-
-        self.dt = np.average(np.diff(self.time_range))
-        self.dimensionality = np.shape(M)[0]
-
-        self.dim = np.shape(self.M)[0]  # Matrix dimensionality
-
-        self.beta_1 = self.solver_options["beta_1"]
-        self.beta_2 = self.solver_options["beta_2"]
-
-        return
 
     def E_Q(self, t):
         """
@@ -124,12 +105,6 @@ class Newmark_Beta(object):
         self.T5 = T5
         self.T6 = T6
 
-
-        sqaure = np.ones((self.dimensionality,self.dimensionality))
-        top = np.hstack((-T1*sqaure, -T3*sqaure, -T4*sqaure))
-        bot = np.hstack((-T2*sqaure, +T5*sqaure, +T6*sqaure))
-        self.Uh_np_mat = np.vstack((top, bot))
-
         return
 
     def get_Xdd0(self):
@@ -146,7 +121,7 @@ class Newmark_Beta(object):
         return T1 + T2 + T3
 
     def Xp(self, Xdhp, Xddhp,t):
-        b = self.f + np.dot(self.C, Xdhp) + np.dot(self.M, Xddhp)
+        b = -self.f + np.dot(self.C, Xdhp) + np.dot(self.M, Xddhp) # f is positive in textbook but should most likely be negative
         return - np.linalg.solve(self.A(t), b)
 
     def Xddhp(self, X, Xd, Xdd):
@@ -155,27 +130,18 @@ class Newmark_Beta(object):
     def Xdhp(self, X, Xd, Xdd):
         return -self.T2*X + self.T5*Xd + self.T6*Xdd  # dt allready acounted for in constants function
 
-
     def Xddp(self, Xddhp, Xp):
         return Xddhp + self.T1*Xp
 
     def Xdp(self, Xdhp, Xp):
         return Xdhp + self.T2*Xp
 
-    def U_np(self, U_n, u_np):
-        return self.Uh_np(U_n) + np.vstack((u_np*self.T1, u_np*self.T2))
-
-    def Uh_np(self, U_n):
-        return np.dot(self.Uh_np_mat, U_n)
-
     def A(self, t):
         return self.T1*self.M + self.T2*self.C + self.K(t)
 
-    def u_p(self, U_n, t):
-        fCuMu = self.f + np.dot(np.hstack((self.M, self.C)), self.Uh_np(U_n))
-        return - np.linalg.solve(self.A(t), fCuMu)
 
     def newmark_solve(self):
+
         self.constants()
 
         sol_len = len(self.time_range)
@@ -187,7 +153,7 @@ class Newmark_Beta(object):
 
         sol[:, 0] = np.vstack((X, Xd, Xdd))[:, 0]
 
-        for time_step, time_index in zip(self.time_range, range(1, sol_len)):
+        for time_step, time_index in zip(self.time_range[1:], range(1, sol_len-1)):
             Xddhp = self.Xddhp(X, Xd, Xdd)
             Xdhp = self.Xdhp(X, Xd, Xdd)
 
@@ -202,26 +168,32 @@ class Newmark_Beta(object):
             sol[:, time_index] = np.vstack((X, Xd, Xdd))[:, 0]
         return sol.T
 
-    def solve(self):
-
-        UUn = self.U0
-        sol = np.zeros((np.shape(UUn)[0], np.shape(self.time)[0]))
-        for i, t in zip(range(len(self.time)), self.time):
-
-            u_np = self.u_p(UUn, t)
-            U_p = self.U_np(UUn, u_np)
-
-            UUn = np.vstack((u_np, U_p[self.dimensionality:, :], U_p[0:self.dimensionality, :]))
-
-            sol[:, i] = UUn[:, 0]
-
-        return sol
 
 class LMM_sys(RungeKutta, Newmark_Beta):
     """
     Lumped mass model object for second order equation of Newtons second law
     Time variable stiffness, All other parameters are constant
     """
+    def __init__(self, M, C, K, f ,X0 ,Xd0, time_range, solver_options={"beta_1": 0.5, "beta_2": 0.25}):
+        self.M = M
+        self.C = C
+        self.K = K
+        self.X0 = X0
+        self.Xd0 = Xd0
+        self.f = f
+        self.solver_options = solver_options
+
+        self.time_range = time_range
+
+        self.dt = np.average(np.diff(self.time_range))
+        self.dimensionality = np.shape(M)[0]
+
+        self.dim = np.shape(self.M)[0]  # Matrix dimensionality
+
+        self.beta_1 = self.solver_options["beta_1"]
+        self.beta_2 = self.solver_options["beta_2"]
+
+        return
 
     def solve_de(self, solver):
         if solver == "RK":
