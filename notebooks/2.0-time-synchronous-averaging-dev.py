@@ -8,37 +8,35 @@ import src.features.proc_lib as proc
 plt.close("all")
 
 #  Load the dataset object
-filename = "g1_p0_v10_0.pgdata"
+filename = "cycle_2_end.pgdata"
+#filename = "cycle_6_end.pgdata"
 directory = definitions.root + "\\data\\processed\\" + filename
 with open(directory, 'rb') as filename:
     data = pickle.load(filename)
 
+#plt.figure()
+#data.plot_time_series("Acc_Sun")
 
-
-
-time = data.dataset["Time"].values
-mag = data.dataset["1PR_Mag_Pickup"].values
-acc = data.dataset["Acc_Sun"].values
-
-indexes = data.derived_attributes["trigger_index_mag"]
+#data.plot_trigger_times_test()
 
 
 RPM = data.info["rpm_carrier_ave"]
-print("Average RPM of motor over the course of the test as based on 1XPR magnetic encoder", np.average(RPM)*data.PG.GR)
-fc_ave = 1/(RPM/60)
+print("Average RPM of motor over the course of the test as based on 1XPR magnetic encoder", data.info["rpm_sun_ave"])
+fp_ave = data.PG.f_p(data.info["rpm_carrier_ave"]/60)
+print("Average planet gear rotational speed", fp_ave, "Rev/s")
 
-fp_ave = proc.Bonfiglioli.f_p(fc_ave)
+tsa = data.Compute_TSA(0, plot=True)
 
-print("Average planet gear speed",fp_ave,"Rev/s")
+data.plot_rpm_over_time()
 
-#winds = data.Window_extract()
+#print("Time duration of a revolution of planet gear", np.shape(tsa)[0]/data.info["f_s"]," seconds")
+print("Planet gear period: ", 1/fp_ave)
 
-#aves = proc.Time_Synchronous_Averaging.Window_average(winds,12)
+winds = data.Window_extract(1000)
+#for sample in range(12):
+  #  plt.figure()
+  #  plt.plot(winds.T[:, sample])
 
-#mesh_seq = list(np.ndarray.astype(np.array(proc.Bonfiglioli.Meshing_sequence())/2,int))
-#arranged, all_together = proc.Time_Synchronous_Averaging.Aranged_averaged_windows(aves,mesh_seq)
 
 #plt.figure()
-#plt.plot(all_together)
-#plt.vlines(np.arange(12)*4963, -4000, 4000, zorder = 10)
-
+#plt.plot(data.derived_attributes["order_track_time"], data.derived_attributes["order_track_signal"])

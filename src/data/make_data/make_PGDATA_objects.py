@@ -7,7 +7,8 @@ import src.features.proc_lib as proc
 
 import definitions
 
-directory = definitions.root + "\\data\\interim"
+#directory = definitions.root + "\\data\\interim"
+directory = definitions.root + "\\data\\interim\\QuickIter"
 
 for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in a folder
     try:

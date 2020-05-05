@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.signal as sig
 import pickle
+import scipy.interpolate as interp
 
 
 class Dataset_Plotting(object):
@@ -262,13 +263,35 @@ class Signal_Processing(object):
         freq = np.fft.fftfreq(length, 1 / fs)[0:int(length / 2)]
         return freq, magnitude, phase
 
+    def order_track(self,data):
+        d = self.dataset[data].values
+        t = self.dataset["Time"]
+        fs = self.info["f_s"]
+
+        trigger_times = self.derived_attributes["trigger_time_mag"]
+
+        tnew = np.array([0])
+        for index in range(len(trigger_times) - 1):
+            section = np.linspace(trigger_times[index], trigger_times[index + 1], fs/2)
+            tnew = np.hstack((tnew, section))
+
+        print(np.shape(tnew))
+        print(np.shape(d))
+
+        interp_obj = interp.interp1d(t, d, kind='cubic')
+        interp_sig = interp_obj(tnew)
+
+        return tnew, interp_sig
+
 class Time_Synchronous_Averaging(object):
     """
     Used to compute the time synchronous average for a planetary gearbox.
     See A TECHNIQUE FOR CALCULATING THE TIME DOMAIN AVERAGES OF THE VIBRATION OF THE INDIVIDUAL PLANET GEARS AND THE SUN GEAR IN AN EPICYCLIC GEARBOX, McFadden 1994
+
+    Take note that the sun gear accelerometer is used
     """
 
-    def Window_extract(self):
+    def Window_extract(self,sample_offset):
         """Extracts a rectangular window depending on the average frequency of rotation of the planet gear
         ----------
         acc: array
@@ -294,13 +317,15 @@ class Time_Synchronous_Averaging(object):
 
         fs = self.info["f_s"]
         Z_p = self.PG.Z_p
-        acc = self.dataset["Acc_Sun"].values
+        #acc = self.dataset["Acc_Sun"].values
+        acc = self.derived_attributes["order_track_signal"]
 
         fc_ave = 1 / (self.info["rpm_carrier_ave"] /60)
 
         f_p_ave = self.PG.f_p(fc_ave)
 
-        window_length = int(fs * (1 / f_p_ave) / Z_p)
+#        window_length = 2*int(fs * (1 / f_p_ave) / Z_p)
+        window_length = 1 * int(fs/2 * (1 / f_p_ave) / Z_p)
 
         if window_length % 2 == 0:  # Make sure that the window length is uneven
             window_length += 1
@@ -309,19 +334,18 @@ class Time_Synchronous_Averaging(object):
 
         # window_length = 29001 # Should be uneven
         window_half_length = int((window_length - 1) / 2)
-        window_center_index = self.derived_attributes["trigger_index_mag"]
+        #window_center_index = self.derived_attributes["trigger_index_mag"] + sample_offset
+        window_center_index = np.arange(0, len(acc), fs/2).astype(int)
 
-        n_revs = np.shape(window_center_index)[
-                     0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
+        n_revs = np.shape(window_center_index)[ 0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
 
         windows = np.zeros((n_revs, window_length))  # Initialize an empty array that will hold the extracted windows
 
         window_count = 0
-        for index in window_center_index[
-                     1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
+        for index in window_center_index[1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
             windows[window_count, :] = acc[index - window_half_length:index + window_half_length + 1]
             window_count += 1
-        return windows
+        return windows**2
 
     def Window_average(self, window_array, rotations_to_repeat):
         """ Computes the average of windows extracted from the extract_windows function
@@ -339,7 +363,7 @@ class Time_Synchronous_Averaging(object):
             """
 
         n_samples_for_average = int(np.floor(np.shape(window_array)[0] / rotations_to_repeat))
-
+        #n_samples_for_average =1
         #print(n_samples_for_average)
 
         averages = np.zeros((rotations_to_repeat, np.shape(window_array)[1]))
@@ -372,16 +396,26 @@ class Time_Synchronous_Averaging(object):
 
         return averages_in_order, planet_gear_revolution
 
-    def Compute_TSA(self):
+    def Compute_TSA(self, sample_offset, plot = False):
 
-        winds = self.Window_extract()
+        winds = self.Window_extract(sample_offset)
 
         aves = self.Window_average(winds, 12)
 
         mesh_seq = list(np.ndarray.astype(np.array(self.PG.Meshing_sequence()) / 2, int))
-        arranged, all = self.Aranged_averaged_windows(aves, mesh_seq)
+        arranged, together = self.Aranged_averaged_windows(aves, mesh_seq)
 
-        return all
+        if plot:
+            plt.figure()
+            minimum = np.min(together)
+            maximum = np.max(together)
+
+            plt.plot(together)
+            for line in range(np.shape(aves)[0]):
+                plt.vlines(line*np.shape(aves)[1], minimum, maximum)
+
+
+        return together
 
 class Callibration(object):
     """
@@ -470,8 +504,11 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         """
 
         # Compute trigger times for the magnetic pickup
-        trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 5)
+        trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 1)
         self.derived_attributes.update({"trigger_time_mag" : trigger_time, "trigger_index_mag" : trigger_index})
+
+        order_t, order_sig = self.order_track("Acc_Sun")
+        self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig})
 
         # Compute the number of fatigue cycles (Note that this is stored in info and not derived attributes
         #n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
