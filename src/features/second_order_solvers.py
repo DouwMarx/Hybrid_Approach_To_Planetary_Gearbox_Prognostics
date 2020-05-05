@@ -169,6 +169,8 @@ class Newmark_Beta(object):
         return sol.T
 
 
+
+
 class LMM_sys(RungeKutta, Newmark_Beta):
     """
     Lumped mass model object for second order equation of Newtons second law
@@ -204,4 +206,55 @@ class LMM_sys(RungeKutta, Newmark_Beta):
 
         else:
             print("not implemented")
+
+
+    def plot_solution(self,solution, state_time_der):
+
+        nstate = 12
+        if state_time_der == "Displacement":
+            start = 0
+
+        if state_time_der == "Velocity":
+            start = nstate*1
+
+        if state_time_der == "Acceleration":
+            start = nstate*2
+
+        end = start + nstate
+
+        lables = ("x_c",
+                  "y_c",
+                  "u_c",
+                  "x_r",
+                  "y_r",
+                  "u_r",
+                  "x_s",
+                  "y_s",
+                  "u_s",
+                  "zeta_1",
+                  "nu_1",
+                  "u_1")
+        plt.figure(state_time_der)
+        plt.ylabel("Displacement [m]")
+        plt.xlabel("Time [s]")
+        p = plt.plot(self.time_range[1:], solution[1:, start:end])
+        plt.legend(iter(p), lables)
+
+
+        # plt.figure()
+        # plt.plot(self.time_range[1:], solution[1:, start+2], label = "u_c" )
+        # plt.plot(self.time_range[1:], solution[1:, start + 8], label = "u_s")
+        # plt.plot(self.time_range[1:], solution[1:, start + 11], label = "u_1")
+        # plt.legend()
+
+        plt.figure()
+        plt.plot(self.time_range[1:], solution[1:, start+9], label = "zeta_1" )
+        plt.plot(self.time_range[1:], solution[1:, start + 10], label="nu_1")
+        #plt.plot(self.time_range[1:], solution[1:, start + 11], label = "u_1")
+        plt.legend()
+
+        # plt.plot(timerange, sol_nm[:, -3], label="Newmark")
+        # plt.ylim(np.min(sol_rk[:, -3]),np.max(sol_rk[:, -3]))
+
+
 

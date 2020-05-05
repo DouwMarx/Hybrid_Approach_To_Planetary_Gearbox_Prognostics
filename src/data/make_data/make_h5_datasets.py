@@ -10,7 +10,8 @@ def main():
 
     #directory = definitions.root + "\\data\\raw\\pre_lockdown_full_and_half_facewidth"
     #directory = definitions.root + "\\data\\raw\\no_rotation_frequencies"
-    directory = definitions.root + "\\data\\raw\\test_bench_torque_capability"
+    #directory = definitions.root + "\\data\\raw\\test_bench_torque_capability"
+    directory = definitions.root + "\\data\\raw\\tooth_missing_single_planet"
 
     for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in a folder
         if filename.endswith('.xlsx'):   # This section deals with .xlsx files
