@@ -58,7 +58,7 @@ class M(object):
         """
         M = np.zeros((self.matrix_shape, self.matrix_shape))
 
-        for j in range(3 + self.N): # For (carrier, ring sun) and planets
+        for j in range(3 + self.N):  # For (carrier, ring sun) and planets
             lb = 3 * j
             ub = 3 * (j + 1)
             M[lb:ub, lb:ub] = self.M_j(j)
@@ -186,7 +186,7 @@ class K_b(object):
         PG_obj: A Planetary gearbox object
             """
 
-        self.k_p = PG_obj.k_atr[2] # The bearing stiffness taken for all bearings
+        self.k_p = PG_obj.k_atr[2]  # The bearing stiffness taken for all bearings
         self.kru = PG_obj.k_atr[3]
         self.PG = PG_obj
         self.K_b_mat = self.K_b()
@@ -208,12 +208,14 @@ class K_b(object):
         K_jb[0, 0] = self.k_p
         K_jb[1, 1] = self.k_p
 
-        #if gear == "ring":
-        if gear == "ring" or "carrier":
+        # if gear == "ring":
+        if gear == "ring":
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
+        if gear == "carrier":
+            K_jb[2, 2] = 0.1  # The ring resists rotational motion
         else:
-            K_jb[2, 2] = 0         # Planet and sun gears are free to rotate
+            K_jb[2, 2] = 0  # Planet and sun gears are free to rotate
 
         return K_jb
 
@@ -225,7 +227,7 @@ class K_b(object):
         -------
         G    :3x(3+N) x 3x(3+N) numpy array
         '''
-        K_b = np.zeros((self.PG.N*3+9, self.PG.N*3+9))
+        K_b = np.zeros((self.PG.N * 3 + 9, self.PG.N * 3 + 9))
 
         K_b[0:3, 0:3] = self.K_jb("carrier")
         K_b[3:6, 3:6] = self.K_jb("ring")
@@ -251,7 +253,7 @@ class K_e(object):
         self.k_atr = PG_obj.k_atr
         self.K_e_mat = self.Compiled
 
-    def k_sp(self,t):
+    def k_sp(self, t):
         """
         Time varying mesh stiffness of sun-planet mesh
 
@@ -266,9 +268,10 @@ class K_e(object):
               The sun-planet mesh stiffness at a specific point in time
         """
         GMF_sp = 100
-        return self.k_atr[0] + self.k_atr[0]*0.5*(s.square(t*2*np.pi*GMF_sp, 0.5)+1)
-        #return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_sp) + 1)
-        #return self.k_atr[0] + t*0
+        return self.k_atr[0] + self.k_atr[0] * 0.5 * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        # return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_sp) + 1)
+        # return self.k_atr[0] + t*0
+        # return self.k_atr[0]
 
     def k_rp(self, t):
         """
@@ -285,16 +288,17 @@ class K_e(object):
               The sun-planet mesh stiffness at a specific point in time
         """
         GMF_rp = 100
-        return self.k_atr[1] + self.k_atr[1]*0.5*(s.square(t*2*np.pi*GMF_rp, 0.5)+1) #Note that the duty cycle is set like this now
-        #return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_rp) + 1)
-        #return self.k_atr[1] + t*0
+        return self.k_atr[1] + self.k_atr[1] * 0.5 * (
+                s.square(t * 2 * np.pi * GMF_rp, 0.5) + 1)  # Note that the duty cycle is set like this now
+        # return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_rp) + 1)
+        # return self.k_atr[1] + t*0
+        # return self.k_atr[1]
 
-
-        #A = 1;
-        #f = 2;
-        #smoothsq = (2 * A / pi) * atan(sin(2 * pi * t * f) / self.PG. );
-        #plot(t, smoothsq);
-        #axis([-0.2 2.2 - 1.6 1.6]);
+        # A = 1;
+        # f = 2;
+        # smoothsq = (2 * A / pi) * atan(sin(2 * pi * t * f) / self.PG. );
+        # plot(t, smoothsq);
+        # axis([-0.2 2.2 - 1.6 1.6]);
 
     def Kp_s2(self, p, t):
         """
@@ -313,24 +317,24 @@ class K_e(object):
         Kp_s2   : 3x3 numpy array
         """
 
-        phi_sp = self.PG.phi_sp_list[p-1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        phi_sp = self.PG.phi_sp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
         alpha_s = self.PG.alpha_s
 
         Kp_s2 = np.zeros((3, 3))
 
-        Kp_s2[0, 0] = np.sin(phi_sp)*np.sin(alpha_s)
+        Kp_s2[0, 0] = np.sin(phi_sp) * np.sin(alpha_s)
         Kp_s2[0, 1] = np.sin(phi_sp) * np.cos(alpha_s)
         Kp_s2[0, 2] = -np.sin(phi_sp)
 
-        Kp_s2[1, 0] = -np.cos(phi_sp)*np.sin(alpha_s)
+        Kp_s2[1, 0] = -np.cos(phi_sp) * np.sin(alpha_s)
         Kp_s2[1, 1] = -np.cos(phi_sp) * np.cos(alpha_s)
-        Kp_s2[1, 2] = np.cos(phi_sp)   #This term is negative in Chaari but positive in Parker 1999
+        Kp_s2[1, 2] = np.cos(phi_sp)  # This term is negative in Chaari but positive in Parker 1999
 
         Kp_s2[2, 0] = -np.sin(alpha_s)
         Kp_s2[2, 1] = -np.cos(alpha_s)
         Kp_s2[2, 2] = 1
 
-        Kp_s2 = self.k_sp(t)*Kp_s2
+        Kp_s2 = self.k_sp(t) * Kp_s2
         return Kp_s2
 
     def Kp_r2(self, p, t):
@@ -350,16 +354,16 @@ class K_e(object):
         Kp_r2   : 3x3 numpy array
         """
 
-        phi_rp = self.PG.phi_rp_list[p-1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        phi_rp = self.PG.phi_rp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
         alpha_r = self.PG.alpha_r
 
         Kp_r2 = np.zeros((3, 3))
 
-        Kp_r2[0, 0] = -np.sin(phi_rp)*np.sin(alpha_r)
+        Kp_r2[0, 0] = -np.sin(phi_rp) * np.sin(alpha_r)
         Kp_r2[0, 1] = np.sin(phi_rp) * np.cos(alpha_r)
         Kp_r2[0, 2] = np.sin(phi_rp)
 
-        Kp_r2[1, 0] = np.cos(phi_rp)*np.sin(alpha_r)
+        Kp_r2[1, 0] = np.cos(phi_rp) * np.sin(alpha_r)
         Kp_r2[1, 1] = -np.cos(phi_rp) * np.cos(alpha_r)
         Kp_r2[1, 2] = -np.cos(phi_rp)
 
@@ -367,7 +371,7 @@ class K_e(object):
         Kp_r2[2, 1] = -np.cos(alpha_r)
         Kp_r2[2, 2] = -1
 
-        Kp_r2 = self.k_rp(t)*Kp_r2
+        Kp_r2 = self.k_rp(t) * Kp_r2
         return Kp_r2
 
     def Kp_c2(self, p, t):
@@ -384,7 +388,7 @@ class K_e(object):
         Kp_c2   : 3x3 numpy array
         """
 
-        phi_p = self.PG.phi_p_list [p-1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        phi_p = self.PG.phi_p_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
 
         Kp_c2 = np.zeros((3, 3))
         Kp_c2[0, 0] = -np.cos(phi_p)
@@ -399,7 +403,7 @@ class K_e(object):
         Kp_c2[2, 1] = -1
         Kp_c2[2, 2] = 0
 
-        Kp_c2 = self.k_atr[2]*Kp_c2 #  Multiply the matrix with K_p
+        Kp_c2 = self.k_atr[2] * Kp_c2  # Multiply the matrix with K_p
         return Kp_c2
 
     def Kp_s1(self, p, t):
@@ -419,23 +423,23 @@ class K_e(object):
         Kp_s1   : 3x3 numpy array
         """
 
-        phi_sp = self.PG.phi_sp_list[p-1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        phi_sp = self.PG.phi_sp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
 
         Kp_s1 = np.zeros((3, 3))
 
-        Kp_s1[0, 0] = np.sin(phi_sp)**2
+        Kp_s1[0, 0] = np.sin(phi_sp) ** 2
         Kp_s1[0, 1] = -np.cos(phi_sp) * np.sin(phi_sp)
         Kp_s1[0, 2] = -np.sin(phi_sp)
 
-        Kp_s1[1, 0] = -np.cos(phi_sp)*np.sin(phi_sp)
-        Kp_s1[1, 1] = np.cos(phi_sp)**2
+        Kp_s1[1, 0] = -np.cos(phi_sp) * np.sin(phi_sp)
+        Kp_s1[1, 1] = np.cos(phi_sp) ** 2
         Kp_s1[1, 2] = np.cos(phi_sp)
 
         Kp_s1[2, 0] = -np.sin(phi_sp)
         Kp_s1[2, 1] = np.cos(phi_sp)
         Kp_s1[2, 2] = 1
 
-        Kp_s1 = self.k_sp(t)*Kp_s1
+        Kp_s1 = self.k_sp(t) * Kp_s1
         return Kp_s1
 
     def Kp_r1(self, p, t):
@@ -455,24 +459,24 @@ class K_e(object):
         Kp_r1   : 3x3 numpy array
         """
 
-        phi_rp = self.PG.phi_rp_list[p-1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        phi_rp = self.PG.phi_rp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
         alpha_r = self.PG.alpha_r
 
         Kp_r1 = np.zeros((3, 3))
 
-        Kp_r1[0, 0] = np.sin(phi_rp)**2
-        Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)# in Parker #-np.cos(phi_rp) * np.cos(alpha_r)
-        Kp_r1[0, 2] = -np.sin(phi_rp)   # This term is positive in Chaari and negative in Parker
+        Kp_r1[0, 0] = np.sin(phi_rp) ** 2
+        Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)  # in Parker #-np.cos(phi_rp) * np.cos(alpha_r)
+        Kp_r1[0, 2] = -np.sin(phi_rp)  # This term is positive in Chaari and negative in Parker
 
-        Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp) #In Parker
-        Kp_r1[1, 1] = np.cos(phi_rp)**2
+        Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp)  # In Parker
+        Kp_r1[1, 1] = np.cos(phi_rp) ** 2
         Kp_r1[1, 2] = np.cos(phi_rp)
 
-        Kp_r1[2, 0] = -np.sin(phi_rp) # This term is positvie in Chaari and negative in Parker
+        Kp_r1[2, 0] = -np.sin(phi_rp)  # This term is positvie in Chaari and negative in Parker
         Kp_r1[2, 1] = np.cos(phi_rp)
         Kp_r1[2, 2] = 1
 
-        Kp_r1 = self.k_rp(t)*Kp_r1
+        Kp_r1 = self.k_rp(t) * Kp_r1
         return Kp_r1
 
     def Kp_c1(self, p, t):
@@ -489,7 +493,7 @@ class K_e(object):
         Kp_c1   : 3x3 numpy array
         """
 
-        phi_p = self.PG.phi_p_list [p-1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        phi_p = self.PG.phi_p_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
 
         Kp_c1 = np.zeros((3, 3))
 
@@ -505,7 +509,7 @@ class K_e(object):
         Kp_c1[2, 1] = np.cos(phi_p)
         Kp_c1[2, 2] = 1
 
-        Kp_c1 = self.k_atr[2]*Kp_c1 #  Multiply the matrix with K_p
+        Kp_c1 = self.k_atr[2] * Kp_c1  # Multiply the matrix with K_p
         return Kp_c1
 
     def Kp_r3(self, p, t):
@@ -529,19 +533,19 @@ class K_e(object):
 
         Kp_r3 = np.zeros((3, 3))
 
-        Kp_r3[0, 0] = np.sin(alpha_r)**2
+        Kp_r3[0, 0] = np.sin(alpha_r) ** 2
         Kp_r3[0, 1] = -np.cos(alpha_r) * np.sin(alpha_r)
         Kp_r3[0, 2] = -np.sin(alpha_r)
 
-        Kp_r3[1, 0] = -np.cos(alpha_r)*np.sin(alpha_r)
-        Kp_r3[1, 1] = np.cos(alpha_r)**2
+        Kp_r3[1, 0] = -np.cos(alpha_r) * np.sin(alpha_r)
+        Kp_r3[1, 1] = np.cos(alpha_r) ** 2
         Kp_r3[1, 2] = np.cos(alpha_r)
 
         Kp_r3[2, 0] = -np.sin(alpha_r)
         Kp_r3[2, 1] = np.cos(alpha_r)
         Kp_r3[2, 2] = 1
 
-        Kp_r3 = self.k_rp(t)*Kp_r3
+        Kp_r3 = self.k_rp(t) * Kp_r3
         return Kp_r3
 
     def Kp_s3(self, p, t):
@@ -565,22 +569,22 @@ class K_e(object):
 
         Kp_s3 = np.zeros((3, 3))
 
-        Kp_s3[0, 0] = np.sin(alpha_s)**2
+        Kp_s3[0, 0] = np.sin(alpha_s) ** 2
         Kp_s3[0, 1] = np.cos(alpha_s) * np.sin(alpha_s)
         Kp_s3[0, 2] = -np.sin(alpha_s)
 
-        Kp_s3[1, 0] = np.cos(alpha_s)*np.sin(alpha_s)
-        Kp_s3[1, 1] = np.cos(alpha_s)**2
+        Kp_s3[1, 0] = np.cos(alpha_s) * np.sin(alpha_s)
+        Kp_s3[1, 1] = np.cos(alpha_s) ** 2
         Kp_s3[1, 2] = -np.cos(alpha_s)
 
         Kp_s3[2, 0] = -np.sin(alpha_s)
         Kp_s3[2, 1] = -np.cos(alpha_s)
         Kp_s3[2, 2] = 1
 
-        Kp_s3 = self.k_sp(t)*Kp_s3
+        Kp_s3 = self.k_sp(t) * Kp_s3
         return Kp_s3
 
-    def Kp_c3(self, p, t ):
+    def Kp_c3(self, p, t):
         """
         K^p_c3 component of mesh stiffness matrix
 
@@ -608,7 +612,7 @@ class K_e(object):
         Kp_c3[2, 1] = 0
         Kp_c3[2, 2] = 0
 
-        Kp_c3 = self.k_atr[2]*Kp_c3#  Multiply the matrix with K_p
+        Kp_c3 = self.k_atr[2] * Kp_c3  # Multiply the matrix with K_p
         return Kp_c3
 
     def Kp(self, p, t):
@@ -626,7 +630,7 @@ class K_e(object):
         -------
         Kp   : 3x3 numpy array
         """
-        Kp = self.Kp_c3(p,t) + self.Kp_r3(p, t) + self.Kp_s3(p, t)
+        Kp = self.Kp_c3(p, t) + self.Kp_r3(p, t) + self.Kp_s3(p, t)
         return Kp
 
     def Sum_Kp_c1(self, t):
@@ -643,7 +647,7 @@ class K_e(object):
         Sum_Kp_c1   : 3x3 numpy array
         """
         Sum_Kp_c1 = 0
-        for p in range(1,self.PG.N+1):
+        for p in range(1, self.PG.N + 1):
             Sum_Kp_c1 += self.Kp_c1(p, t)
         return Sum_Kp_c1
 
@@ -661,7 +665,7 @@ class K_e(object):
         Sum_Kp_r1   : 3x3 numpy array
         """
         Sum_Kp_r1 = 0
-        for p in range(1, self.PG.N+1):
+        for p in range(1, self.PG.N + 1):
             Sum_Kp_r1 += self.Kp_r1(p, t)
         return Sum_Kp_r1
 
@@ -679,7 +683,7 @@ class K_e(object):
         Sum_Kp_s1   : 3x3 numpy array
         """
         Sum_Kp_s1 = 0
-        for p in range(1, self.PG.N+1):
+        for p in range(1, self.PG.N + 1):
             Sum_Kp_s1 += self.Kp_s1(p, t)
         return Sum_Kp_s1
 
@@ -696,19 +700,19 @@ class K_e(object):
         -------
         Cols   : (3xN)x9 numpy array
         """
-        #Cols = np.zeros((3*self.PG.N, 9))
+        # Cols = np.zeros((3*self.PG.N, 9))
 
-        #for p in range(1,self.PG.N+1):
-            #Cols[3 * (p - 1):3 * (p +1 - 1), 0:3] = self.Kp_c2(p, t)
-            #Cols[3 * (p - 1):3 * (p + 1 - 1), 3:6] = self.Kp_r2(p, t)
-            #Cols[3 * (p - 1):3 * (p + 1 - 1), 6:9] = self.Kp_s2(p, t)
+        # for p in range(1,self.PG.N+1):
+        # Cols[3 * (p - 1):3 * (p +1 - 1), 0:3] = self.Kp_c2(p, t)
+        # Cols[3 * (p - 1):3 * (p + 1 - 1), 3:6] = self.Kp_r2(p, t)
+        # Cols[3 * (p - 1):3 * (p + 1 - 1), 6:9] = self.Kp_s2(p, t)
 
-        #return Cols
+        # return Cols
 
-        rect = np.zeros((9,self.PG.N*3))
+        rect = np.zeros((9, self.PG.N * 3))
 
-        for p in range(1,self.PG.N +1):
-            rect[0:3,(p-1)*3:p*3] = self.Kp_c2(p, t)
+        for p in range(1, self.PG.N + 1):
+            rect[0:3, (p - 1) * 3:p * 3] = self.Kp_c2(p, t)
             rect[3:6, (p - 1) * 3:p * 3] = self.Kp_r2(p, t)
             rect[6:9, (p - 1) * 3:p * 3] = self.Kp_s2(p, t)
 
@@ -728,10 +732,10 @@ class K_e(object):
         square   : (3xN)x(3xN) numpy array
                 N is the number of planet gears
         """
-        square = np.zeros((3*self.PG.N, 3*self.PG.N))
+        square = np.zeros((3 * self.PG.N, 3 * self.PG.N))
 
-        for p in range(1,self.PG.N+1):
-            square[3*(p-1):3*(p+1-1), 3*(p-1):3*(p-1+1)] = self.Kp(p, t)
+        for p in range(1, self.PG.N + 1):
+            square[3 * (p - 1):3 * (p + 1 - 1), 3 * (p - 1):3 * (p - 1 + 1)] = self.Kp(p, t)
         return square
 
     def Left_Top(self, t):
@@ -755,7 +759,7 @@ class K_e(object):
 
         return square
 
-    def Compiled(self,t):
+    def Compiled(self, t):
         """
         Creates a square matrix Ke(t)
 
@@ -769,13 +773,13 @@ class K_e(object):
         Ke   : (9+3xN)x(9+3xN) numpy array
                 Time varying stiffness matrix
         """
-        Ke = np.zeros((9 + 3*self.PG.N, 9 + 3*self.PG.N))
-        Ke[0:9,0:9] = self.Left_Top(t)
+        Ke = np.zeros((9 + 3 * self.PG.N, 9 + 3 * self.PG.N))
+        Ke[0:9, 0:9] = self.Left_Top(t)
         Ke[9:, 9:] = self.Right_Bottom(t)
 
-        #off_diag = self.Off_Diag(t)
-        #Ke[9:, 0:9] = off_diag
-        #Ke[0:9, 9:] = off_diag.T
+        # off_diag = self.Off_Diag(t)
+        # Ke[9:, 0:9] = off_diag
+        # Ke[0:9, 9:] = off_diag.T
 
         off_diag = self.Off_Diag(t)
         Ke[9:, 0:9] = off_diag.T
@@ -799,9 +803,15 @@ class T(object):
         self.T_s = PG_obj.T_s
         self.N = PG_obj.N
 
-        self.T_vec = self.T()  # Let Mass object have attribute mass matrix
+        self.kru = PG_obj.k_atr[3]
 
-    def T(self):
+        self.PG = PG_obj
+
+        self.M_atr = PG_obj.M_atr
+
+        self.T_vec = self.T  # Time dependent function
+
+    def T(self, t):
         """
         Calculates the torque vector
 
@@ -814,10 +824,12 @@ class T(object):
         T   : (9+3xN) x 1  numpy array
 
         """
-        T_vec = np.zeros((9+3*self.N, 1))
+        T_vec = np.zeros((9 + 3 * self.N, 1))
 
-        #T_vec[2, 0] = self.T_s#-(1+70/30)*self.T_s
-        T_vec[8, 0] = -self.T_s  # Sun
+        vb = 0.001  # constant base velocity # In this case the base is the planet carrier
+        xb = vb * t  # base displacement
+        T_vec[2, 0] = self.kru*xb  # self.kru*xb #+ (0.003*self.M_atr[0, 0] + 0.003*self.kru)*vb  # self.T_s#-(1+70/30)*self.T_s
+        T_vec[8, 0] = - self.T_s  # Sun
 
         return T_vec
 
@@ -840,8 +852,8 @@ class Transmission_Path(object):
 
         return
 
-    def F_ri(self, planet,t_range):
-        return self.PG.k_rp(t_range)*self.d_ri(planet)
+    def F_ri(self, planet, t_range):
+        return self.PG.k_rp(t_range) * self.d_ri(planet)
 
     def d_ri(self, planet):
         """
@@ -854,14 +866,14 @@ class Transmission_Path(object):
         -------
 
         """
-        i = 9 + (planet-1)*3
+        i = 9 + (planet - 1) * 3
 
         phi_p = self.PG.phi_p(planet)
         alpha_r = self.PG.alpha_r
 
-        t1 = + self.sol[3+1, :] * np.cos(phi_p)
+        t1 = + self.sol[3 + 1, :] * np.cos(phi_p)
         t2 = - self.sol[3, :] * np.sin(phi_p)
-        t3 = + self.sol[i+1, :] * np.sin(alpha_r)
+        t3 = + self.sol[i + 1, :] * np.sin(alpha_r)
         t4 = - self.sol[i, :] * np.cos(alpha_r)
         t5 = + self.sol[3 + 2, :]
         t6 = - self.sol[i + 2, :]
@@ -893,19 +905,19 @@ class Planetary_Gear(object):
         self.M_atr = M_atr
 
         self.Omega_c = Opp_atr[0]  # Constant carrier rotational speed
-        self.T_s = Opp_atr[1]      # Constant torque applied to sun gear
+        self.T_s = Opp_atr[1]  # Constant torque applied to sun gear
 
         self.alpha_s = Geom_atr[0]
         self.alpha_r = Geom_atr[1]
 
-        self.k_atr = k_atr        # The stiffness attributes of the planetary gearbox
+        self.k_atr = k_atr  # The stiffness attributes of the planetary gearbox
 
-        if np.shape(M_atr)[1]-3 != self.N:
+        if np.shape(M_atr)[1] - 3 != self.N:
             raise ValueError("Number of planet gears not in agreement with Mass attribute array size")
 
         self.matrix_shape = 3 * (3 + self.N)  # The dimension of matrices such as M,G,K
 
-        self.phi_p_list = self.phi_p(np.arange(1, self.N+1)) # A list of the phi_p values for planet gears 1 -> N
+        self.phi_p_list = self.phi_p(np.arange(1, self.N + 1))  # A list of the phi_p values for planet gears 1 -> N
         self.phi_sp_list = self.phi_sp(self.phi_p_list)  # A list of the phi_sp values for planet gears 1 -> N
         self.phi_rp_list = self.phi_rp(self.phi_p_list)  # A list of the phi_rp values for planet gears 1 -> N
 
@@ -915,11 +927,11 @@ class Planetary_Gear(object):
         self.K_b = K_b(self).K_b_mat
         self.K_e = K_e(self).Compiled  # This is a function. Takes the argument t [s]
         self.K_Omega = K_Omega(self).K_Omega_mat
-        self.T = T(self).T_vec
+        self.T = T(self).T_vec  # This is a function. Takes the argument t [s]
 
         self.K = lambda t: self.K_b + self.K_e(t) - self.Omega_c ** 2 * self.K_Omega
 
-        self.C = self.Omega_c*self.G + 0.03*self.M + 0.03*self.K(0)
+        self.C = self.Omega_c * self.G + 0.03 * self.M + 0.03 * self.K(0)
 
         self.k_sp = K_e(self).k_sp  # This is a function. Takes the argument t [s]
         self.k_rp = K_e(self).k_rp  # This is a function. Takes the argument t [s]
@@ -938,8 +950,8 @@ class Planetary_Gear(object):
         phi_p   : float
                   The circumferential planet position in radians
         """
-        increment= 2*np.pi/self.N  # The angular distance between planet gears
-        return increment*(p-1)
+        increment = 2 * np.pi / self.N  # The angular distance between planet gears
+        return increment * (p - 1)
 
     def phi_sp(self, phi_p):
         out = phi_p - self.alpha_s
@@ -949,7 +961,7 @@ class Planetary_Gear(object):
         out = phi_p + self.alpha_r
         return out
 
-    def plot_tvms(self,time_range):
+    def plot_tvms(self, time_range):
         plt.figure("Ring Planet Stiffness")
         plt.plot(time_range, self.k_rp(time_range))
         plt.xlabel("Time [s]")
@@ -961,4 +973,3 @@ class Planetary_Gear(object):
         plt.ylabel("Mesh Stiffness [N/m")
 
         return
-
