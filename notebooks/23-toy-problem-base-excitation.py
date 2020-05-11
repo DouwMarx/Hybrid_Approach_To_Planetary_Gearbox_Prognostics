@@ -21,14 +21,11 @@ def K(t):
 #               [-0.2, 0.55,-0.2],
 #               [0, -0.2, 0.35]])*1000
 def C(t):
-    factor = 30
+    factor = 3
     return factor*np.eye(1) + factor*K(t)
     #return factor * np.eye(1) + factor * Km
 
 
-#
-# factor = 3
-# C = factor*np.eye(1) + factor*Km
 
 def f(t):
     fvec = np.zeros((3, 1))
@@ -49,14 +46,7 @@ lmm = s.LMM_sys(M, C, K, f, X0, Xd0, t)
 tn = time.time()
 sol_newmark = lmm.solve_de("Radau")
 tn = time.time() - tn
-print("Newmark in ", tn, "seconds")
-
-# tr = time.time()
-# sol_runge = lmm.solve_de("RK")
-# tr = time.time() - tr
-# print("Runge Kutta in ", tr, "seconds")
-
-
+print("Radau in ", tn, "seconds")
 
 
 

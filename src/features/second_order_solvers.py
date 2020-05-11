@@ -178,6 +178,11 @@ class Newmark_Beta(object):
         -------
 
         """
+
+        # {"beta_1": 0.5, "beta_2": 0.25}
+        self.beta_1 = 0.5
+        self.beta_2 = 0.25
+
         T1 = 2 / (self.beta_2 * self.dt ** 2)
         T2 = 2 * self.beta_1 / (self.beta_2 * self.dt)
         T3 = 2 / (self.beta_2 * self.dt)
@@ -261,14 +266,13 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
     Time variable stiffness, All other parameters are constant
     """
 
-    def __init__(self, M, C, K, f, X0, Xd0, time_range, solver_options={"beta_1": 0.5, "beta_2": 0.25}):
+    def __init__(self, M, C, K, f, X0, Xd0, time_range):
         self.M = M
         self.C = C
         self.K = K
         self.X0 = X0
         self.Xd0 = Xd0
         self.f = f
-        self.solver_options = solver_options
 
         self.time_range = time_range
 
@@ -277,9 +281,6 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
 
         self.dim = np.shape(self.M)[0]  # Matrix dimensionality
 
-        self.beta_1 = self.solver_options["beta_1"]
-        self.beta_2 = self.solver_options["beta_2"]
-
         return
 
     def solve_de(self, solver):
@@ -287,6 +288,7 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
             return self.rk_solve()
 
         if solver == "Newmark":
+            # {"beta_1": 0.5, "beta_2": 0.25}
             return self.newmark_solve()
 
         if solver == "Radau" or "BDF":

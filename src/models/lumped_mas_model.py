@@ -10,6 +10,8 @@ import scipy.signal as s
 import matplotlib.pyplot as plt
 import scipy.integrate as inter
 import scipy as sci
+import time
+import src.features.second_order_solvers as solvers
 
 
 class M(object):
@@ -213,9 +215,9 @@ class K_b(object):
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
         if gear == "carrier":
-            K_jb[2, 2] = 0.1  # The ring resists rotational motion
+            K_jb[2, 2] = self.kru
         else:
-            K_jb[2, 2] = 0  # Planet and sun gears are free to rotate
+            K_jb[2, 2] = 0  # sun gear free to rotate
 
         return K_jb
 
@@ -464,17 +466,33 @@ class K_e(object):
 
         Kp_r1 = np.zeros((3, 3))
 
-        Kp_r1[0, 0] = np.sin(phi_rp) ** 2
-        Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)  # in Parker #-np.cos(phi_rp) * np.cos(alpha_r)
-        Kp_r1[0, 2] = -np.sin(phi_rp)  # This term is positive in Chaari and negative in Parker
+        author = "Parker"
 
-        Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp)  # In Parker
-        Kp_r1[1, 1] = np.cos(phi_rp) ** 2
-        Kp_r1[1, 2] = np.cos(phi_rp)
+        if author == "Parker":
+            Kp_r1[0, 0] = np.sin(phi_rp) ** 2
+            Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)  # sin() argument phi_rp in Parker, alpha_rp in Chaari
+            Kp_r1[0, 2] = -np.sin(phi_rp)  # This term is positive in Chaari and negative in Parker
 
-        Kp_r1[2, 0] = -np.sin(phi_rp)  # This term is positvie in Chaari and negative in Parker
-        Kp_r1[2, 1] = np.cos(phi_rp)
-        Kp_r1[2, 2] = 1
+            Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp)  # sin() argument phi_rp in Parker, alpha_rp in Chaari
+            Kp_r1[1, 1] = np.cos(phi_rp) ** 2
+            Kp_r1[1, 2] = np.cos(phi_rp)
+
+            Kp_r1[2, 0] = -np.sin(phi_rp)  # This term is positvie in Chaari and negative in Parker
+            Kp_r1[2, 1] = np.cos(phi_rp)
+            Kp_r1[2, 2] = 1
+
+        if author == "Chaari":
+            Kp_r1[0, 0] = np.sin(phi_rp) ** 2
+            Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(alpha_r)  # in Parker
+            Kp_r1[0, 2] = +np.sin(phi_rp)  # This term is positive in Chaari and negative in Parker
+
+            Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(alpha_r)
+            Kp_r1[1, 1] = np.cos(phi_rp) ** 2
+            Kp_r1[1, 2] = np.cos(phi_rp)
+
+            Kp_r1[2, 0] = +np.sin(phi_rp)  # This term is positvie in Chaari and negative in Parker
+            Kp_r1[2, 1] = np.cos(phi_rp)
+            Kp_r1[2, 2] = 1
 
         Kp_r1 = self.k_rp(t) * Kp_r1
         return Kp_r1
@@ -809,9 +827,7 @@ class T(object):
 
         self.M_atr = PG_obj.M_atr
 
-        self.T_vec = self.T  # Time dependent function
-
-    def T(self, t):
+    def T_vec_base_excitation(self, t):
         """
         Calculates the torque vector
 
@@ -828,8 +844,27 @@ class T(object):
 
         vb = 0.001  # constant base velocity # In this case the base is the planet carrier
         xb = vb * t  # base displacement
-        T_vec[2, 0] = self.kru*xb  # self.kru*xb #+ (0.003*self.M_atr[0, 0] + 0.003*self.kru)*vb  # self.T_s#-(1+70/30)*self.T_s
+        T_vec[2, 0] = self.kru * xb  # -(1+70/30)*self.T_s
         T_vec[8, 0] = - self.T_s  # Sun
+
+        return T_vec
+
+    def T_vec_stationary(self, t):
+        """
+        Calculates the torque vector
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        T   : (9+3xN) x 1  numpy array
+
+        """
+        T_vec = np.zeros((9 + 3 * self.N, 1))
+        T_vec[2, 0] = 0
+        T_vec[8, 0] = self.T_s  # Sun
 
         return T_vec
 
@@ -883,7 +918,7 @@ class Transmission_Path(object):
 
 class Planetary_Gear(object):
 
-    def __init__(self, N, M_atr, Geom_atr, k_atr, Opp_atr):
+    def __init__(self, N, M_atr, Geom_atr, k_atr, Opp_atr, solve_attr):
         """Initializes the planetary gear  object
 
         Parameters
@@ -904,8 +939,9 @@ class Planetary_Gear(object):
         self.N = N
         self.M_atr = M_atr
 
-        self.Omega_c = Opp_atr[0]  # Constant carrier rotational speed
-        self.T_s = Opp_atr[1]  # Constant torque applied to sun gear
+        self.Omega_c = Opp_atr["Omega_c"]
+        self.T_s = Opp_atr["T_s"]
+        self.base_excitation = Opp_atr["base_excitation"]
 
         self.alpha_s = Geom_atr[0]
         self.alpha_r = Geom_atr[1]
@@ -927,11 +963,25 @@ class Planetary_Gear(object):
         self.K_b = K_b(self).K_b_mat
         self.K_e = K_e(self).Compiled  # This is a function. Takes the argument t [s]
         self.K_Omega = K_Omega(self).K_Omega_mat
-        self.T = T(self).T_vec  # This is a function. Takes the argument t [s]
+
+        if self.base_excitation:
+            self.T = T(self).T_vec_base_excitation  # This is a function. Takes the argument t [s]
+        else:
+            self.T = T(self).T_vec_stationary
 
         self.K = lambda t: self.K_b + self.K_e(t) - self.Omega_c ** 2 * self.K_Omega
 
-        self.C = self.Omega_c * self.G + 0.03 * self.M + 0.03 * self.K(0)
+        self.solve_atr = solve_attr
+        self.time_range = solve_attr["time_range"]
+
+        # Make proportional damping time dependent or constant
+        if self.solve_atr["proportional_damping_constant"]:
+            self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
+                    self.M + self.K(t))
+
+        else:
+            self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
+                    self.M + self.K(0))
 
         self.k_sp = K_e(self).k_sp  # This is a function. Takes the argument t [s]
         self.k_rp = K_e(self).k_rp  # This is a function. Takes the argument t [s]
@@ -973,3 +1023,113 @@ class Planetary_Gear(object):
         plt.ylabel("Mesh Stiffness [N/m")
 
         return
+
+    def plot_solution(self, state_time_der):
+
+        try:
+            nstate = int(np.shape(self.time_domain_solution)[1] / 3)
+        except AttributeError:
+            print("Please run solution using get_solution method")
+            return
+
+        if state_time_der == "Displacement":
+            start = 0
+
+        if state_time_der == "Velocity":
+            start = nstate * 1
+
+        if state_time_der == "Acceleration":
+            start = nstate * 2
+
+        end = start + nstate
+
+        lables = ("x_c",
+                  "y_c",
+                  "u_c",
+                  "x_r",
+                  "y_r",
+                  "u_r",
+                  "x_s",
+                  "y_s",
+                  "u_s",
+                  "zeta_1",
+                  "nu_1",
+                  "u_1")
+
+        # plt.figure(state_time_der)
+        # plt.ylabel("Displacement [m]")
+        # plt.xlabel("Time [s]")
+        # p = plt.plot(self.time_range[1:], solution[1:, start:end])
+        # plt.legend(iter(p), lables)
+
+        plt.figure("Rotational DOF, carrier, sun, planet" + state_time_der)
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 0], label="u_c")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 2], label="u_r")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 8], label="u_s")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 11], label="u_1")
+        plt.legend()
+
+        plt.figure("x-translation, carrier, sun, planet" + state_time_der)
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 0], label="x_c")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 3], label="x_r")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 6], label="x_s")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 9], label="x_p1")
+        plt.legend()
+
+        plt.figure("Planet displacement")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 9], label="zeta_1")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 10], label="nu_1")
+        plt.legend()
+
+    def get_solution(self):
+        try:
+            return self.time_domain_solution
+        except AttributeError:
+            self.time_domain_solution = self.run_integration()
+            return self.time_domain_solution
+
+    def run_integration(self):
+
+        X0 = self.solve_atr["X0"]
+        Xd0 = self.solve_atr["Xd0"]
+        timerange = self.solve_atr["time_range"]
+        solver_alg = self.solve_atr["solver_alg"]
+
+        solver = solvers.LMM_sys(self.M, self.C, self.K, self.T, X0, Xd0, timerange)
+
+        t = time.time()
+        print("Solution started")
+        sol = solver.solve_de(solver_alg)
+        print(solver_alg, "time: ", time.time() - t)
+
+        return sol
+
+    def get_natural_freqs(self):
+        """
+        Computes the eigenvalues of the lumped-mass system to validate the model based on models presented in
+        literature.
+
+        Returns
+        -------
+        Natural frequencies and eigenvalues
+        """
+
+        K = self.K_b + self.K_e(0)  # + (PG.Omega_c)**2 * PG.K_Omega
+
+        val, vec = sci.linalg.eig(K, self.M)
+        indexes = np.argsort(val)
+
+        val = val[indexes]
+        eig_freqs = np.sqrt(val) / (np.pi * 2)
+        vec = vec[indexes]
+
+        distinct = []
+        multiplicity = 1
+        for i in range(1, len(val)):
+            print(eig_freqs[i])
+            if abs(eig_freqs[i - 1] - eig_freqs[i]) < 1:
+                multiplicity += 1
+            else:
+                distinct.append([np.real(eig_freqs[i-1]), multiplicity])
+                multiplicity = 1
+        print(np.array(distinct))
