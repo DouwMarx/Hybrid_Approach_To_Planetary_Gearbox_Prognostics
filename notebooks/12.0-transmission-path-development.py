@@ -4,22 +4,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import definitions
 import src.models.lumped_mas_model as pglmm
+import dill
 
 plt.close("all")
 
-#PG = lmm.make_chaari_2006_model()
-PG = lmm.make_chaari_2006_1planet()
-
-# Calculate accelerations for the calculated velocities and displacements
-d = definitions.root + "\\data\\external\\lmm\\Response_3_0.npy"
-sol = np.load(d)
-t = np.linspace(0, 1, 100000)
 
 
-transp = pglmm.Transmission_Path(PG, sol)
+def save_model():
+    with open(definitions.root + "\\models\\solved_models" + "\\" + "get_y" + ".lmmsol", 'wb') as config:
+        PG = lmm.make_chaari_2006_model()
+        PG.get_solution()
+        dill.dump(PG, config)
+    return
 
+
+def load_model():
+        with open(definitions.root + "\\models\\solved_models" + "\\" + "sol_save_test_w_sol" + ".lmmsol", 'rb') as config:
+            PG = dill.load(config)
+        return PG
+
+PG = load_model()
+#PG.plot_solution("Displacement")
+
+transp = pglmm.Transmission_Path(PG)
+y = transp.y()
 plt.figure()
-#plt.plot(transp.d_ri(1))
-plt.plot(transp.F_ri(1, t))
+plt.plot(y)
+#plt.plot(transp.F_ri(1, t))
 
 
