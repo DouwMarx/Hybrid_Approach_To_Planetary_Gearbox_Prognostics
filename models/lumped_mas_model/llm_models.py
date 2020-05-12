@@ -44,8 +44,8 @@ def make_chaari_2006_model():
 
     #  Operating conditions
     ########################################################################################################################
-    Omega_c = 0  # 2*np.pi*1285/60#(2*np.pi*8570/60)/(1 + 70/30)#100*2*np.pi*60  # [rad/s]  # Constant angular speed of planet carrier
-    T_s = 100  # [N/m]  # Sun torque applied to the sun gear
+    Omega_c = 2*np.pi*1285/60#(2*np.pi*8570/60)/(1 + 70/30)#100*2*np.pi*60  # [rad/s]  # Constant angular speed of planet carrier
+    T_s = 10  # [N/m]  # Sun torque applied to the sun gear
 
     Opp_atr_ud = {"Omega_c": Omega_c,
                   "T_s": T_s,
@@ -53,7 +53,7 @@ def make_chaari_2006_model():
 
     #  Solver attributes
     ######################################################################################################################
-    timerange = np.linspace(0, 0.1, 100000)
+    timerange = np.linspace(0, 0.051, 10000)
 
     # X0 = np.array([[-1.67427896e-15, 1.81686928e-07, 1.81686884e-08, 3.54914606e-08,
     #                 -9.08434456e-08, -9.75303772e-09, -3.54914583e-08, -9.08434387e-08,

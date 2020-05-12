@@ -332,7 +332,6 @@ class Time_Synchronous_Averaging(object):
 
         #print("window length calculated as ", window_length, "samples")
 
-        # window_length = 29001 # Should be uneven
         window_half_length = int((window_length - 1) / 2)
         #window_center_index = self.derived_attributes["trigger_index_mag"] + sample_offset
         window_center_index = np.arange(0, len(acc), fs/2).astype(int)
