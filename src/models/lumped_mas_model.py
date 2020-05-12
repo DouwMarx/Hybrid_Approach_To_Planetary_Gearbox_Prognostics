@@ -216,6 +216,7 @@ class K_b(object):
 
         if gear == "carrier":
             K_jb[2, 2] = self.kru
+
         else:
             K_jb[2, 2] = 0  # sun gear free to rotate
 
@@ -794,10 +795,6 @@ class K_e(object):
         Ke = np.zeros((9 + 3 * self.PG.N, 9 + 3 * self.PG.N))
         Ke[0:9, 0:9] = self.Left_Top(t)
         Ke[9:, 9:] = self.Right_Bottom(t)
-
-        # off_diag = self.Off_Diag(t)
-        # Ke[9:, 0:9] = off_diag
-        # Ke[0:9, 9:] = off_diag.T
 
         off_diag = self.Off_Diag(t)
         Ke[9:, 0:9] = off_diag.T
