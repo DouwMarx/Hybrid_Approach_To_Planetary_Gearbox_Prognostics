@@ -229,6 +229,7 @@ static
 *.XLSX
 !author_moddelling_comparisson.xlsx
 *.pgdata
+*.lmmsol
 *.h5
 *.npy
 
