@@ -37,7 +37,7 @@ class Dataset_Plotting(object):
         plt.ylabel("Input RPM")
         plt.text(0,max(rpm),"Average motor speed: " + str(int(self.info["rpm_sun_ave"]))+ " RPM")
 
-    def plot_fft(self, data,plot_gmf = False):
+    def plot_fft(self, data,fs,plot_gmf = False):
         """
         Computes and plots the FFT for a given signal
         Parameters
@@ -49,10 +49,10 @@ class Dataset_Plotting(object):
         -------
 
         """
-        freq, mag, phase = self.fft(data)
+        freq, mag, phase = self.fft(data,fs)
 
 
-
+        plt.figure()
         #max_height = 2
         plt.plot(freq, mag, "k")
         plt.ylabel("Magnitude")
@@ -61,11 +61,50 @@ class Dataset_Plotting(object):
         if plot_gmf == True:
             GMF = self.PG.GMF(self.info["rpm_sun_ave"]/60)
             #FF1 = GMF/self.PG.Z_p
+            FF = self.PG.FF1(self.info["rpm_sun_ave"]/60)
             max_height = np.max(mag)
             plt.vlines(np.arange(1, 5) * GMF, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
+            #plt.vlines(np.arange(1, 3) * FF, max_height, 'c', zorder=10, label="GMF and Harmonics")
             #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
 
         plt.xlim(0, 6000)
+        #plt.show()
+
+        return
+
+
+    def plot_order_spectrum(self, data,fs,samples_per_rev,plot_gmf = False):
+        """
+        Computes and plots the FFT for a given signal
+        Parameters
+        ----------
+        data: String
+            Name of the heading of the dataset to be FFTed
+
+        Returns
+        -------
+
+        """
+        freq, mag, phase = self.fft(data,fs)
+
+
+        plt.figure()
+        #max_height = 2
+        plt.plot(freq/samples_per_rev, mag, "k")
+        plt.ylabel("Magnitude")
+        plt.xlabel("Carrier orders")
+
+        if plot_gmf == True:
+            GMF = self.PG.GMF(self.info["rpm_sun_ave"]/60)
+
+            FF = self.PG.FF1(self.info["rpm_sun_ave"]/60)
+            #FF1 = GMF/self.PG.Z_p
+            max_height = np.max(mag)
+            plt.vlines(np.arange(1, 8) * GMF/samples_per_rev, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
+            plt.vlines(np.arange(1, 3) * FF/samples_per_rev, 0, max_height, 'c', zorder=10, label="GMF and Harmonics")
+            #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
+
+        #plt.xlim(0, 6000)
         #plt.show()
 
         return
@@ -239,7 +278,7 @@ class Signal_Processing(object):
         #print(self.dataset["Time"])
         return np.ceil(1 / np.average(timeseries[1:] - timeseries[0:-1]))
 
-    def fft(self, data):
+    def fft(self, data, fs):
         """
 
         Parameters
@@ -253,9 +292,10 @@ class Signal_Processing(object):
         magnitude:
         phase:
         """
+        d = data
 
-        d = self.dataset[data].values
-        fs = self.info["f_s"]
+#        d = self.dataset[data].values
+#        fs = self.info["f_s"]
         length = len(d)
         Y = np.fft.fft(d) / length
         magnitude = np.abs(Y)[0:int(length / 2)]
@@ -270,18 +310,19 @@ class Signal_Processing(object):
 
         trigger_times = self.derived_attributes["trigger_time_mag"]
 
-        tnew = np.array([0])
+        tnew = np.array([])
+        #tnew = np.array([0])
+        ave_rot_time = np.average(np.diff(trigger_times))
+        samples_per_rev = fs*ave_rot_time
         for index in range(len(trigger_times) - 1):
-            section = np.linspace(trigger_times[index], trigger_times[index + 1], fs/2)
+            section = np.linspace(trigger_times[index], trigger_times[index + 1], samples_per_rev)
             tnew = np.hstack((tnew, section))
 
-        print(np.shape(tnew))
-        print(np.shape(d))
 
         interp_obj = interp.interp1d(t, d, kind='cubic')
         interp_sig = interp_obj(tnew)
 
-        return tnew, interp_sig
+        return tnew, interp_sig, samples_per_rev
 
 class Time_Synchronous_Averaging(object):
     """
@@ -506,8 +547,8 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 1)
         self.derived_attributes.update({"trigger_time_mag" : trigger_time, "trigger_index_mag" : trigger_index})
 
-        order_t, order_sig = self.order_track("Acc_Sun")
-        self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig})
+        order_t, order_sig, samples_per_rev = self.order_track("Acc_Sun")
+        self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig, "order_track_samples_per_rev": samples_per_rev})
 
         # Compute the number of fatigue cycles (Note that this is stored in info and not derived attributes
         #n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
@@ -557,7 +598,7 @@ class PG(object):
 
         self.Mesh_Sequence = self.Meshing_sequence()  # Calculate the meshing sequence
 
-    def GMF1(self, f_s):
+    def GMF1(self, f_sun):
         """Function that returns the gear mesh frequency for a given sun gear rotation speed f_s
         Parameters
         ----------
@@ -570,7 +611,7 @@ class PG(object):
         GMF: Float
             The gear mesh frequency in Hz
             """
-        return f_s*self.Z_r*self.Z_s/(self.Z_r + self.Z_s)
+        return f_sun*self.Z_r*self.Z_s/(self.Z_r + self.Z_s)
 
     def GR_calc(self):
         """Gear ratio for planetary gearbox with stationary ring gear
@@ -620,7 +661,7 @@ class PG(object):
         """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
         Parameters
         ----------
-        f_s: Float
+        f_sun: Float
              Frequency of rotation of sun gear
 
 
