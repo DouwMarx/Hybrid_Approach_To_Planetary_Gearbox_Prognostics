@@ -44,7 +44,10 @@ def fft(data, fs):
 #PG.get_solution()
 #PG.plot_solution("Displacement")
 
-PG.get_natural_freqs()
+#PG.get_natural_freqs()
+PG.get_solution()
+PG.plot_solution("Displacement")
+
 
 #d = definitions.root + "\\" + "data\\external\\lmm\\"
 #np.save(d + "Response_4_0.npy", s)
