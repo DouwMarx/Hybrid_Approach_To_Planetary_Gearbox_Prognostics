@@ -255,6 +255,7 @@ class K_e(object):
         self.PG = PG_obj
         self.k_atr = PG_obj.k_atr
         self.K_e_mat = self.Compiled
+        self.Omega_c = PG_obj.Omega_c
 
     def k_sp(self, t):
         """
@@ -865,6 +866,150 @@ class T(object):
 
         return T_vec
 
+
+class PG_ratios(object):
+    """
+    Ratios in a planetary gearbox
+    At this stage this class is duplicated in proclib.py as PG
+    """
+    def __init__(self, Z_r, Z_s, Z_p):
+        self.Z_r = Z_r
+        self.Z_s = Z_s
+        self.Z_p = Z_p
+        self.GR = self.GR_calc()
+
+        self.carrier_revs_to_repeat = 12  # The number of revolution of the carrier required for a given planet gear
+        # tooth to mesh with the same ring gear tooth. This could be calculated based
+        # on the input parameters with the meshing sequence function is extended
+
+        self.Mesh_Sequence = self.Meshing_sequence()  # Calculate the meshing sequence
+
+    def GMF1(self, f_sun):
+        """Function that returns the gear mesh frequency for a given sun gear rotation speed f_s
+        Parameters
+        ----------
+        f_s: float
+            Sun gears shaft frequency
+
+
+        Returns
+        -------
+        GMF: Float
+            The gear mesh frequency in Hz
+            """
+        return f_sun*self.Z_r*self.Z_s/(self.Z_r + self.Z_s)
+
+    def GR_calc(self):
+        """Gear ratio for planetary gearbox with stationary ring gear
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        GR: Float
+            The ratio
+            """
+        return 1 + self.Z_r / self.Z_s
+
+    def f_p(self,f_c):
+        """Frequency of rotation of planetary gears
+        Parameters
+        ----------
+        f_c: Float
+             Frequency of rotation of planet carrier
+
+
+        Returns
+        -------
+        f_p: Float
+            Frequency of rotation of planet gear
+            """
+        return f_c*self.Z_r/self.Z_p
+
+    def GMF(self,f_s):
+        """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
+        Parameters
+        ----------
+        f_s: Float
+             Frequency of rotation of sun gear
+
+
+        Returns
+        -------
+        GMF: Float
+            Frequency of rotation of planet gear
+            """
+        fc = f_s/self.GR
+        return self.f_p(fc)*self.Z_p
+
+    def FF1(self,f_s):
+        """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
+        Parameters
+        ----------
+        f_sun: Float
+             Frequency of rotation of sun gear
+
+
+        Returns
+        -------
+        FF1: Float
+            Fault frequency due to fault on planet gear
+            """
+        f_c = f_s/self.GR # Calculate the frequency of rotation of the carrier
+        fp = self.f_p(f_c)
+        FF1 = 2*fp # The fault will manifest in the vibration twice per revolution of the planet gear:
+        # once at the sun gear and once at the ring gear
+        return FF1
+
+    def Meshing_sequence(self):
+        """Determines the order in which the teeth of a planet gear will mesh with the ring gear
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        Mesh_Sequence: array
+            Array of tooth numbers (zero to Np-1) that show the order in which the teeth will mesh
+            """
+
+        Mesh_Sequence = []
+        for n_rev in range(self.carrier_revs_to_repeat): #Notice that the sequence starts repeating after 12 rotations
+            Mesh_Sequence.append((n_rev*self.Z_r)%self.Z_p)
+
+        return Mesh_Sequence
+
+    def fatigue_cycles(self, carrier_revs):
+        """
+        Calculates the number of fatigue cycles given the number of planet rotations
+        Parameters
+        ----------
+        carrier_revs: float
+                    Number of rotations of the carrier
+
+        Returns
+        -------
+        fatigue_cycles
+        """
+        return float(carrier_revs)*(self.Z_r/self.Z_p) # (number of revs)(number of cycles per revolution)
+
+
+    @classmethod
+    def RPM_to_f(cls,RPM):
+        """Function converts revolutions per minute to Herz
+        Parameters
+        ----------
+        RPM: Float
+            Rotational speed in RPM
+
+
+        Returns
+        -------
+        f:  Float
+            Frequency [Hz]
+            """
+        return RPM/60
 
 class Transmission_Path(object):
     """

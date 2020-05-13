@@ -131,9 +131,11 @@ class Stiff_DE(object):
                               atol=1e-7)
 
         y = sol.y.T
-        acc = self.get_Xdotdot(y)
+
+        return y 
+        #acc = self.get_Xdotdot(y)
         # return acc
-        return np.hstack((y, acc))
+        #return np.hstack((y, acc))
 
     def get_Xdotdot(self, sol):
         """
