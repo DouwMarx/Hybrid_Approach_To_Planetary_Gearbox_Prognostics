@@ -1,1 +1,3 @@
-
+Assumptions
+- Planet gears have equal mass
+- Mass matrix is non-time-varying

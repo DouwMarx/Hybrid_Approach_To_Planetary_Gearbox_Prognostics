@@ -1,11 +1,8 @@
 import src.models.lumped_mas_model as pglmm
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sci
 import models.lumped_mas_model.llm_models as lmm_models
-import importlib  #This allows me to reload my own module every time
 import definitions
-import src.features.second_order_solvers as s
 import time
 
 
@@ -15,9 +12,10 @@ plt.close("all")
 #PG = lmm_models.make_chaari_2006_1planet()
 #PG = lmm_models.make_lin_1999_model()
 #PG = lmm_models.make_liang_2015()
-PG = lmm_models.make_chaari_2006_model()
+#PG = lmm_models.make_chaari_2006_model()
+PG_info_dict = lmm_models.make_chaari_2006_model_w_dict()
 
-
+PG = pglmm.Planetary_Gear(PG_info_dict)
 def fft(data, fs):
     """
 
@@ -45,9 +43,9 @@ def fft(data, fs):
 #PG.plot_solution("Displacement")
 
 #PG.get_natural_freqs()
-PG.get_solution()
-PG.plot_solution("Displacement")
+#PG.get_solution()
+#PG.plot_solution("Displacement")
+sol = PG.get_transducer_vibration()
 
-
-#d = definitions.root + "\\" + "data\\external\\lmm\\"
-#np.save(d + "Response_4_0.npy", s)
+d = definitions.root + "\\" + "data\\external\\lmm\\"
+np.save(d + "transducer_vib_diagnostics1.npy", sol)

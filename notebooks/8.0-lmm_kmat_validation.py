@@ -8,17 +8,13 @@ import models.lumped_mas_model.llm_models as lmm_models
 plt.close("all")
 
 #PG = lmm_models.make_chaari_2006_model()
-PG = lmm_models.make_lin_1999_model()
+#PG = lmm_models.make_lin_1999_model()
 
-K = PG.K_b + PG.K_e(0) #+ (PG.Omega_c)**2 * PG.K_Omega
+info_dict = lmm_models.make_chaari_2006_model_w_dict()
 
-val, vec = sci.linalg.eig(K, PG.M)
-indexes = np.argsort(val)
 
-val = val[indexes]
-vec = vec[indexes]
+PG = pglmm.Planetary_Gear(info_dict)
 
-for i in range(len(val)):
-    print(np.sqrt(val[i])/(np.pi*2))
+PG.get_natural_freqs()
 
 

@@ -81,7 +81,7 @@ class RungeKutta(object):
 
 class Stiff_DE(object):
 
-    def E_Q(self, t):
+    def E_Q_stiff(self, t):
         """
         Converts the second order differential equation to first order (E matrix and Q vector)
 
@@ -98,9 +98,13 @@ class Stiff_DE(object):
 
         """
 
-        c_over_m = np.linalg.solve(self.M, self.C(t))
-        k_over_m = np.linalg.solve(self.M, self.K(t))
-        f_over_m = np.linalg.solve(self.M, self.f(t))
+        # c_over_m = np.linalg.solve(self.M, self.C(t))
+        # k_over_m = np.linalg.solve(self.M, self.K(t))
+        # f_over_m = np.linalg.solve(self.M, self.f(t))
+
+        c_over_m = np.dot(self.M_inv, self.C(t))
+        k_over_m = np.dot(self.M_inv, self.K(t))
+        f_over_m = np.dot(self.M_inv, self.f(t))
 
         half_dim = self.dim
 
@@ -115,7 +119,7 @@ class Stiff_DE(object):
         return E, Q
 
     def X_dot_stiff(self, t, X):
-        E, Q = self.E_Q(t)
+        E, Q = self.E_Q_stiff(t)
         X_dot = np.dot(E, np.array([X]).T) + Q
 
         return (X_dot[:, 0])
@@ -128,14 +132,14 @@ class Stiff_DE(object):
                               dense_output=True,
                               t_eval=self.time_range,
                               rtol=1e-3,
-                              atol=1e-7)
+                              atol=1e-6)
 
         y = sol.y.T
 
-        return y 
-        #acc = self.get_Xdotdot(y)
+        return y
+        # acc = self.get_Xdotdot(y)
         # return acc
-        #return np.hstack((y, acc))
+        # return np.hstack((y, acc))
 
     def get_Xdotdot(self, sol):
         """
@@ -270,6 +274,7 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
 
     def __init__(self, M, C, K, f, X0, Xd0, time_range):
         self.M = M
+        self.M_inv = np.linalg.inv(M)
         self.C = C
         self.K = K
         self.X0 = X0
@@ -301,7 +306,7 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
 
     def plot_solution(self, solution, state_time_der):
 
-        nstate = int(np.shape(solution)[0]/3)
+        nstate = int(np.shape(solution)[0] / 3)
         if state_time_der == "Displacement":
             start = 0
 

@@ -12,6 +12,7 @@ import scipy.integrate as inter
 import scipy as sci
 import time
 import src.features.second_order_solvers as solvers
+import scipy.interpolate as interp
 
 
 class M(object):
@@ -257,6 +258,12 @@ class K_e(object):
         self.K_e_mat = self.Compiled
         self.Omega_c = PG_obj.Omega_c
 
+        #  Compute the square waves up-front (big speedup)
+        t = self.PG.solve_atr["time_range"]
+        GMF_sp = 100
+        k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        self.interp_func = interp.interp1d(t, k)
+
     def k_sp(self, t):
         """
         Time varying mesh stiffness of sun-planet mesh
@@ -271,11 +278,13 @@ class K_e(object):
         k_sp: float
               The sun-planet mesh stiffness at a specific point in time
         """
-        GMF_sp = 100
-        return self.k_atr[0] + self.k_atr[0] * 0.5 * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        # GMF_sp = 100
+        # return self.k_atr[0] + self.k_atr[0] * 0.5 * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
         # return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_sp) + 1)
         # return self.k_atr[0] + t*0
         # return self.k_atr[0]
+
+        return self.interp_func(t)
 
     def k_rp(self, t):
         """
@@ -291,9 +300,9 @@ class K_e(object):
         k_sp: float
               The sun-planet mesh stiffness at a specific point in time
         """
-        GMF_rp = 100
-        return self.k_atr[1] + self.k_atr[1] * 0.5 * (
-                s.square(t * 2 * np.pi * GMF_rp, 0.5) + 1)  # Note that the duty cycle is set like this now
+        # GMF_rp = 100
+        # return self.k_atr[1] + self.k_atr[1] * 0.5 * (
+        #        s.square(t * 2 * np.pi * GMF_rp, 0.5) + 1)  # Note that the duty cycle is set like this now
         # return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_rp) + 1)
         # return self.k_atr[1] + t*0
         # return self.k_atr[1]
@@ -303,6 +312,7 @@ class K_e(object):
         # smoothsq = (2 * A / pi) * atan(sin(2 * pi * t * f) / self.PG. );
         # plot(t, smoothsq);
         # axis([-0.2 2.2 - 1.6 1.6]);
+        return self.interp_func(t)
 
     def Kp_s2(self, p, t):
         """
@@ -320,7 +330,8 @@ class K_e(object):
         -------
         Kp_s2   : 3x3 numpy array
         """
-
+        # TODO: make use of symetric matrices to speed things up and reduce computations
+        # TODO: assign sin(phi_sp) as class attribute initially
         phi_sp = self.PG.phi_sp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
         alpha_s = self.PG.alpha_s
 
@@ -872,6 +883,7 @@ class PG_ratios(object):
     Ratios in a planetary gearbox
     At this stage this class is duplicated in proclib.py as PG
     """
+
     def __init__(self, Z_r, Z_s, Z_p):
         self.Z_r = Z_r
         self.Z_s = Z_s
@@ -897,7 +909,7 @@ class PG_ratios(object):
         GMF: Float
             The gear mesh frequency in Hz
             """
-        return f_sun*self.Z_r*self.Z_s/(self.Z_r + self.Z_s)
+        return f_sun * self.Z_r * self.Z_s / (self.Z_r + self.Z_s)
 
     def GR_calc(self):
         """Gear ratio for planetary gearbox with stationary ring gear
@@ -912,7 +924,7 @@ class PG_ratios(object):
             """
         return 1 + self.Z_r / self.Z_s
 
-    def f_p(self,f_c):
+    def f_p(self, f_c):
         """Frequency of rotation of planetary gears
         Parameters
         ----------
@@ -925,9 +937,9 @@ class PG_ratios(object):
         f_p: Float
             Frequency of rotation of planet gear
             """
-        return f_c*self.Z_r/self.Z_p
+        return f_c * self.Z_r / self.Z_p
 
-    def GMF(self,f_s):
+    def GMF(self, f_s):
         """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
         Parameters
         ----------
@@ -940,10 +952,10 @@ class PG_ratios(object):
         GMF: Float
             Frequency of rotation of planet gear
             """
-        fc = f_s/self.GR
-        return self.f_p(fc)*self.Z_p
+        fc = f_s / self.GR
+        return self.f_p(fc) * self.Z_p
 
-    def FF1(self,f_s):
+    def FF1(self, f_s):
         """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
         Parameters
         ----------
@@ -956,9 +968,9 @@ class PG_ratios(object):
         FF1: Float
             Fault frequency due to fault on planet gear
             """
-        f_c = f_s/self.GR # Calculate the frequency of rotation of the carrier
+        f_c = f_s / self.GR  # Calculate the frequency of rotation of the carrier
         fp = self.f_p(f_c)
-        FF1 = 2*fp # The fault will manifest in the vibration twice per revolution of the planet gear:
+        FF1 = 2 * fp  # The fault will manifest in the vibration twice per revolution of the planet gear:
         # once at the sun gear and once at the ring gear
         return FF1
 
@@ -975,8 +987,8 @@ class PG_ratios(object):
             """
 
         Mesh_Sequence = []
-        for n_rev in range(self.carrier_revs_to_repeat): #Notice that the sequence starts repeating after 12 rotations
-            Mesh_Sequence.append((n_rev*self.Z_r)%self.Z_p)
+        for n_rev in range(self.carrier_revs_to_repeat):  # Notice that the sequence starts repeating after 12 rotations
+            Mesh_Sequence.append((n_rev * self.Z_r) % self.Z_p)
 
         return Mesh_Sequence
 
@@ -992,11 +1004,10 @@ class PG_ratios(object):
         -------
         fatigue_cycles
         """
-        return float(carrier_revs)*(self.Z_r/self.Z_p) # (number of revs)(number of cycles per revolution)
-
+        return float(carrier_revs) * (self.Z_r / self.Z_p)  # (number of revs)(number of cycles per revolution)
 
     @classmethod
-    def RPM_to_f(cls,RPM):
+    def RPM_to_f(cls, RPM):
         """Function converts revolutions per minute to Herz
         Parameters
         ----------
@@ -1009,7 +1020,8 @@ class PG_ratios(object):
         f:  Float
             Frequency [Hz]
             """
-        return RPM/60
+        return RPM / 60
+
 
 class Transmission_Path(object):
     """
@@ -1034,7 +1046,7 @@ class Transmission_Path(object):
         summation = 0
         for planet in range(1, self.PG.N + 1):
             summation += self.s_ri(planet) * self.F_ri(planet, self.time_range) \
-                         * np.sin(self.PG.Omega_c * self.time_range + self.PG.alpha_r + self.PG.phi_p_list[planet -1 ])
+                         * np.sin(self.PG.Omega_c * self.time_range + self.PG.alpha_r + self.PG.phi_p_list[planet - 1])
         return summation
 
     def F_ri(self, planet, t_range):
@@ -1084,26 +1096,29 @@ class Transmission_Path(object):
         if wind_length % 2 is not 0 == True:
             raise ValueError("Please enter uneven window length")
 
-        samples_per_rev = int((1/2*np.pi)*(1/Omega_c)*fs)
+        samples_per_rev = int((1 / 2 * np.pi) * (1 / Omega_c) * fs)
         print("fs ", fs)
         print("samples per rev ", samples_per_rev)
         window_center_index = np.arange(0, len(y), samples_per_rev).astype(int)
 
-        n_revs = np.shape(window_center_index)[0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
+        n_revs = np.shape(window_center_index)[
+                     0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
         # first window would have given problems requireing negative sample indexes
 
         windows = np.zeros((n_revs, wind_length))  # Initialize an empty array that will hold the extracted windows
-        window_half_length = int(np.floor(wind_length/2))
+        window_half_length = int(np.floor(wind_length / 2))
 
         window_count = 0
-        for index in window_center_index[1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
+        for index in window_center_index[
+                     1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
             windows[window_count, :] = y[index - window_half_length:index + window_half_length + 1]
             window_count += 1
         return windows
 
+
 class Planetary_Gear(object):
 
-    def __init__(self, N, M_atr, Geom_atr, k_atr, Opp_atr, solve_attr):
+    def __init__(self, info_dict):
         """Initializes the planetary gear  object
 
         Parameters
@@ -1120,22 +1135,64 @@ class Planetary_Gear(object):
             Geometrical attribute matrix
             np.array(alpha_S, alpha_r)
             """
+        # Assign attributes the the class from the dictionary containing all the information to facilitate simplified
+        # naming in code
 
-        self.N = N
+        # Gearbox layout properties
+        ###############################################################################################################
+        self.N = info_dict["gearbox_layout"]["N"]
+
+        self.Z_r = info_dict["gearbox_layout"]["Z_r"]
+        self.Z_s = info_dict["gearbox_layout"]["Z_s"]
+        self.Z_p = info_dict["gearbox_layout"]["Z_p"]
+
+        self.alpha_s = info_dict["gearbox_layout"]["alpha_s"]
+        self.alpha_r = info_dict["gearbox_layout"]["alpha_r"]
+
+        # Mass and Inertia properties
+        ###############################################################################################################
+        m_c = info_dict["m_atr"]["m_c"]
+        m_r = info_dict["m_atr"]["m_r"]
+        m_s = info_dict["m_atr"]["m_s"]
+        m_p = info_dict["m_atr"]["m_p"]
+
+        Ir2_c = info_dict["m_atr"]["Ir2_c"]
+        Ir2_r = info_dict["m_atr"]["Ir2_r"]
+        Ir2_s = info_dict["m_atr"]["Ir2_s"]
+        Ir2_p = info_dict["m_atr"]["Ir2_p"]
+
+        M_atr = np.array([[m_c, m_r, m_s],
+                          [Ir2_c, Ir2_r, Ir2_s]])
+
+        for planet in range(self.N):  # Add the planet masses to the mass attribute matrix
+            M_atr = np.hstack((M_atr, np.array([[m_p], [Ir2_p]])))
+
         self.M_atr = M_atr
 
-        self.Omega_c = Opp_atr["Omega_c"]
-        self.T_s = Opp_atr["T_s"]
-        self.base_excitation = Opp_atr["base_excitation"]
+        # Operating conditions
+        ###############################################################################################################
+        self.Omega_c = info_dict["opp_atr"]["Omega_c"]
+        self.T_s = info_dict["opp_atr"]["T_s"]
+        self.base_excitation = info_dict["opp_atr"]["base_excitation"]
 
-        self.alpha_s = Geom_atr[0]
-        self.alpha_r = Geom_atr[1]
+        # Stiffness properties
+        ###############################################################################################################
+        k_Sp = info_dict["k_atr"]["k_Sp"]
+        k_rp = info_dict["k_atr"]["k_rp"]
+        k_p = info_dict["k_atr"]["k_p"]
+        k_ru = info_dict["k_atr"]["k_ru"]
 
-        self.k_atr = k_atr  # The stiffness attributes of the planetary gearbox
+        self.delta_k = info_dict["k_atr"]["delta_k"]
 
-        if np.shape(M_atr)[1] - 3 != self.N:
-            raise ValueError("Number of planet gears not in agreement with Mass attribute array size")
+        self.k_atr = np.array([k_Sp, k_rp, k_p, k_ru])
 
+        # Solver attributes
+        ###############################################################################################################
+        self.solve_atr = info_dict["solve_atr"]
+
+        # Set derived Attributes
+        ###############################################################################################################
+        # Problem Dimensionality
         self.matrix_shape = 3 * (3 + self.N)  # The dimension of matrices such as M,G,K
 
         self.phi_p_list = self.phi_p(np.arange(1, self.N + 1))  # A list of the phi_p values for planet gears 1 -> N
@@ -1149,18 +1206,20 @@ class Planetary_Gear(object):
         self.K_e = K_e(self).Compiled  # This is a function. Takes the argument t [s]
         self.K_Omega = K_Omega(self).K_Omega_mat
 
+        # Determines whether the system input is time dependant or not
         if self.base_excitation:
             self.T = T(self).T_vec_base_excitation  # This is a function. Takes the argument t [s]
         else:
             self.T = T(self).T_vec_stationary
 
+        # Compiles the system stiffness matrix
         self.K = lambda t: self.K_b + self.K_e(t) - self.Omega_c ** 2 * self.K_Omega
 
-        self.solve_atr = solve_attr
-        self.time_range = solve_attr["time_range"]
-        self.fs = 1/np.average(np.diff(self.time_range))
+        # Derived Solver Attributes
+        self.time_range = self.solve_atr["time_range"]
+        self.fs = 1 / np.average(np.diff(self.time_range))
 
-        # Make proportional damping time dependent or constant
+        #  Make proportional damping time dependent or constant
         if self.solve_atr["proportional_damping_constant"]:
             self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
                     self.M + self.K(t))
@@ -1227,8 +1286,6 @@ class Planetary_Gear(object):
 
         if state_time_der == "Acceleration":
             start = nstate * 2
-
-        end = start + nstate
 
         lables = ("x_c",
                   "y_c",
@@ -1310,10 +1367,11 @@ class Planetary_Gear(object):
         eig_freqs = np.sqrt(val) / (np.pi * 2)
         vec = vec[indexes]
 
+        # Find the multiplicity of the natural frequencies of the system
         distinct = []
         multiplicity = 1
         for i in range(1, len(val)):
-            print(eig_freqs[i])
+            # print(eig_freqs[i])
             if abs(eig_freqs[i - 1] - eig_freqs[i]) < 1:
                 multiplicity += 1
             else:
@@ -1322,6 +1380,7 @@ class Planetary_Gear(object):
         print(np.array(distinct))
 
     def get_transducer_vibration(self):
+        self.get_solution() # Ensure that the solution has been run
         transp = Transmission_Path(self)
         return transp.y()
 
