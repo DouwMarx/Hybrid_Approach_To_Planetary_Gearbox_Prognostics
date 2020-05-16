@@ -43,9 +43,16 @@ def fft(data, fs):
 #PG.plot_solution("Displacement")
 
 #PG.get_natural_freqs()
-#PG.get_solution()
+PG.get_solution()
 #PG.plot_solution("Displacement")
-sol = PG.get_transducer_vibration()
+#sol = PG.get_transducer_vibration()
 
-d = definitions.root + "\\" + "data\\external\\lmm\\"
-np.save(d + "transducer_vib_diagnostics1.npy", sol)
+#d = definitions.root + "\\" + "data\\external\\lmm\\"
+#np.save(d + "transducer_vib_diagnostics1.npy", sol)
+
+#t_range = np.linspace(0,0.1,1000)
+#Keobj = pglmm.K_e(PG)
+#ss = Keobj.smooth_square(t_range,100,1/100)
+
+#plt.figure()
+#plt.plot(ss)

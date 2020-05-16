@@ -1,8 +1,6 @@
 import src.models.lumped_mas_model as pglmm
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy as sci
 import models.lumped_mas_model.llm_models as lmm_models
+import matplotlib.pyplot as plt
 
 
 plt.close("all")

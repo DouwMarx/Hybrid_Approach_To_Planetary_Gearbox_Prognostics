@@ -6,14 +6,15 @@ Created on Wed Oct  9 20:02:01 2019
 """
 
 import numpy as np
-import scipy.signal as s
 import matplotlib.pyplot as plt
-import scipy.integrate as inter
 import scipy as sci
 import time
 import src.features.second_order_solvers as solvers
-import scipy.interpolate as interp
+import sys
+import numpy
 
+#from numba import jit
+numpy.set_printoptions(threshold=np.inf)
 
 class M(object):
     """
@@ -259,10 +260,13 @@ class K_e(object):
         self.Omega_c = PG_obj.Omega_c
 
         #  Compute the square waves up-front (big speedup)
-        t = self.PG.solve_atr["time_range"]
-        GMF_sp = 100
-        k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
-        self.interp_func = interp.interp1d(t, k)
+        #t = self.PG.solve_atr["time_range"]
+        #GMF_sp = 100
+        #k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        #self.interp_func = interp.interp1d(t, k)
+
+    def smooth_square(self, t, f, delta):
+        return self.k_atr[0] + self.PG.delta_k * 0.5 * ((2 / np.pi) * np.arctan(np.sin(2 * np.pi * t * f) / delta) + 1)
 
     def k_sp(self, t):
         """
@@ -284,7 +288,8 @@ class K_e(object):
         # return self.k_atr[0] + t*0
         # return self.k_atr[0]
 
-        return self.interp_func(t)
+        # return self.interp_func(t)
+        return self.smooth_square(t, 100, 1 / self.PG.fs)
 
     def k_rp(self, t):
         """
@@ -312,7 +317,9 @@ class K_e(object):
         # smoothsq = (2 * A / pi) * atan(sin(2 * pi * t * f) / self.PG. );
         # plot(t, smoothsq);
         # axis([-0.2 2.2 - 1.6 1.6]);
-        return self.interp_func(t)
+        # return self.interp_func(t)
+
+        return self.smooth_square(t, 100, 1 / self.PG.fs)
 
     def Kp_s2(self, p, t):
         """
@@ -813,6 +820,612 @@ class K_e(object):
         Ke[0:9, 9:] = off_diag
         return Ke
 
+class K_e_fast(object):
+    """
+    This class is used to create time varying gear mesh stiffness matrix objects
+    """
+
+    def __init__(self, PG_obj):
+        """Initializes the time varying mesh stiffness matrix object
+
+        Parameters
+        ----------
+        PG_obj: A Planetary gearbox object
+            """
+
+        self.PG = PG_obj
+        self.k_atr = PG_obj.k_atr
+        #self.K_e_mat = self.Compiled
+        self.Omega_c = PG_obj.Omega_c
+
+        #  Compute the square waves up-front (big speedup)
+        #t = self.PG.solve_atr["time_range"]
+        #GMF_sp = 100
+        #k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        #self.interp_func = interp.interp1d(t, k)
+
+        # Set the constants as attributes
+        self.set_constants()
+
+    def set_constants(self):
+          # Make an empty array to store constant arrays
+        self.K_s2_c = np.zeros((3, 3 * self.PG.N))
+        self.K_r2_c = np.zeros((3, 3 * self.PG.N))
+        self.K_c2_c = np.zeros((3, 3 * self.PG.N))
+        self.K_s1_c = np.zeros((3, 3 * self.PG.N))
+        self.K_r1_c = np.zeros((3, 3 * self.PG.N))
+        self.K_c1_c = np.zeros((3, 3 * self.PG.N))
+        self.K_r3_c = np.zeros((3, 3 * self.PG.N))
+        self.K_s3_c = np.zeros((3, 3 * self.PG.N))
+        self.K_c3_c = np.zeros((3, 3 * self.PG.N))
+
+        for p in range(1, self.PG.N + 1):
+            self.K_s2_c[:, (p - 1) * 3: p * 3] = self.Kp_s2_c(p)
+            self.K_r2_c[:, (p - 1) * 3: p * 3] = self.Kp_r2_c(p)
+            self.K_c2_c[:, (p - 1) * 3: p * 3] = self.Kp_c2_c(p)
+            self.K_s1_c[:, (p - 1) * 3: p * 3] = self.Kp_s1_c(p)
+            self.K_r1_c[:, (p - 1) * 3: p * 3] = self.Kp_r1_c(p)
+            self.K_c1_c[:, (p - 1) * 3: p * 3] = self.Kp_c1_c(p)
+            self.K_r3_c[:, (p - 1) * 3: p * 3] = self.Kp_r3_c(p)
+            self.K_s3_c[:, (p - 1) * 3: p * 3] = self.Kp_s3_c(p)
+            self.K_c3_c[:, (p - 1) * 3: p * 3] = self.Kp_c3_c(p)
+
+
+    def smooth_square(self, t, f, delta):
+        return self.k_atr[0] + self.PG.delta_k * 0.5 * ((2 / np.pi) * np.arctan(np.sin(2 * np.pi * t * f) / delta) + 1)
+
+    def k_sp(self, t):
+        """
+        Time varying mesh stiffness of sun-planet mesh
+
+        Parameters
+        ----------
+        t:  float
+            time
+
+        Returns
+        -------
+        k_sp: float
+              The sun-planet mesh stiffness at a specific point in time
+        """
+        # GMF_sp = 100
+        # return self.k_atr[0] + self.k_atr[0] * 0.5 * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        # return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_sp) + 1)
+        # return self.k_atr[0] + t*0
+        # return self.k_atr[0]
+
+        # return self.interp_func(t)
+        return np.ones(self.PG.N) * self.smooth_square(t, 100, 1 / self.PG.fs)
+
+    def k_rp(self, t):
+        """
+        Time varying mesh stiffness of ring-planet mesh
+
+        Parameters
+        ----------
+        t:  float
+            time
+
+        Returns
+        -------
+        k_sp: float
+              The sun-planet mesh stiffness at a specific point in time
+        """
+        # GMF_rp = 100
+        # return self.k_atr[1] + self.k_atr[1] * 0.5 * (
+        #        s.square(t * 2 * np.pi * GMF_rp, 0.5) + 1)  # Note that the duty cycle is set like this now
+        # return self.k_atr[0] + self.k_atr[0] * 0.5 * (np.sin(t * 2 * np.pi * GMF_rp) + 1)
+        # return self.k_atr[1] + t*0
+        # return self.k_atr[1]
+
+        # A = 1;
+        # f = 2;
+        # smoothsq = (2 * A / pi) * atan(sin(2 * pi * t * f) / self.PG. );
+        # plot(t, smoothsq);
+        # axis([-0.2 2.2 - 1.6 1.6]);
+        # return self.interp_func(t)
+
+        return np.ones(self.PG.N) * self.smooth_square(t, 100, 1 / self.PG.fs)
+
+    def Kp_s2_c(self, p):
+        """
+        K^p_s2 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        t   :  float
+               Time [s]
+
+        Returns
+        -------
+        Kp_s2   : 3x3 numpy array
+        """
+        phi_sp = self.PG.phi_sp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        alpha_s = self.PG.alpha_s
+
+        Kp_s2 = np.zeros((3, 3))
+
+        Kp_s2[0, 0] = np.sin(phi_sp) * np.sin(alpha_s)
+        Kp_s2[0, 1] = np.sin(phi_sp) * np.cos(alpha_s)
+        Kp_s2[0, 2] = -np.sin(phi_sp)
+
+        Kp_s2[1, 0] = -np.cos(phi_sp) * np.sin(alpha_s)
+        Kp_s2[1, 1] = -np.cos(phi_sp) * np.cos(alpha_s)
+        Kp_s2[1, 2] = np.cos(phi_sp)  # This term is negative in Chaari but positive in Parker 1999
+
+        Kp_s2[2, 0] = -np.sin(alpha_s)
+        Kp_s2[2, 1] = -np.cos(alpha_s)
+        Kp_s2[2, 2] = 1
+
+        return Kp_s2
+
+    def Kp_r2_c(self, p):
+        """
+        K^p_r2 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        t   :  float
+               Time [s]
+
+        Returns
+        -------
+        Kp_r2   : 3x3 numpy array
+        """
+
+        phi_rp = self.PG.phi_rp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        alpha_r = self.PG.alpha_r
+
+        Kp_r2 = np.zeros((3, 3))
+
+        Kp_r2[0, 0] = -np.sin(phi_rp) * np.sin(alpha_r)
+        Kp_r2[0, 1] = np.sin(phi_rp) * np.cos(alpha_r)
+        Kp_r2[0, 2] = np.sin(phi_rp)
+
+        Kp_r2[1, 0] = np.cos(phi_rp) * np.sin(alpha_r)
+        Kp_r2[1, 1] = -np.cos(phi_rp) * np.cos(alpha_r)
+        Kp_r2[1, 2] = -np.cos(phi_rp)
+
+        Kp_r2[2, 0] = np.sin(alpha_r)
+        Kp_r2[2, 1] = -np.cos(alpha_r)
+        Kp_r2[2, 2] = -1
+
+        return Kp_r2
+
+    def Kp_c2_c(self, p):
+        """
+        K^p_c2 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        Returns
+        -------
+        Kp_c2   : 3x3 numpy array
+        """
+
+        phi_p = self.PG.phi_p_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
+
+        Kp_c2 = np.zeros((3, 3))
+        Kp_c2[0, 0] = -np.cos(phi_p)
+        Kp_c2[0, 1] = np.sin(phi_p)
+        Kp_c2[0, 2] = 0
+
+        Kp_c2[1, 0] = -np.sin(phi_p)
+        Kp_c2[1, 1] = -np.cos(phi_p)
+        Kp_c2[1, 2] = 0
+
+        Kp_c2[2, 0] = 0
+        Kp_c2[2, 1] = -1
+        Kp_c2[2, 2] = 0
+
+        Kp_c2 = self.k_atr[2] * Kp_c2  # Multiply the matrix with K_p
+        return Kp_c2
+
+    def Kp_s1_c(self, p):
+        """
+        K^p_s1 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        t   :  float
+               Time [s]
+
+        Returns
+        -------
+        Kp_s1   : 3x3 numpy array
+        """
+
+        phi_sp = self.PG.phi_sp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
+
+        Kp_s1 = np.zeros((3, 3))
+
+        Kp_s1[0, 0] = np.sin(phi_sp) ** 2
+        Kp_s1[0, 1] = -np.cos(phi_sp) * np.sin(phi_sp)
+        Kp_s1[0, 2] = -np.sin(phi_sp)
+
+        Kp_s1[1, 0] = -np.cos(phi_sp) * np.sin(phi_sp)
+        Kp_s1[1, 1] = np.cos(phi_sp) ** 2
+        Kp_s1[1, 2] = np.cos(phi_sp)
+
+        Kp_s1[2, 0] = -np.sin(phi_sp)
+        Kp_s1[2, 1] = np.cos(phi_sp)
+        Kp_s1[2, 2] = 1
+
+        return Kp_s1
+
+    def Kp_r1_c(self, p):
+        """
+        K^p_r1 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        t   :  float
+               Time [s]
+
+        Returns
+        -------
+        Kp_r1   : 3x3 numpy array
+        """
+
+        phi_rp = self.PG.phi_rp_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
+        alpha_r = self.PG.alpha_r
+
+        Kp_r1 = np.zeros((3, 3))
+
+        author = "Parker"
+
+        if author == "Parker":
+            Kp_r1[0, 0] = np.sin(phi_rp) ** 2
+            Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(phi_rp)  # sin() argument phi_rp in Parker, alpha_rp in Chaari
+            Kp_r1[0, 2] = -np.sin(phi_rp)  # This term is positive in Chaari and negative in Parker
+
+            Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(phi_rp)  # sin() argument phi_rp in Parker, alpha_rp in Chaari
+            Kp_r1[1, 1] = np.cos(phi_rp) ** 2
+            Kp_r1[1, 2] = np.cos(phi_rp)
+
+            Kp_r1[2, 0] = -np.sin(phi_rp)  # This term is positvie in Chaari and negative in Parker
+            Kp_r1[2, 1] = np.cos(phi_rp)
+            Kp_r1[2, 2] = 1
+
+        if author == "Chaari":
+            Kp_r1[0, 0] = np.sin(phi_rp) ** 2
+            Kp_r1[0, 1] = -np.cos(phi_rp) * np.sin(alpha_r)  # in Parker
+            Kp_r1[0, 2] = +np.sin(phi_rp)  # This term is positive in Chaari and negative in Parker
+
+            Kp_r1[1, 0] = -np.cos(phi_rp) * np.sin(alpha_r)
+            Kp_r1[1, 1] = np.cos(phi_rp) ** 2
+            Kp_r1[1, 2] = np.cos(phi_rp)
+
+            Kp_r1[2, 0] = +np.sin(phi_rp)  # This term is positvie in Chaari and negative in Parker
+            Kp_r1[2, 1] = np.cos(phi_rp)
+            Kp_r1[2, 2] = 1
+
+        return Kp_r1
+
+    def Kp_c1_c(self, p):
+        """
+        K^p_c1 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        Returns
+        -------
+        Kp_c1   : 3x3 numpy array
+        """
+
+        phi_p = self.PG.phi_p_list[p - 1]  # -1 due to zero based indexing planets numbered from 1 -> N
+
+        Kp_c1 = np.zeros((3, 3))
+
+        Kp_c1[0, 0] = 1
+        Kp_c1[0, 1] = 0
+        Kp_c1[0, 2] = -np.sin(phi_p)
+
+        Kp_c1[1, 0] = 0
+        Kp_c1[1, 1] = 1
+        Kp_c1[1, 2] = np.cos(phi_p)
+
+        Kp_c1[2, 0] = -np.sin(phi_p)
+        Kp_c1[2, 1] = np.cos(phi_p)
+        Kp_c1[2, 2] = 1
+
+        Kp_c1 = self.k_atr[2] * Kp_c1  # Multiply the matrix with K_p
+        return Kp_c1
+
+    def Kp_r3_c(self, p):
+        """
+        K^p_r3 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        t   :  float
+               Time [s]
+
+        Returns
+        -------
+        Kp_r3   : 3x3 numpy array
+        """
+
+        alpha_r = self.PG.alpha_r
+
+        Kp_r3 = np.zeros((3, 3))
+
+        Kp_r3[0, 0] = np.sin(alpha_r) ** 2
+        Kp_r3[0, 1] = -np.cos(alpha_r) * np.sin(alpha_r)
+        Kp_r3[0, 2] = -np.sin(alpha_r)
+
+        Kp_r3[1, 0] = -np.cos(alpha_r) * np.sin(alpha_r)
+        Kp_r3[1, 1] = np.cos(alpha_r) ** 2
+        Kp_r3[1, 2] = np.cos(alpha_r)
+
+        Kp_r3[2, 0] = -np.sin(alpha_r)
+        Kp_r3[2, 1] = np.cos(alpha_r)
+        Kp_r3[2, 2] = 1
+
+        return Kp_r3
+
+    def Kp_s3_c(self, p):
+        """
+        K^p_s3 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        t   :  float
+               Time [s]
+
+        Returns
+        -------
+        Kp_s3   : 3x3 numpy array
+        """
+
+        alpha_s = self.PG.alpha_s
+
+        Kp_s3 = np.zeros((3, 3))
+
+        Kp_s3[0, 0] = np.sin(alpha_s) ** 2
+        Kp_s3[0, 1] = np.cos(alpha_s) * np.sin(alpha_s)
+        Kp_s3[0, 2] = -np.sin(alpha_s)
+
+        Kp_s3[1, 0] = np.cos(alpha_s) * np.sin(alpha_s)
+        Kp_s3[1, 1] = np.cos(alpha_s) ** 2
+        Kp_s3[1, 2] = -np.cos(alpha_s)
+
+        Kp_s3[2, 0] = -np.sin(alpha_s)
+        Kp_s3[2, 1] = -np.cos(alpha_s)
+        Kp_s3[2, 2] = 1
+
+        return Kp_s3
+
+    def Kp_c3_c(self, p):
+        """
+        K^p_c3 component of mesh stiffness matrix
+
+        Parameters
+        ----------
+        p   :  int
+               The planet gear number
+
+        Returns
+        -------
+        Kp_c3   : 3x3 numpy array
+        """
+
+        Kp_c3 = np.zeros((3, 3))
+
+        Kp_c3[0, 0] = 1
+        Kp_c3[0, 1] = 0
+        Kp_c3[0, 2] = 0
+
+        Kp_c3[1, 0] = 0
+        Kp_c3[1, 1] = 1
+        Kp_c3[1, 2] = 0
+
+        Kp_c3[2, 0] = 0
+        Kp_c3[2, 1] = 0
+        Kp_c3[2, 2] = 0
+
+        Kp_c3 = self.k_atr[2] * Kp_c3  # Multiply the matrix with K_p
+        return Kp_c3
+
+    # def Kp_c_c(self, p):
+    # """
+    # K^p component of mesh stiffness matrix
+    #
+    # Parameters
+    # ----------
+    # p   :  int
+    #        The planet gear number
+    # t   :  float
+    #        Time [s]
+    #
+    # Returns
+    # -------
+    # Kp   : 3x3 numpy array
+    # """
+    # Kp = self.Kp_c3_c(p) + self.Kp_r3_c(p) + self.Kp_s3_c(p)
+    # return Kp
+
+    def Sum_Kp_c1_c(self):
+        """
+        Sum of all K^p_c1 over all p (planets) for mesh stiffness matrix
+
+        Parameters
+        ----------
+        t   :  float
+               Time
+
+        Returns
+        -------
+        Sum_Kp_c1   : 3x3 numpy array
+        """
+        Sum_Kp_c1 = np.zeros((3,3))
+        for p in range(self.PG.N):
+            Sum_Kp_c1 += self.K_c1_c[:, p * 3:(p + 1) * 3]
+        return Sum_Kp_c1
+
+    def Sum_Kp_r1(self, krp_t):
+        """
+        Sum of all K^p_r1 over all p (planets) for mesh stiffness matrix
+
+        Parameters
+        ----------
+        krp_t   :  numpy array
+                 ring-planet stiffness at a timestep
+
+        Returns
+        -------
+        Sum_Kp_r1   : 3x3 numpy array
+        """
+        Sum_Kp_r1 = np.zeros((3, 3))
+        for p in range(self.PG.N):  # Notice zero based indexing now
+            Sum_Kp_r1 += krp_t[p] * self.K_r1_c[:, p * 3:(p + 1) * 3]
+        return Sum_Kp_r1
+
+    def Sum_Kp_s1(self, ksp_t):  # TODO: Use dot product instead of for loop here.
+        """
+        Sum of all K^p_s1 over all p (planets) for mesh stiffness matrix
+
+        Parameters
+        ----------
+        t   :  float
+               Time
+
+        Returns
+        -------
+        Sum_Kp_s1   : 3x3 numpy array
+        """
+        Sum_Kp_s1 = np.zeros((3, 3))
+        for p in range(self.PG.N):
+            Sum_Kp_s1 += ksp_t[p] * self.K_s1_c[:, p * 3:(p + 1) * 3]
+        return Sum_Kp_s1
+
+    def Off_Diag(self, krp_t, ksp_t):
+        """
+        Creates off diagonal rectangular sections (top right) for stiffness matrix
+
+        Parameters
+        ----------
+        t   :  float
+               Time
+
+        Returns
+        -------
+        Cols   : (3xN)x9 numpy array
+        """
+        # Cols = np.zeros((3*self.PG.N, 9))
+
+        # for p in range(1,self.PG.N+1):
+        # Cols[3 * (p - 1):3 * (p +1 - 1), 0:3] = self.Kp_c2(p, t)
+        # Cols[3 * (p - 1):3 * (p + 1 - 1), 3:6] = self.Kp_r2(p, t)
+        # Cols[3 * (p - 1):3 * (p + 1 - 1), 6:9] = self.Kp_s2(p, t)
+
+        # return Cols
+
+        rect = np.zeros((9, self.PG.N * 3))
+
+        for p in range(1, self.PG.N + 1):  # 1 based indexing
+            rect[0:3, (p - 1) * 3:p * 3] = 1 * self.K_c2_c[:, (p - 1) * 3:p * 3]
+            rect[3:6, (p - 1) * 3:p * 3] = krp_t[p - 1] * self.K_r2_c[:, (p - 1) * 3:p * 3]
+            rect[6:9, (p - 1) * 3:p * 3] = ksp_t[p - 1] * self.K_s2_c[:, (p - 1) * 3:p * 3]
+
+        return rect
+
+    def Right_Bottom(self, krp_t, ksp_t):
+        """
+        Creates a square matrix from 3x3 K^p matrices for the stiffness matrix
+
+        Parameters
+        ----------
+        t   :  float
+               Time
+
+        Returns
+        -------
+        square   : (3xN)x(3xN) numpy array
+                N is the number of planet gears
+        """
+        square = np.zeros((3 * self.PG.N, 3 * self.PG.N))
+
+        for p in range(1, self.PG.N + 1):
+            square[3 * (p - 1):3 * (p + 1 - 1), 3 * (p - 1):3 * (p - 1 + 1)] = \
+                self.K_c3_c[:, 3 * (p - 1):3 * (p - 1 + 1)] + \
+                krp_t[p - 1] * self.K_r3_c[:, 3 * (p - 1):3 * (p - 1 + 1)] + \
+                ksp_t[p - 1] * self.K_s3_c[:, 3 * (p - 1):3 * (p - 1 + 1)]
+        return square
+
+    def Left_Top(self, krp_t, ksp_t):
+        """
+        Creates a square matrix from 3x3 sum of K^p_gear1 matrices for the stiffness matrix
+
+        Parameters
+        ----------
+        t   :  float
+               Time
+
+        Returns
+        -------
+        square   : 9x9 numpy array
+        """
+        square = np.zeros((9, 9))
+
+        square[0:3, 0:3] = self.Sum_Kp_c1_c()
+        square[3:6, 3:6] = self.Sum_Kp_r1(krp_t)
+        square[6:9, 6:9] = self.Sum_Kp_s1(ksp_t)
+
+        return square
+
+    def Compiled(self, t):
+        """
+        Creates a square matrix Ke(t)
+
+        Parameters
+        ----------
+        t   :  float
+               Time
+
+        Returns
+        -------
+        Ke   : (9+3xN)x(9+3xN) numpy array
+                Time varying stiffness matrix
+        """
+
+        krp_t = self.k_rp(t)
+        ksp_t = self.k_sp(t)
+
+        Ke = np.zeros((9 + 3 * self.PG.N, 9 + 3 * self.PG.N))
+
+        Ke[0:9, 0:9] = self.Left_Top(krp_t, ksp_t)
+        Ke[9:, 9:] = self.Right_Bottom(krp_t, ksp_t)
+
+        off_diag = self.Off_Diag(krp_t, ksp_t)
+        Ke[9:, 0:9] = off_diag.T
+        Ke[0:9, 9:] = off_diag
+        return Ke
+
 
 class T(object):
     """
@@ -1040,6 +1653,12 @@ class Transmission_Path(object):
         self.sol = PG_obj.time_domain_solution.T
         self.time_range = self.PG.time_range
 
+        ksp_array = []
+        for t in self.time_range:
+            ksp_array.append(self.PG.k_rp(t))
+
+        self.ksp_array = np.array(ksp_array)
+
         return
 
     def y(self):
@@ -1050,7 +1669,8 @@ class Transmission_Path(object):
         return summation
 
     def F_ri(self, planet, t_range):
-        return self.PG.k_rp(t_range) * self.d_ri(planet)
+        return self.ksp_array[:, planet-1] * self.d_ri(planet)
+        #return self.PG.k_rp(t_range) * self.d_ri(planet)
 
     def d_ri(self, planet):
         """
@@ -1203,7 +1823,7 @@ class Planetary_Gear(object):
         self.M = M(self).M_mat
         self.G = G(self).G_mat
         self.K_b = K_b(self).K_b_mat
-        self.K_e = K_e(self).Compiled  # This is a function. Takes the argument t [s]
+        self.K_e_fast = K_e_fast(self).Compiled  # This is a function. Takes the argument t [s]
         self.K_Omega = K_Omega(self).K_Omega_mat
 
         # Determines whether the system input is time dependant or not
@@ -1213,7 +1833,7 @@ class Planetary_Gear(object):
             self.T = T(self).T_vec_stationary
 
         # Compiles the system stiffness matrix
-        self.K = lambda t: self.K_b + self.K_e(t) - self.Omega_c ** 2 * self.K_Omega
+        self.K = lambda t: self.K_b + self.K_e_fast(t) - self.Omega_c ** 2 * self.K_Omega
 
         # Derived Solver Attributes
         self.time_range = self.solve_atr["time_range"]
@@ -1228,8 +1848,8 @@ class Planetary_Gear(object):
             self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
                     self.M + self.K(0))
 
-        self.k_sp = K_e(self).k_sp  # This is a function. Takes the argument t [s]
-        self.k_rp = K_e(self).k_rp  # This is a function. Takes the argument t [s]
+        self.k_sp = K_e_fast(self).k_sp  # This is a function. Takes the argument t [s]
+        self.k_rp = K_e_fast(self).k_rp  # This is a function. Takes the argument t [s]
         return
 
     def phi_p(self, p):
@@ -1358,7 +1978,7 @@ class Planetary_Gear(object):
         Natural frequencies and eigenvalues
         """
 
-        K = self.K_b + self.K_e(0)  # + (PG.Omega_c)**2 * PG.K_Omega
+        K = self.K_b + self.K_e_fast(0)  # + (PG.Omega_c)**2 * PG.K_Omega
 
         val, vec = sci.linalg.eig(K, self.M)
         indexes = np.argsort(val)
@@ -1380,7 +2000,7 @@ class Planetary_Gear(object):
         print(np.array(distinct))
 
     def get_transducer_vibration(self):
-        self.get_solution() # Ensure that the solution has been run
+        self.get_solution()  # Ensure that the solution has been run
         transp = Transmission_Path(self)
         return transp.y()
 
@@ -1389,3 +2009,5 @@ class Planetary_Gear(object):
         y = tp.y()
         winds = tp.window_extract(window_length, y, self.Omega_c, self.fs)
         return winds
+
+
