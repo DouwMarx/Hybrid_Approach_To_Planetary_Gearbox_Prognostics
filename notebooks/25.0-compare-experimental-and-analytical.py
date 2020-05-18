@@ -4,7 +4,7 @@ import pandas as pd
 import pickle
 import definitions
 
-import src.features.proc_lib as proc
+#import src.features.proc_lib as proc
 plt.close("all")
 
 #  Load the dataset object
@@ -28,17 +28,10 @@ print("Average planet gear rotational speed", fp_ave, "Rev/s")
 tsa = data.Compute_TSA(0, plot=False)
 
 #data.plot_rpm_over_time()
-odt_sig = data.derived_attributes["order_track_signal"]
-odt_time = data.derived_attributes["order_track_time"]
-#print("Time duration of a revolution of planet gear", np.shape(tsa)[0]/data.info["f_s"]," seconds")
-print("Planet gear period: ", 1/fp_ave)
 
 #plt.figure()
 #plt.plot(data.derived_attributes["order_track_time"], data.derived_attributes["order_track_signal"])
 
-
-#plt.figure()
-#plt.plot(odt_time, odt_sig)
 
 data.plot_fft(data.dataset["Acc_Sun"],data.info["f_s"], plot_gmf=True)
 plt.title("FFT")
@@ -46,5 +39,5 @@ plt.title("FFT")
 data.plot_order_spectrum(data.derived_attributes["order_track_signal"], data.info["f_s"],data.derived_attributes["order_track_samples_per_rev"],plot_gmf=True)
 plt.title("Order Spectrum")
 
-data.plot_order_spectrum(tsa, data.info["f_s"],data.derived_attributes["order_track_samples_per_rev"], plot_gmf=True)
+data.plot_order_spectrum(tsa, data.info["f_s"], data.derived_attributes["order_track_samples_per_rev"])#, plot_gmf=True)
 plt.title("TSA order specturm")

@@ -128,6 +128,7 @@ class Stiff_DE(object):
         sol = inter.solve_ivp(self.X_dot_stiff,
                               [self.time_range[0], self.time_range[-1]],
                               np.vstack((self.X0, self.Xd0))[:, 0],
+                              #np.hstack((self.X0,self.Xd0)),
                               method=method,
                               dense_output=True,
                               t_eval=self.time_range,

@@ -67,7 +67,7 @@ class Dataset_Plotting(object):
             #plt.vlines(np.arange(1, 3) * FF, max_height, 'c', zorder=10, label="GMF and Harmonics")
             #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
 
-        plt.xlim(0, 6000)
+        #plt.xlim(0, 6000)
         #plt.show()
 
         return
@@ -101,7 +101,7 @@ class Dataset_Plotting(object):
             #FF1 = GMF/self.PG.Z_p
             max_height = np.max(mag)
             plt.vlines(np.arange(1, 8) * GMF/samples_per_rev, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
-            plt.vlines(np.arange(1, 3) * FF/samples_per_rev, 0, max_height, 'c', zorder=10, label="GMF and Harmonics")
+            plt.vlines(np.arange(1, 3) * FF/samples_per_rev, 0, max_height, 'c', zorder=10, label= "Fault frequency and Harmonics" )
             #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
 
         #plt.xlim(0, 6000)
@@ -313,7 +313,9 @@ class Signal_Processing(object):
         tnew = np.array([])
         #tnew = np.array([0])
         ave_rot_time = np.average(np.diff(trigger_times))
-        samples_per_rev = fs*ave_rot_time
+        print(ave_rot_time)
+        samples_per_rev = int(fs*ave_rot_time)
+        print(samples_per_rev)
         for index in range(len(trigger_times) - 1):
             section = np.linspace(trigger_times[index], trigger_times[index + 1], samples_per_rev)
             tnew = np.hstack((tnew, section))

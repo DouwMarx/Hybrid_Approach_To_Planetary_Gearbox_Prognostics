@@ -55,29 +55,49 @@ class Diagnostics(object):
     def __init__(self, pg_data, optimize_for, PG_info_dict):
         self.data = pg_data  # Depending what should be used in minimizing the cost, this could take a different value
 
-        #pdict = {"level1": {"a": 3},
-         #        "b": 5,
-         #        "c": 2}
+        # pdict = {"level1": {"a": 3},
+        #        "b": 5,
+        #        "c": 2}
 
         self.optimize_for = optimize_for
         self.pglmm_info = PG_info_dict
 
-        self.opt_for_var = list(self.optimize_for.keys()) # Variables to optimize for
-        self.opt_for_bnds = list(self.optimize_for.values()) # Bounds of variables
+        self.opt_for_var = list(self.optimize_for.keys())  # Variables to optimize for
+        self.opt_for_bnds = list(self.optimize_for.values())  # Bounds of variables
 
+        # Finds the dimensionality of the unknowns to compile the current parameter vector candidate
+        self.opt_for_var_dimensionality = []
+
+        self.bound_array = self.opt_for_bnds[0]
+        try:
+            self.opt_for_var_dimensionality.append(np.shape(self.opt_for_bnds[0].T)[1])
+        except:
+            self.opt_for_var_dimensionality.append(1)
+
+        for bound in self.opt_for_bnds[1:]:
+            self.bound_array = np.vstack((self.bound_array, bound))
+            try:
+                self.opt_for_var_dimensionality.append(np.shape(bound.T)[1])
+            except:
+                self.opt_for_var_dimensionality.append(1)
         return
 
     def f_min(self, theta):
 
         # Exchage the values in the dictionary used to initialize the LMM with the values the optimizer wants to use
-        for var_to_opt_for, theta_index in zip(self.opt_for_var, range(len(self.opt_for_var))):
-            edit_dict_var(self.pglmm_info, var_to_opt_for, theta[theta_index])
+        dim_count = 0
+        for var_to_opt_for, theta_index, dimensionality in zip(self.opt_for_var, range(len(self.opt_for_var)),
+                                                               self.opt_for_var_dimensionality):
+            #  edit_dict_var(self.pglmm_info, var_to_opt_for, theta[theta_index])
+            if dimensionality == 1:
+                edit_dict_var(self.pglmm_info, var_to_opt_for, theta[dim_count])  # TODO: Fix to work for the multidimensional intial values
+            else:
+                edit_dict_var(self.pglmm_info, var_to_opt_for, np.array([theta[dim_count: dim_count + dimensionality]]).T)
+            dim_count += dimensionality
 
         PG = pglmm.Planetary_Gear(self.pglmm_info)
         sol = PG.get_transducer_vibration()
-
         return self.cost(sol)
-
 
     def cost(self, candidate):
         """
@@ -91,8 +111,7 @@ class Diagnostics(object):
         -------
 
         """
-        return np.linalg.norm(candidate - self.data)
-
+        return np.linalg.norm(candidate * 1000 - self.data * 1000)
 
     def do_optimisation(self):
         sol = opt.differential_evolution(self.f_min,
@@ -126,31 +145,3 @@ def edit_dict_var(adict, k, v):
 def system(param_dict):
     return param_dict["level1"]["a"] * np.linspace(-1, 1, 100) ** 2 + param_dict["b"] * np.linspace(-1, 1, 100) + \
            param_dict["c"]
-
-
-#pdict = {"level1": {"a": 3},
-#         "b": 5,
-#         "c": 2}
-
-opim_for = {"delta_k": [0.5*2e8*0.9, 0.5*2e8*1.1]}
-
-# Load the "actual" data
-d = definitions.root + "\\" + "data\\external\\lmm\\"
-measured = np.load(d + "transducer_vib_diagnostics1.npy")
-
-
-#measured = np.random.normal(system(pdict), 0.5)
-
-# Plot the measured
-#plt.figure()
-#plt.scatter(np.linspace(-1, 1, 100), measured)
-#plt.plot(np.linspace(-1, 1, 100), system(pdict))
-#plt.plot(measured)
-
-# Create the diagnostics object
-diag_obj = Diagnostics(measured, opim_for, lmm_models.make_chaari_2006_model_w_dict())
-
-# Run the diagnostics
-print(diag_obj.do_optimisation())
-
-#plt.plot(np.linspace(-1,1,100), system(diag_obj.pglmm_info))

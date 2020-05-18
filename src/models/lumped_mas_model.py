@@ -1962,7 +1962,7 @@ class Planetary_Gear(object):
         solver = solvers.LMM_sys(self.M, self.C, self.K, self.T, X0, Xd0, timerange)
 
         t = time.time()
-        print("Solution started")
+        #print("Solution started")
         sol = solver.solve_de(solver_alg)
         print(solver_alg, "time: ", time.time() - t)
 
