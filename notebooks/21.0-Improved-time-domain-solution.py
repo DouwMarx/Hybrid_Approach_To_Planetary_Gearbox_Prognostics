@@ -50,4 +50,4 @@ PG.plot_solution("Displacement")
 
 #plt.figure()
 #plt.plot(ss)
-PG.plot_stiffness_mat( plot= "sign")
+#PG.plot_stiffness_mat( plot= "sign")
