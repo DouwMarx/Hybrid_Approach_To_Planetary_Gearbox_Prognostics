@@ -4,141 +4,120 @@
 %%  Copyright (C) 2011-2016 University of Pretoria.
 %%
 
-\chapter{Discussion}
+\chapter{LMM}
+%\chapter{Discussion}
 
-\chapter{FEM}
-Take note that this section should not be here but as of 2020/03/28 there is not certainty of whether all edits before 2019/14 had been incorporated (Date from drive download)
-
-This chapter explains how the finite element method is used to compute the time-varying gears mesh stiffness (TVMS) of gears with a tooth root crack. As discussed in section \cite{not yet discussed}, there are various ways of computing the time varying mesh stiffness of which the finite element method, although computationally intensive, is the most accurate. This section documents the use of the finite element method for computing the TVMS of gear system with cracked planet gear.
-
-
-\cite{Yu2017a} conducts a study comparing different ways of computing the TVMS. They consider 3D finite elements, 2D finite elements, an analytical approach, an improved analytical method incorporating fem results and an approximation based on ISO standards. Although the study is aimed at conventional fixed axis spur gears, the conclusions drawn are likely applicable to the planetary gearbox problem as well. They conclude that, although computationally expensive, the finite element models provide the most accurate and reliable results. They recommend using the 2D simplification in the finite element method without using too much accuracy. Analytical methods run in a much shorter time than the finite element methods but tend to overestimate the mesh stiffness during double tooth contact stiffness. This problem is addressed by the improved analytical method but this requires a FEM simulation. A 2D finite element method is therefore used to estimate the mesh stiffness in this case. 
+\section{Lumped mass modelling of planetary gearbox}
+Post MSS lumped mass literature review
 
 
-% Consider explaining what FEM is and what Meshes do?
-% https://www.simscale.com/forum/t/how-to-create-a-fea-report/49395 website that gives an overview of how to document a FEM simulation
+General introduction:
+Vibration of planetary gearbox is more complicated than fixed axis. Vibrations generated are similar but have different phases. 
+
+The transmission path changes due to the carrier motion.
+
+Dynamic simulation is used rather than mathematical models seeing that the physical parameters of the gearbox like the gear mesh stiffness can be incorporated in the model \cite{Liang2015}
+
+--------------------------------------------------------------
+
+\cite{Ma2015} provides a review on cracked gear systems
+
+\cite{Liang2015} develops a dynamic model to simulation vibration signals and makes use of a Hamming function fo represent the transmission path. Uses a model similar to cite (lin and parker 1999). Differences include describing planet deflections in horizontal and vertical coordinates, considering gyroscopic and centrifugal force and incorporating accurate model parameters.
+
+\cite{Chen 2015} makes use of dynaic model as used in chaari 2006  and 4 chen 2013 articles.
+
+\cite{Chen2013} makes use of matrices as in Chaari 2006 and Parker 2000
+
+In this model we will not be considering flexible ring gear as in \cite{Chen2015}
 
 
-\section{Simulation Objective}
-Under the assumption that the measured vibration response is related to the stiffness in the planet gear tooth under investigation, determining the gear mesh stiffness through a non data driven approach such as FEM fits in well with the hybrid modelling philosophy that is the subject of this dissertation. The TVMS as calculated by the FEM is used inside a lumped mass model to determine the expected vibration response for a given crack length. 
+A commonly used lumped mass model in literature is that of \cite{Kahraman1994} which has been used with some adaption by  \cite{Lin1999}, \cite{Chaari2006}, \cite{Chen2013},\cite{Chen2015}. The main focus of this investigation will be the specific model used by \cite{Lin1999}. In this model, the sun, ring, carrier and planets are all treated as rigid bodies with bearings and gear meshes modelled as linear springs. Each component of the gear box has two translational degrees of freedom in plane and one rotational degree of freedom around an axis orthogonal to the translational plane. No damping is explicitly modelled in the system. Rather, a proportional damping is considered as in \cite{Chaari2006}.
 
-\section{Simulation Overview}
-The FEM simulation is implemented using a commercial FEM package MSC Marc 2019 student edition \cite{MSCMarc2019}. The PyMentat plugin \cite{Marc_Py2003} that provides a interface between the Python programming language and the Marc Mentat software was extensively used to automate the simulation. 
+Gyroscopic effects are this fraction of the typical stiffness matrix an will be neglected or not. Or gyroscopic stiffness is included although it does not really do anything. 
 
-The Marc Mentat software  is a nonlinear bla bla crack growth and contact. refenernce the user guide introduction I guess. Why use marc and what are its capabilities
-	
-The simulation consists of two main parts. The first simulation makes used of principles from linear fracture mechanics to simulate root tooth crack growth in a planet gear. In the second part, the time varying mesh stiffness of the gear system is determined for a range of crack lengths with cracked gear meshes being obtained from the first part of the simulation
+All translations of components are defined relative to a rotating reference frame fixed to the carrier as such, the vibration response obtained from the lumped mass model is not directly comparable to the response measured by an accelerometer mounted to the gearbox housing. The transmission path from the gearbox components in the rotating reference frame to the measured response of the accelerometer therefore needs to be modelled.
 
+\cite{Liang2015} considers the resultant vibration signal to be a weighted summation of each planet gear, arguing that, as the planet gear meshes with the sun gear and ring gear simultaneously, the planet gear vibration contains information about both the sun-planet and ring-planet meshes. The effect of the transmission path is modelled by a modified Hamming function with $\alpha$ parameter that controls the bandwidth of the Hamming function. The equation is given by 3.1 in the paper.
 
-\section{Crack growth simulation}
-
-\subsection{Summary}
-The crack growth simulation matches the results found in practice. The mesh can be generated correctly for the following TVMS simulation.
-
-\subsection{Introduction}
-This simulation was also used by this guy. 
-The crack should be naturally grown also to generate the required meshes.
-Crack growth simulation can be performed with various methods - in this case we use crack splitting not to mess up the rest of the mesh
-
-\subsection{Objectives}
-Measure: The number of cycles, Stress intensity
-How data is obtained: Explain perhaps how the LEFM calcs work?
-
-\subsection{Model}
-Perhaps show entire model with mesh (Ring, sun and planet)
-
-The correct involute gear geometry was generated from measurement of the experimental setup using the KHK gear calculator \cite{KHK2015}. See Appendix \ref{A:Gear_Geom} for full list of gear specifications as generated from measurement of the gear. 
+\cite{Parra2017} on the other hand states that they consider ring and planet vibrations and says liang does not consider ring vibrations as well. 
+--------------------------------------------------------------
 
 
-\subsection{Mesh}
-The mesh used for the planet gear was refined with based on the following reasoning. A high mesh density was used on the gear tooth edges where there would be contact interaction between meshes. Seeing that the planet gear mesh will be used for determining the planet-sun mesh stiffness as well as the planet-ring mesh stiffness, this mesh refinement is performed on both sides of the planet gear teeth. 
+In this section, a $21$ DOF lumped mass model of a planetary gearbox \citep{Chaari2006} is programmed. Each component of the gearbox has two translational degrees of freedom and a rotational degree of freedom.
 
-The planet gear geometry is simplified to decrease computational cost
+Figure \ref{F:model} shows a schematic of the lumped mass model. 
 
-
-This is a 2D plane strain analysis as in \ref{People who use plane strain analysis}. Take note that this assumption is more valid in simulations where the face width of the gear is large compared to the gear tooth height. In this case, where the face width and gear tooth height are similar in dimension, the plane strain analysis is chosen simply because it is expected to outperform the plane stress analysis. 
-
-\subsection{Model details}
-% Please add the following required packages to your document preamble:
-% \usepackage{graphicx}
-% \usepackage{lscape}
-
-	\begin{table}[]
-		\centering
-		\resizebox{\textwidth}{!}{%
-			\begin{tabular}{|l|l|}
-				\hline
-				Number of Nodes    &                   \\
-				Number of Elements &                   \\
-				Element types      &                   \\
-				Analysis Type      & Non linear Static \\
-				Degrees of Freedom & Plane Strain      \\ \hline
-			\end{tabular}%
-		}
-	\end{table}
-
-
-\subsection{Material Data}
-Material data obtained from ? Stuur dalk weer vir metalurgies 'n email en hoor hoe mens tipies uitvind watter materiaal die rat kan wees
-
-Youngs modulus poisson ratio perhaps density, paris law parameters
-
-
-\subsection{Loads and boundary conditions}
-Application of the load is shown in Figure
-speak about load magnitude and direction. Highest point of single tooth contact yada yada
-
-
-Show the boundary conditions
-
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-% \usepackage{graphicx}
-\begin{table}[]
-	\centering
-	\resizebox{\textwidth}{!}{%
-		\begin{tabular}{@{}|ll|ll|ll|ll|@{}}
-			\toprule
-			\multicolumn{2}{|l|}{Model details}    & \multicolumn{2}{l|}{Material Properties} & \multicolumn{2}{l|}{Loads}                                  & \multicolumn{2}{l|}{Boundary conditions}           \\ \midrule
-			Number of Nodes    &                   & Poisson Ratio            & 0.3           & Long rambling about highest point of tooth contact & 10000N & Long rambling about glued bodies & Fixed           \\
-			Number of Elements &                   &                          &               &                                                    &        &                                  & Z rotation free \\
-			Element types      &                   &                          &               &                                                    &        &                                  &                 \\
-			Analysis Type      & Non linear Static &                          &               &                                                    &        &                                  &                 \\
-			Degrees of Freedom & Plane Strain      &                          &               &                                                    &        &                                  &                 \\ \bottomrule
-		\end{tabular}%
-	}
-\end{table}
-
-
-\subsection{Results}
-
-Figure \ref{F:Crack_result} shows a comparison between the experimental crack growth result and the FEM result
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.9]{Chapter_1/Images_1/flow}
-	\caption{Position of work in research hierarchy}
-	\label{F:Hierarchy}
+	\includegraphics[width=0.6\textwidth]{Chapter_3/Images_3/chaari2006}
+	\caption{Planetary gearbox model \citep{Chaari2006}}
+	\label{F:model}
+\end{figure}
+
+The equations of motion of the lumped mass system is given by 
+
+\begin{equation}1
+M \ddot{x}+\Omega_{c} G \dot{x}+\left[K_{b}+K_{e}(t)-\Omega_{c}^{2} K_{\Omega}\right] x=T+F(t)
+\end{equation}
+
+where 
+\begin{itemize}
+	\item $x$ is the vector of degrees of freedom
+	\item $M$ is the mass matrix
+	\item $\Omega_{c}$ is the rotational speed of the planet carrier
+	\item $G$ is the gyroscopic matrix 
+	\item $K_{b}$ is the bearing stiffness matrix
+	\item $K_{e}(t)$ is the time varying mesh stiffness matrix
+	\item $T$ is the vector of external torques
+	\item $F(t)$ is the excitation force vector due to factors such as transmission error        
+\end{itemize}
+
+The expressions for each of the respective matrix indices are documented in \cite{Chaari2006}.
+
+%For the chaari example we are running at $857 RPM$, The GMF is calculated as $300Hz$. the time varying mesh stiffness is approximated as a square wave. The TVMS can however be fed to the model as any arbitrary profile. A gear tooth crack can therefore artificially added to the model. An example of the time varying mesh stiffness depending on the contact ratio is shown in Figure \ref{F:TVMS}
+
+The TVMS for the sun planet and planet ring interaction for a healthy gear system is approximated as a square wave. An example of the TVMS for the gearbox modelled in \cite{Chaari2006} running at $857RPM$ (GMF = $300Hz$) is shown in Figure \ref{F:TVMS}.
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{Chapter_3/Images_3/TVMS}
+	\caption{TVMS approximation}
+	\label{F:TVMS}
 \end{figure}
 
 
+The overall stiffness matrix is given by
+
+\begin{equation}
+K = K_{b}+K_{e}(t)-\Omega_{c}^{2} K_{\Omega}.
+\end{equation}
+
+The overall mesh stiffness matrix is plotted in Figure \ref{F:Stiffness}. Since the mesh stiffens is time-varying the overall stiffness matrix will also be time-varying and there will be two cases of the stiffness matrix for a healthy gearbox under the square wave mesh stiffness assumption. 
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1.1\textwidth]{Chapter_3/Images_3/Total_stiff1.pdf}
+		\caption{time = $0s$ }
+	\end{subfigure}
+	~
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1.1\textwidth]{Chapter_3/Images_3/Total_stiff2.pdf}
+		\caption{time = $0.0025s$ }
+	\end{subfigure}
+	
+	\caption{Stiffness matrix for model used by \cite{Chaari2006}}
+	\label{F:Stiffness}
+\end{figure}
+
+Notice that there are non-negative terms on some of the off-diagonal elements of the stiffness matrix (from \cite{Chaari2006} equation 5). This results in a non-positive definite stiffness matrix. As a result, obtaining the solution of the lumped mass model through numerical integration, even with the addition of proportional damping, is very difficult.  
+
+As a simple initial validation of the model, the eigenfrequencies of the model based on the average mesh stiffness is calculated by the eigenvalue problem. However, \cite{Chaari2006} does not explicitly state the gear mesh ratio which is required to determine the average mesh stiffness. The lumped mass model therefore still needs to be verified using \cite{Chaari2006} or \cite{Lin1999}.
 
 
-\section{Gear mesh stiffness simulation}
 
 
 
-
-
-
-\section{}
-
-
-\section{title}
-
-\section{Chapter Abstract}
-
-Chapter overview chapter overview chapter overview chapter overview
-chapter overview chapter overview chapter overview chapter overview
-chapter overview.
 
 %% End of File.

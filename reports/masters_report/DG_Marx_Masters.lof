@@ -1,37 +1,38 @@
 \babel@toc {british}{}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces Position of work in research hierarchy\relax }}{3}{figure.caption.5}%
-\contentsline {figure}{\numberline {1.2}{\ignorespaces Global wind energy capacity increase \citep {IRENA2019}\relax }}{4}{figure.caption.6}%
-\contentsline {figure}{\numberline {1.3}{\ignorespaces Planetary gearbox in a wind turbine \citep {Urbanek2012}\relax }}{5}{figure.caption.7}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Position of work in research hierarchy\relax }}{3}{figure.caption.5}% 
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Global wind energy capacity increase \citep {IRENA2019}\relax }}{4}{figure.caption.6}% 
+\contentsline {figure}{\numberline {1.3}{\ignorespaces Planetary gearbox in a wind turbine \citep {Urbanek2012}\relax }}{5}{figure.caption.7}% 
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces A planetary gearbox \citep {Lei2014}\relax }}{10}{figure.caption.8}%
-\contentsline {figure}{\numberline {2.2}{\ignorespaces Gear tooth root crack \citep {Ballarini1997}\relax }}{18}{figure.caption.9}%
-\contentsline {figure}{\numberline {2.3}{\ignorespaces Time varying mesh stiffness with tooth root crack \citep {Wan2014}\relax }}{21}{figure.caption.10}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces A planetary gearbox \citep {Lei2014}\relax }}{10}{figure.caption.8}% 
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Gear tooth root crack \citep {Ballarini1997}\relax }}{18}{figure.caption.9}% 
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Time varying mesh stiffness with tooth root crack \citep {Wan2014}\relax }}{21}{figure.caption.10}% 
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Overall drive train\relax }}{29}{figure.caption.12}%
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Instrumentation\relax }}{30}{figure.caption.13}%
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Hydraulic load system\relax }}{31}{figure.caption.14}%
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Frequency response of gearbox under no load\relax }}{33}{figure.caption.15}%
-\contentsline {figure}{\numberline {3.5}{\ignorespaces Accelerometer position study\relax }}{34}{figure.caption.16}%
-\contentsline {figure}{\numberline {3.6}{\ignorespaces Frequency response with distance from starting point\relax }}{35}{figure.caption.17}%
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Coherence meaning\relax }}{36}{figure.caption.18}%
-\contentsline {figure}{\numberline {3.8}{\ignorespaces Mean Coherence over all samples\relax }}{37}{figure.caption.19}%
-\contentsline {figure}{\numberline {3.9}{\ignorespaces Mean squared error between sample mean coherence and the coherence of two measured signals\relax }}{38}{figure.caption.20}%
-\contentsline {figure}{\numberline {3.10}{\ignorespaces Datasets used\relax }}{40}{figure.caption.21}%
-\contentsline {figure}{\numberline {3.11}{\ignorespaces Measurement model construction\relax }}{41}{figure.caption.22}%
-\contentsline {figure}{\numberline {3.12}{\ignorespaces Data driven measurement prediction\relax }}{42}{figure.caption.23}%
-\contentsline {figure}{\numberline {3.13}{\ignorespaces RUL prediction results\relax }}{43}{figure.caption.24}%
-\contentsline {figure}{\numberline {3.14}{\ignorespaces Planetary gearbox model \citep {Chaari2006}\relax }}{46}{figure.caption.26}%
-\contentsline {figure}{\numberline {3.15}{\ignorespaces TVMS approximation\relax }}{47}{figure.caption.27}%
-\contentsline {figure}{\numberline {3.16}{\ignorespaces Stiffness matrix for model used by \cite {Chaari2006}\relax }}{48}{figure.caption.28}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Overall drive train\relax }}{29}{figure.caption.12}% 
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Instrumentation\relax }}{30}{figure.caption.13}% 
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Hydraulic load system\relax }}{31}{figure.caption.14}% 
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Frequency response of gearbox under no load\relax }}{33}{figure.caption.15}% 
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Accelerometer position study\relax }}{34}{figure.caption.16}% 
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Frequency response with distance from starting point\relax }}{35}{figure.caption.17}% 
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Coherence meaning\relax }}{36}{figure.caption.18}% 
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Mean Coherence over all samples\relax }}{37}{figure.caption.19}% 
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Mean squared error between sample mean coherence and the coherence of two measured signals\relax }}{38}{figure.caption.20}% 
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Datasets used\relax }}{40}{figure.caption.21}% 
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Measurement model construction\relax }}{41}{figure.caption.22}% 
+\contentsline {figure}{\numberline {3.12}{\ignorespaces Data driven measurement prediction\relax }}{42}{figure.caption.23}% 
+\contentsline {figure}{\numberline {3.13}{\ignorespaces RUL prediction results\relax }}{43}{figure.caption.24}% 
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Proposed hybrid approach\relax }}{50}{figure.caption.29}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Position of work in research hierarchy\relax }}{49}{figure.caption.28}% 
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Planetary gearbox model \citep {Chaari2006}\relax }}{53}{figure.caption.29}% 
+\contentsline {figure}{\numberline {5.2}{\ignorespaces TVMS approximation\relax }}{54}{figure.caption.30}% 
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Stiffness matrix for model used by \cite {Chaari2006}\relax }}{55}{figure.caption.31}% 
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Position of work in research hierarchy\relax }}{63}{figure.caption.32}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Proposed hybrid approach\relax }}{57}{figure.caption.32}% 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {D.1}{\ignorespaces Planet-Ring geometry specification\relax }}{76}{figure.caption.35}%
-\contentsline {figure}{\numberline {D.2}{\ignorespaces Planet-sun geometry specification\relax }}{77}{figure.caption.36}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {D.1}{\ignorespaces Planet-Ring geometry specification\relax }}{82}{figure.caption.35}% 
+\contentsline {figure}{\numberline {D.2}{\ignorespaces Planet-sun geometry specification\relax }}{83}{figure.caption.36}% 

@@ -1,4 +1,4 @@
-\begin{thebibliography}{41}
+\begin{thebibliography}{46}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -63,6 +63,16 @@ Fakher Chaari, Walid Baccar, Mohamed~Slim Abbes, and Mohamed Haddar.
 \newblock ISSN 09977538.
 \newblock \doi{10.1016/j.euromechsol.2007.11.005}.
 
+\bibitem[Chen et~al.(2013)Chen, Shang, and Sun]{Chen2013}
+Hanxin Chen, Yunfei Shang, and Kui Sun.
+\newblock {Multiple fault condition recognition of gearbox with sequential
+  hypothesis test}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 40\penalty0
+  (2):\penalty0 469--482, 2013.
+\newblock ISSN 08883270.
+\newblock \doi{10.1016/j.ymssp.2013.06.023}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.ymssp.2013.06.023}.
+
 \bibitem[Cheng et~al.(2012)Cheng, Hu, and Zhang]{Cheng2012}
 Zhe Cheng, Niaoqing Hu, and Xiaofei Zhang.
 \newblock {Crack level estimation approach for planetary gearbox based on
@@ -93,6 +103,13 @@ N.J. Gordon, D.J. Salmond, and A.F.~M. Smith.
 \newblock \emph{Proc. Inst. Elect. Eng.}, 140\penalty0 (2):\penalty0 107--113,
   1993.
 
+\bibitem[He et~al.(2012)He, Bechhoefer, Dempsey, and Ma]{He2012}
+David He, Eric Bechhoefer, Paula Dempsey, and Jinghua Ma.
+\newblock {An integrated approach for gear health prognostics}.
+\newblock \emph{Annual Forum Proceedings - AHS International}, 3:\penalty0
+  1647--1655, 2012.
+\newblock ISSN 15522938.
+
 \bibitem[Jardine et~al.(2006)Jardine, Lin, and Banjevic]{Jardine2006}
 Andrew~K.S. Jardine, Daming Lin, and Dragan Banjevic.
 \newblock {A review on machinery diagnostics and prognostics implementing
@@ -101,6 +118,11 @@ Andrew~K.S. Jardine, Daming Lin, and Dragan Banjevic.
   (7):\penalty0 1483--1510, 2006.
 \newblock ISSN 08883270.
 \newblock \doi{10.1016/j.ymssp.2005.09.012}.
+
+\bibitem[Kahraman(1994)]{Kahraman1994}
+Ahmet Kahraman.
+\newblock {Kahraman 1994 a}.
+\newblock 29\penalty0 (8), 1994.
 
 \bibitem[Lei et~al.(2014)Lei, Lin, Zuo, and He]{Lei2014}
 Yaguo Lei, Jing Lin, Ming~J. Zuo, and Zhengjia He.
@@ -158,6 +180,15 @@ Yuhua Li, Fengshou Gu, Georgina Harris, Andrew Ball, Nick Bennett, and Ken
   (4):\penalty0 786--805, 2005.
 \newblock ISSN 08883270.
 \newblock \doi{10.1016/j.ymssp.2004.04.003}.
+
+\bibitem[Liang et~al.(2015)Liang, Zuo, and Hoseini]{Liang2015}
+Xihui Liang, Ming~J. Zuo, and Mohammad~R. Hoseini.
+\newblock {Vibration signal modeling of a planetary gear set for tooth crack
+  detection}.
+\newblock \emph{Engineering Failure Analysis}, 48:\penalty0 185--200, 2015.
+\newblock ISSN 13506307.
+\newblock \doi{10.1016/j.engfailanal.2014.11.015}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.engfailanal.2014.11.015}.
 
 \bibitem[Liao and Kottig(2014)]{Liao2014}
 Linxia Liao and Felix Kottig.
@@ -277,6 +308,16 @@ Yogesh Pandya and Anand Parey.
 \newblock ISSN 13506307.
 \newblock \doi{10.1016/j.engfailanal.2012.08.015}.
 \newblock URL \url{http://dx.doi.org/10.1016/j.engfailanal.2012.08.015}.
+
+\bibitem[Parra and Vicu{\~{n}}a(2017)]{Parra2017}
+J.~Parra and Cristi{\'{a}}n~Molina Vicu{\~{n}}a.
+\newblock {Two methods for modeling vibrations of planetary gearboxes including
+  faults: Comparison and validation}.
+\newblock \emph{Mechanical Systems and Signal Processing}, 92:\penalty0
+  213--225, 2017.
+\newblock ISSN 10961216.
+\newblock \doi{10.1016/j.ymssp.2017.01.032}.
+\newblock URL \url{http://dx.doi.org/10.1016/j.ymssp.2017.01.032}.
 
 \bibitem[Patricks et~al.(2007)Patricks, Orchards, Zhang, Koelemay, Kacprzynski,
   Ferri, and Vachtsevanos]{Patricks2007}
