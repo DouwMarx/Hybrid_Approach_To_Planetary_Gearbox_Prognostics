@@ -13,9 +13,6 @@ import src.features.second_order_solvers as solvers
 import sys
 import numpy
 
-#from numba import jit
-numpy.set_printoptions(threshold=np.inf)
-
 class M(object):
     """
     This class is used to create mass matrix objects
@@ -216,7 +213,7 @@ class K_b(object):
         if gear == "ring":
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
-        if gear == "carrier":
+        if gear == "carrier":  # Carrier also resists rotational motion
             K_jb[2, 2] = self.kru
 
         else:
@@ -1251,24 +1248,6 @@ class K_e_fast(object):
         Kp_c3 = self.k_atr[2] * Kp_c3  # Multiply the matrix with K_p
         return Kp_c3
 
-    # def Kp_c_c(self, p):
-    # """
-    # K^p component of mesh stiffness matrix
-    #
-    # Parameters
-    # ----------
-    # p   :  int
-    #        The planet gear number
-    # t   :  float
-    #        Time [s]
-    #
-    # Returns
-    # -------
-    # Kp   : 3x3 numpy array
-    # """
-    # Kp = self.Kp_c3_c(p) + self.Kp_r3_c(p) + self.Kp_s3_c(p)
-    # return Kp
-
     def Sum_Kp_c1_c(self):
         """
         Sum of all K^p_c1 over all p (planets) for mesh stiffness matrix
@@ -1352,6 +1331,8 @@ class K_e_fast(object):
             rect[3:6, (p - 1) * 3:p * 3] = krp_t[p - 1] * self.K_r2_c[:, (p - 1) * 3:p * 3]
             rect[6:9, (p - 1) * 3:p * 3] = ksp_t[p - 1] * self.K_s2_c[:, (p - 1) * 3:p * 3]
 
+            #rect[3:6, (p - 1) * 3:p * 3] = krp_t[p - 1] * self.K_s2_c[:, (p - 1) * 3:p * 3]
+            #rect[6:9, (p - 1) * 3:p * 3] = ksp_t[p - 1] * self.K_r2_c[:, (p - 1) * 3:p * 3]
         return rect
 
     def Right_Bottom(self, krp_t, ksp_t):
@@ -1877,14 +1858,22 @@ class Planetary_Gear(object):
         out = phi_p + self.alpha_r
         return out
 
-    def plot_tvms(self, time_range):
+    def plot_tvms(self):
+
+        ksp_array = []
+        krp_array = []
+        for t in self.time_range:
+            ksp_array.append(self.k_sp(t))
+            krp_array.append(self.k_rp(t))
+
+        ksp_array = np.array(ksp_array)
         plt.figure("Ring Planet Stiffness")
-        plt.plot(time_range, self.k_rp(time_range))
+        plt.plot(self.time_range, ksp_array)
         plt.xlabel("Time [s]")
         plt.ylabel("Mesh Stiffness [N/m")
 
         plt.figure("Sun Planet Stiffness")
-        plt.plot(time_range, self.k_sp(time_range))
+        plt.plot(self.time_range, krp_array)
         plt.xlabel("Time [s]")
         plt.ylabel("Mesh Stiffness [N/m")
 
@@ -1944,6 +1933,27 @@ class Planetary_Gear(object):
         plt.plot(self.time_range, self.time_domain_solution[:, start + 9], label="zeta_1")
         plt.plot(self.time_range, self.time_domain_solution[:, start + 10], label="nu_1")
         plt.legend()
+
+    def plot_stiffness_mat(self, plot = "normal"):
+        plt.figure()
+
+        t = 0
+        if plot == "log":
+            plt.imshow(self.K(t))
+
+        if plot == "normal":
+            plt.imshow(np.log(self.K(t)))
+
+        if plot == "sign":
+            plt.imshow(np.sign(self.K(t)))
+        plt.colorbar()
+
+        plt.scatter([8],[5], c = "black", label = "ring - sun")
+        plt.scatter([11],[8], c = "red", label = "planet 1 - sun")
+        plt.scatter([11],[5], c = "green", label = "planet 1 - ring")
+        #plt.scatter([11],[8], c = "white", label = "planet 1 - sun")
+        plt.legend()
+        return
 
     def get_solution(self):
         try:
