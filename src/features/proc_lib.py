@@ -73,7 +73,7 @@ class Dataset_Plotting(object):
         return
 
 
-    def plot_order_spectrum(self, data,fs,samples_per_rev,plot_gmf = False):
+    def plot_order_spectrum(self, data,samples_per_rev,plot_gmf = False):
         """
         Computes and plots the FFT for a given signal
         Parameters
@@ -85,12 +85,12 @@ class Dataset_Plotting(object):
         -------
 
         """
-        freq, mag, phase = self.fft(data,fs)
+        freq, mag, phase = self.fft(data, samples_per_rev)
 
 
         plt.figure()
         #max_height = 2
-        plt.plot(freq/samples_per_rev, mag, "k")
+        plt.plot(freq, mag, "k")
         plt.ylabel("Magnitude")
         plt.xlabel("Carrier orders")
 
@@ -451,10 +451,12 @@ class Time_Synchronous_Averaging(object):
             plt.figure()
             minimum = np.min(together)
             maximum = np.max(together)
-
-            plt.plot(together)
+            plt.ylabel("Response_squared")
+            plt.xlabel("Planet Gear Angle")
+            angles = np.linspace(0, 360, len(together))
+            plt.plot(angles, together)
             for line in range(np.shape(aves)[0]):
-                plt.vlines(line*np.shape(aves)[1], minimum, maximum)
+                plt.vlines(line*np.shape(aves)[1]*np.average(np.diff(angles)), minimum, maximum)
 
 
         return together
