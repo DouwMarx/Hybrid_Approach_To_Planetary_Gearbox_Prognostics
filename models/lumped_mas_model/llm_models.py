@@ -147,9 +147,9 @@ def make_chaari_2006_model_w_dict():
     #  Solver attributes
     ####################################################################################################################
     timerange = np.linspace(0, 0.051, 10000)
-
-    X0 = np.random.rand(N*3 + 9, 1)*1E-6
-    Xd0 = np.random.rand(N*3 + 9, 1)*1E-6
+    #timerange = np.linspace(0, 5, 1000000)
+    X0 = np.random.rand(N*3 + 9, 1)*1E-9
+    Xd0 = np.random.rand(N*3 + 9, 1)*1E-9
 
     #X0 = np.zeros((N * 3 + 9, 1))
     #Xd0 = np.zeros((N * 3 + 9, 1))

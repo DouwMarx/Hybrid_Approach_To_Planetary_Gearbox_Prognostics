@@ -4,11 +4,10 @@ import models.lumped_mas_model.llm_models as lmm_models
 from src.models.diagnostics import Diagnostics
 import pickle
 
-opim_for = {#"Xd0": np.ones((21, 2)) * np.array([-1E-5, 1E-5]),
+opim_for = {
             "m_r": np.array([0.588*0.5, 0.588*1.5]),
             "delta_k": np.array([1E8*0.5, 1E8*1.5]),
             "m_p": np.array([0.1*0.5, 0.1*1.5]),
-            #"X0": np.ones((21, 2))*np.array([-1, 1])
             }
 
 # Load "actual" generated data

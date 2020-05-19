@@ -215,6 +215,8 @@ class K_b(object):
 
         if gear == "carrier":  # Carrier also resists rotational motion
             K_jb[2, 2] = self.kru
+        #if gear == "sun":  # sun also resists rotational motion
+        #    K_jb[2, 2] = self.kru
 
         else:
             K_jb[2, 2] = 0  # sun gear free to rotate
@@ -1466,7 +1468,7 @@ class T(object):
 
         """
         T_vec = np.zeros((9 + 3 * self.N, 1))
-        T_vec[2, 0] = 0
+        T_vec[2, 0] = -self.T_s #0
         T_vec[8, 0] = self.T_s  # Sun
 
         return T_vec
@@ -1951,8 +1953,8 @@ class Planetary_Gear(object):
         plt.scatter([8],[5], c = "black", label = "ring - sun")
         plt.scatter([11],[8], c = "red", label = "planet 1 - sun")
         plt.scatter([11],[5], c = "green", label = "planet 1 - ring")
-        #plt.scatter([11],[8], c = "white", label = "planet 1 - sun")
-        plt.legend()
+        plt.scatter([11],[2], c = "white", label = "planet 1 - carrier")
+        plt.legend(bbox_to_anchor = (1.05,1))
         return
 
     def get_solution(self):
