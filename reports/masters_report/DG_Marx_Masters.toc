@@ -1,65 +1,71 @@
 \babel@toc {british}{}
-\contentsline {chapter}{Declaration of Originality}{iii}{Item.4}%
-\contentsline {chapter}{List of Figures}{vi}{chapter*.1}%
-\contentsline {chapter}{List of Tables}{viii}{chapter*.2}%
-\contentsline {chapter}{Nomenclature}{viii}{chapter*.3}%
+\contentsline {chapter}{Declaration of Originality}{iii}{Item.4}% 
+\contentsline {chapter}{List of Figures}{vi}{chapter*.1}% 
+\contentsline {chapter}{List of Tables}{viii}{chapter*.2}% 
+\contentsline {chapter}{Nomenclature}{viii}{chapter*.3}% 
 \renewcommand *\cftchappresnum {Chapter\ }
-\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}%
-\contentsline {section}{\numberline {1.1}Background}{2}{section.1.1}%
-\contentsline {subsection}{\numberline {1.1.1}Wind turbine gearbox monitoring}{3}{subsection.1.1.1}%
-\contentsline {subsection}{\numberline {1.1.2}Vibration based condition monitoring}{5}{subsection.1.1.2}%
-\contentsline {subsection}{\numberline {1.1.3}Diagnostics and Prognostics}{6}{subsection.1.1.3}%
-\contentsline {subsection}{\numberline {1.1.4}Hybrid Prognostics}{7}{subsection.1.1.4}%
-\contentsline {section}{\numberline {1.2}Objective}{8}{section.1.2}%
-\contentsline {section}{\numberline {1.3}Overview of Report}{9}{section.1.3}%
-\contentsline {chapter}{\numberline {2} Literature Review}{10}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Explanation of concepts and techniques}{10}{section.2.1}%
-\contentsline {subsection}{\numberline {2.1.1}Planetary gearboxes}{10}{subsection.2.1.1}%
-\contentsline {subsection}{\numberline {2.1.2}Uncertainty}{12}{subsection.2.1.2}%
-\contentsline {subsection}{\numberline {2.1.3}Particle filters}{12}{subsection.2.1.3}%
-\contentsline {subsection}{\numberline {2.1.4}Gear dynamics and failure}{17}{subsection.2.1.4}%
-\contentsline {subsubsection}{\numberline {2.1.4.1}Gear failure modes}{17}{subsubsection.2.1.4.1}%
-\contentsline {subsubsection}{\numberline {2.1.4.2}Dynamics of cracked gear systems}{19}{subsubsection.2.1.4.2}%
-\contentsline {section}{\numberline {2.2}Prior research}{22}{section.2.2}%
-\contentsline {section}{\numberline {2.3}After MSS review}{25}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}Yu 2017}{25}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Shao 2013}{26}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}Li 2005}{26}{subsection.2.3.3}%
-\contentsline {subsection}{\numberline {2.3.4}Coppe 2010}{26}{subsection.2.3.4}%
-\contentsline {chapter}{\numberline {3}Practical Investigative Study}{27}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Planetary Gearbox Test Bench}{27}{section.3.1}%
-\contentsline {subsection}{\numberline {3.1.1}Design and construction of planetary gearbox test bench}{28}{subsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.1.2}Frequency spectrum analysis}{32}{subsection.3.1.2}%
-\contentsline {subsection}{\numberline {3.1.3}Accelerometer position study}{34}{subsection.3.1.3}%
-\contentsline {section}{\numberline {3.2}RUL prediction of Lithium-ion batteries and its application to planetary gearbox monitoring}{39}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Lumped mass modelling of planetary gearbox}{45}{section.3.3}%
-\contentsline {chapter}{\numberline {4}Research scope}{49}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Proposed Hybrid approach}{49}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Bayesian state estimation problem}{51}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Possible simplifications}{57}{section.4.3}%
-\contentsline {chapter}{\numberline {5}Discussion}{59}{chapter.5}%
-\contentsline {chapter}{\numberline {6}FEM}{60}{chapter.6}%
-\contentsline {section}{\numberline {6.1}not yet discussed}{60}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Simulation Objective}{60}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Simulation Overview}{60}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Crack growth simulation}{61}{section.6.4}%
-\contentsline {subsection}{\numberline {6.4.1}Summary}{61}{subsection.6.4.1}%
-\contentsline {subsection}{\numberline {6.4.2}Introduction}{61}{subsection.6.4.2}%
-\contentsline {subsection}{\numberline {6.4.3}Objectives}{61}{subsection.6.4.3}%
-\contentsline {subsection}{\numberline {6.4.4}Model}{61}{subsection.6.4.4}%
-\contentsline {subsection}{\numberline {6.4.5}Mesh}{61}{subsection.6.4.5}%
-\contentsline {subsection}{\numberline {6.4.6}Model details}{62}{subsection.6.4.6}%
-\contentsline {subsection}{\numberline {6.4.7}Material Data}{62}{subsection.6.4.7}%
-\contentsline {subsection}{\numberline {6.4.8}Loads and boundary conditions}{62}{subsection.6.4.8}%
-\contentsline {subsection}{\numberline {6.4.9}Results}{63}{subsection.6.4.9}%
-\contentsline {section}{\numberline {6.5}Gear mesh stiffness simulation}{63}{section.6.5}%
-\contentsline {section}{\numberline {6.6}}{63}{section.6.6}%
-\contentsline {section}{\numberline {6.7}title}{63}{section.6.7}%
-\contentsline {section}{\numberline {6.8}Chapter Abstract}{63}{section.6.8}%
+\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}% 
+\contentsline {section}{\numberline {1.1}Background}{2}{section.1.1}% 
+\contentsline {subsection}{\numberline {1.1.1}Wind turbine gearbox monitoring}{3}{subsection.1.1.1}% 
+\contentsline {subsection}{\numberline {1.1.2}Vibration based condition monitoring}{5}{subsection.1.1.2}% 
+\contentsline {subsection}{\numberline {1.1.3}Diagnostics and Prognostics}{6}{subsection.1.1.3}% 
+\contentsline {subsection}{\numberline {1.1.4}Hybrid Prognostics}{7}{subsection.1.1.4}% 
+\contentsline {section}{\numberline {1.2}Purpose}{8}{section.1.2}% 
+\contentsline {section}{\numberline {1.3}Problem Statement}{9}{section.1.3}% 
+\contentsline {section}{\numberline {1.4}Significance and motivation}{9}{section.1.4}% 
+\contentsline {section}{\numberline {1.5}Definitions, assumptions and limitations}{9}{section.1.5}% 
+\contentsline {section}{\numberline {1.6}Thesis}{9}{section.1.6}% 
+\contentsline {section}{\numberline {1.7}Hypothesis}{9}{section.1.7}% 
+\contentsline {section}{\numberline {1.8}Overview of Report}{9}{section.1.8}% 
+\contentsline {chapter}{\numberline {2}Literature Review/ Related work}{10}{chapter.2}% 
+\contentsline {section}{\numberline {2.1}Explanation of concepts and techniques}{10}{section.2.1}% 
+\contentsline {subsection}{\numberline {2.1.1}Planetary gearboxes}{10}{subsection.2.1.1}% 
+\contentsline {subsection}{\numberline {2.1.2}Uncertainty}{12}{subsection.2.1.2}% 
+\contentsline {subsection}{\numberline {2.1.3}Particle filters}{12}{subsection.2.1.3}% 
+\contentsline {subsection}{\numberline {2.1.4}Gear dynamics and failure}{17}{subsection.2.1.4}% 
+\contentsline {subsubsection}{\numberline {2.1.4.1}Gear failure modes}{17}{subsubsection.2.1.4.1}% 
+\contentsline {subsubsection}{\numberline {2.1.4.2}Dynamics of cracked gear systems}{19}{subsubsection.2.1.4.2}% 
+\contentsline {section}{\numberline {2.2}Prior research}{22}{section.2.2}% 
+\contentsline {section}{\numberline {2.3}After MSS review}{25}{section.2.3}% 
+\contentsline {subsection}{\numberline {2.3.1}Yu 2017}{25}{subsection.2.3.1}% 
+\contentsline {subsection}{\numberline {2.3.2}Shao 2013}{26}{subsection.2.3.2}% 
+\contentsline {subsection}{\numberline {2.3.3}Li 2005}{26}{subsection.2.3.3}% 
+\contentsline {subsection}{\numberline {2.3.4}Coppe 2010}{26}{subsection.2.3.4}% 
+\contentsline {chapter}{\numberline {3}Experimental setup}{27}{chapter.3}% 
+\contentsline {subsection}{\numberline {3.0.1}Design and construction of planetary gearbox test bench}{28}{subsection.3.0.1}% 
+\contentsline {subsection}{\numberline {3.0.2}Frequency spectrum analysis}{32}{subsection.3.0.2}% 
+\contentsline {subsection}{\numberline {3.0.3}Accelerometer position study}{34}{subsection.3.0.3}% 
+\contentsline {chapter}{\numberline {4}FEM}{46}{chapter.4}% 
+\contentsline {section}{\numberline {4.1}Simulation Objective}{46}{section.4.1}% 
+\contentsline {section}{\numberline {4.2}Simulation Overview}{47}{section.4.2}% 
+\contentsline {section}{\numberline {4.3}Crack growth simulation}{47}{section.4.3}% 
+\contentsline {subsection}{\numberline {4.3.1}Summary}{47}{subsection.4.3.1}% 
+\contentsline {subsection}{\numberline {4.3.2}Introduction}{47}{subsection.4.3.2}% 
+\contentsline {subsection}{\numberline {4.3.3}Objectives}{47}{subsection.4.3.3}% 
+\contentsline {subsection}{\numberline {4.3.4}Model}{47}{subsection.4.3.4}% 
+\contentsline {subsection}{\numberline {4.3.5}Mesh}{48}{subsection.4.3.5}% 
+\contentsline {subsection}{\numberline {4.3.6}Model details}{49}{subsection.4.3.6}% 
+\contentsline {subsection}{\numberline {4.3.7}Material Data}{49}{subsection.4.3.7}% 
+\contentsline {subsection}{\numberline {4.3.8}Loads and boundary conditions}{49}{subsection.4.3.8}% 
+\contentsline {subsection}{\numberline {4.3.9}Results}{49}{subsection.4.3.9}% 
+\contentsline {section}{\numberline {4.4}Gear mesh stiffness simulation}{49}{section.4.4}% 
+\contentsline {chapter}{\numberline {5}LMM}{51}{chapter.5}% 
+\contentsline {section}{\numberline {5.1}Lumped mass modelling of planetary gearbox}{51}{section.5.1}% 
+\contentsline {chapter}{\numberline {6}Diagnostics and Prognostics models}{56}{chapter.6}% 
+\contentsline {section}{\numberline {6.1}Proposed Hybrid approach}{56}{section.6.1}% 
+\contentsline {section}{\numberline {6.2}Bayesian state estimation problem}{58}{section.6.2}% 
+\contentsline {section}{\numberline {6.3}Non linear system identification}{64}{section.6.3}% 
+\contentsline {section}{\numberline {6.4}Signal Processing and Feature extraction}{65}{section.6.4}% 
+\contentsline {section}{\numberline {6.5}RUL prediction of Lithium-ion batteries and its application to planetary gearbox monitoring}{66}{section.6.5}% 
+\contentsline {section}{\numberline {6.6}Possible simplifications}{66}{section.6.6}% 
+\contentsline {section}{\numberline {6.7}Hybrid methodology}{67}{section.6.7}% 
+\contentsline {section}{\numberline {6.8}State estimation problem}{67}{section.6.8}% 
+\contentsline {chapter}{\numberline {7}Results}{68}{chapter.7}% 
+\contentsline {section}{\numberline {7.1}Diagnostic}{68}{section.7.1}% 
 \renewcommand *\cftchappresnum {Chapter\ }
-\contentsline {chapter}{References}{64}{section.6.8}%
+\contentsline {chapter}{References}{69}{section.7.1}% 
 \renewcommand *\cftchappresnum {Addendum\ }
-\contentsline {chapter}{\numberline {A}Gearbox test bench design considerations }{70}{appendix.A}%
-\contentsline {chapter}{\numberline {B}Simplifications made to implement the hybrid model}{72}{appendix.B}%
-\contentsline {chapter}{\numberline {C}Hybrid model variants and their applicability to planetary gearbox prognostics}{73}{appendix.C}%
-\contentsline {chapter}{\numberline {D}Particulars of gear geometry}{75}{appendix.D}%
+\contentsline {chapter}{\numberline {A}Gearbox test bench design considerations }{76}{appendix.A}% 
+\contentsline {chapter}{\numberline {B}Simplifications made to implement the hybrid model}{78}{appendix.B}% 
+\contentsline {chapter}{\numberline {C}Hybrid model variants and their applicability to planetary gearbox prognostics}{79}{appendix.C}% 
+\contentsline {chapter}{\numberline {D}Particulars of gear geometry}{81}{appendix.D}% 

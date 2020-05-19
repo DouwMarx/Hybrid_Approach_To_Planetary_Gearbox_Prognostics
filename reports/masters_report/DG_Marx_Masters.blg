@@ -1,4 +1,12 @@
 This is BibTeX, Version 0.99dThe top-level auxiliary file: DG_Marx_Masters.aux
+White space in argument---line 239 of file DG_Marx_Masters.aux
+ : \citation{not
+ :               yet discussed}
+I'm skipping whatever remains of this command
+White space in argument---line 265 of file DG_Marx_Masters.aux
+ : \citation{Chen
+ :                2015}
+I'm skipping whatever remains of this command
 The style file: plainnat.bst
 Database file #1: Bibliography/Masters.bib
 Repeated entry---line 3264 of file Bibliography/Masters.bib
@@ -12,11 +20,19 @@ I'm skipping whatever remains of this entry
 Warning--I didn't find a database entry for "Paris1963"
 Warning--I didn't find a database entry for "Li200"
 Warning--I didn't find a database entry for "Chopin2019"
+Warning--I didn't find a database entry for "Yu2017a"
+Warning--I didn't find a database entry for "MSCMarc2019"
+Warning--I didn't find a database entry for "Marc_Py2003"
+Warning--I didn't find a database entry for "KHK2015"
+Warning--I didn't find a database entry for "Chen2015"
+Warning--I didn't find a database entry for "Fang2018"
+Warning--I didn't find a database entry for "Schon2015"
 Warning--to sort, need author or key in IRENA2019
 Warning--empty author in IRENA2019
+Warning--empty journal in Kahraman1994
 Warning--there's a number but no volume in Orchard2008
 Warning--empty year in Saha2007
 Warning--empty year in Saha2007
 Warning--empty journal in Schon2005
 Warning--there's a number but no volume in Schon2005
-(There were 2 error messages)
+(There were 4 error messages)
