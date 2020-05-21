@@ -5,14 +5,14 @@ from src.models.diagnostics import Diagnostics
 import pickle
 
 opim_for = {
-            "m_r": np.array([0.588*0.5, 0.588*1.5]),
+            #"m_r": np.array([0.588*0.5, 0.588*1.5]),
             "delta_k": np.array([1E8*0.5, 1E8*1.5]),
-            "m_p": np.array([0.1*0.5, 0.1*1.5]),
+           # "m_p": np.array([0.1*0.5, 0.1*1.5]),
             }
 
 # Load "actual" generated data
 d = definitions.root + "\\" + "data\\external\\lmm\\"
-measured = np.load(d + "transducer_vib_diagnostics1.npy")
+measured = np.load(d + "transducer_vib_diagnostics2.npy")
 
 # # Load experimental order tracked TSA data
 # filename = "cycle_2_end.pgdata"
@@ -27,5 +27,6 @@ measured = np.load(d + "transducer_vib_diagnostics1.npy")
 diag_obj = Diagnostics(measured, opim_for, lmm_models.make_chaari_2006_model_w_dict())
 
 # Run diagnostics
-diag_obj.do_optimisation()
+sol = diag_obj.do_optimisation()
 
+print(sol)

@@ -209,12 +209,11 @@ class K_b(object):
         K_jb[0, 0] = self.k_p
         K_jb[1, 1] = self.k_p
 
-        # if gear == "ring":
         if gear == "ring":
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
-        if gear == "carrier":  # Carrier also resists rotational motion
-            K_jb[2, 2] = self.kru
+        #if gear == "carrier":  # Carrier also resists rotational motion
+        #    K_jb[2, 2] = self.kru
         #if gear == "sun":  # sun also resists rotational motion
         #    K_jb[2, 2] = self.kru
 
@@ -242,7 +241,7 @@ class K_b(object):
 
 class K_e(object):
     """
-    This class is used to create time varying gear mesh stiffness matrix objects
+    This class is used to create time varying gear mesh stiffness matrix objects, This class is more understandable than K_e_fast, but much slower.
     """
 
     def __init__(self, PG_obj):
@@ -819,6 +818,7 @@ class K_e(object):
         Ke[0:9, 9:] = off_diag
         return Ke
 
+
 class K_e_fast(object):
     """
     This class is used to create time varying gear mesh stiffness matrix objects
@@ -894,7 +894,7 @@ class K_e_fast(object):
         # return self.k_atr[0]
 
         # return self.interp_func(t)
-        return np.ones(self.PG.N) * self.smooth_square(t, 100, 1 / self.PG.fs)
+        return np.ones(self.PG.N) * self.smooth_square(t, 100, 1 / self.PG.fs) # At this stage all plant TVMS is the same
 
     def k_rp(self, t):
         """
@@ -1468,8 +1468,8 @@ class T(object):
 
         """
         T_vec = np.zeros((9 + 3 * self.N, 1))
-        T_vec[2, 0] = -self.T_s #0
-        T_vec[8, 0] = self.T_s  # Sun
+        T_vec[2, 0] = self.T_s #0
+        T_vec[8, 0] = 0# self.T_s  # Sun
 
         return T_vec
 
@@ -1816,20 +1816,22 @@ class Planetary_Gear(object):
             self.T = T(self).T_vec_stationary
 
         # Compiles the system stiffness matrix
-        self.K = lambda t: self.K_b + self.K_e_fast(t) - self.Omega_c ** 2 * self.K_Omega
+        self.K = lambda t: self.K_b + self.K_e_fast(t) #- self.Omega_c ** 2 * self.K_Omega Gyroscopic component excluded
 
         # Derived Solver Attributes
         self.time_range = self.solve_atr["time_range"]
         self.fs = 1 / np.average(np.diff(self.time_range))
 
         #  Make proportional damping time dependent or constant
-        if self.solve_atr["proportional_damping_constant"]:
-            self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
-                    self.M + self.K(t))
-
+        if self.solve_atr["time_varying_proportional_damping"] == True:
+            #self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
+            #        self.M + self.K(t))
+            self.C = lambda t: self.solve_atr["proportional_damping_constant"] * (self.M + self.K(t))  # No gyroscopic damping
+            print(np.linalg.norm(self.C(1)))
         else:
-            self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
-                    self.M + self.K(0))
+            #self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
+            #        self.M + self.K(0))
+            self.C = lambda t: self.solve_atr["proportional_damping_constant"] * (self.M + self.K(0))  # No gyroscopic damping
 
         self.k_sp = K_e_fast(self).k_sp  # This is a function. Takes the argument t [s]
         self.k_rp = K_e_fast(self).k_rp  # This is a function. Takes the argument t [s]
@@ -1881,7 +1883,7 @@ class Planetary_Gear(object):
 
         return
 
-    def plot_solution(self, state_time_der):
+    def plot_solution(self, state_time_der, labels = True):
 
         try:
             nstate = int(np.shape(self.time_domain_solution)[1] / 3)
@@ -1917,45 +1919,59 @@ class Planetary_Gear(object):
         # p = plt.plot(self.time_range[1:], solution[1:, start:end])
         # plt.legend(iter(p), lables)
 
-        plt.figure("Rotational DOF, carrier, sun, planet" + state_time_der)
-        plt.plot(self.time_range, self.time_domain_solution[:, start + 0], label="u_c")
-        plt.plot(self.time_range, self.time_domain_solution[:, start + 2], label="u_r")
+        plt.figure("Rotational DOF, carrier, sun, planet :" + state_time_der)
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 2], label="u_c")
+        plt.plot(self.time_range, self.time_domain_solution[:, start + 5], label="u_r")
         plt.plot(self.time_range, self.time_domain_solution[:, start + 8], label="u_s")
         plt.plot(self.time_range, self.time_domain_solution[:, start + 11], label="u_1")
-        plt.legend()
+
+        if labels:
+            plt.legend()
+
+
 
         plt.figure("x-translation, carrier, sun, planet" + state_time_der)
         plt.plot(self.time_range, self.time_domain_solution[:, start + 0], label="x_c")
         plt.plot(self.time_range, self.time_domain_solution[:, start + 3], label="x_r")
         plt.plot(self.time_range, self.time_domain_solution[:, start + 6], label="x_s")
         plt.plot(self.time_range, self.time_domain_solution[:, start + 9], label="x_p1")
-        plt.legend()
+        if labels:
+            plt.legend()
 
-        plt.figure("Planet displacement")
-        plt.plot(self.time_range, self.time_domain_solution[:, start + 9], label="zeta_1")
-        plt.plot(self.time_range, self.time_domain_solution[:, start + 10], label="nu_1")
-        plt.legend()
+        # plt.figure("Planet displacement" + state_time_der)
+        # plt.plot(self.time_range, self.time_domain_solution[:, start + 9], label="zeta_1")
+        # plt.plot(self.time_range, self.time_domain_solution[:, start + 10], label="nu_1")
+        # if labels:
+        #     plt.legend()
 
-    def plot_stiffness_mat(self, plot = "normal"):
-        plt.figure()
+    def plot_stiffness_and_damping_mat(self, plot = "normal"):
 
         t = 0
-        if plot == "log":
-            plt.imshow(self.K(t))
+        K = self.K(t)
+        C = self.C(t)
 
-        if plot == "normal":
-            plt.imshow(np.log(self.K(t)))
+        for matrix,name in zip([K,C],["K","C"]):
+            plt.figure()
+            if plot == "normal":
+                plt.imshow(matrix)
+                plt.colorbar()
 
-        if plot == "sign":
-            plt.imshow(np.sign(self.K(t)))
-        plt.colorbar()
+            if plot == "log":
+                plt.imshow(np.log(matrix))
+                plt.colorbar()
+            if plot == "sign":
+                plt.imshow(np.sign(matrix))
+                plt.colorbar()
 
-        plt.scatter([8],[5], c = "black", label = "ring - sun")
-        plt.scatter([11],[8], c = "red", label = "planet 1 - sun")
-        plt.scatter([11],[5], c = "green", label = "planet 1 - ring")
-        plt.scatter([11],[2], c = "white", label = "planet 1 - carrier")
-        plt.legend(bbox_to_anchor = (1.05,1))
+            plt.scatter([8],[5], c = "black", label = "ring - sun")
+            plt.scatter([11],[8], c = "red", label = "planet 1 - sun")
+            plt.scatter([11],[5], c = "green", label = "planet 1 - ring")
+            plt.scatter([11],[2], c = "white", label = "planet 1 - carrier")
+            plt.legend(bbox_to_anchor = (1.05,1))
+            plt.title(name + "@ t = " + str(t) )
         return
+
+
 
     def get_solution(self):
         try:

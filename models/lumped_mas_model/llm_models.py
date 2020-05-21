@@ -127,7 +127,7 @@ def make_chaari_2006_model_w_dict():
     k_p = 10 ** 8  # [N/m]  # Bearing stiffness
     k_ru = 10 ** 9  # [N/m]  # Rotational stiffness preventing ring gear from rotating
 
-    delta_k = 0.5*k_rp
+    delta_k = 0 # 0.5*k_rp
 
     k_atr = {"k_Sp": k_Sp,
              "k_rp": k_rp,
@@ -138,7 +138,7 @@ def make_chaari_2006_model_w_dict():
     #  Operating conditions
     ####################################################################################################################
     Omega_c = 2 * np.pi * 1285 / 60  # [rad/s]  # Constant angular speed of planet carrier
-    T_s = 10  # [N/m]  # Sun torque applied to the sun gear
+    T_s = 0#10  # [N/m]  # Sun torque applied to the sun gear
 
     opp_atr = {"Omega_c": Omega_c,
                "T_s": T_s,
@@ -147,7 +147,6 @@ def make_chaari_2006_model_w_dict():
     #  Solver attributes
     ####################################################################################################################
     timerange = np.linspace(0, 0.051, 10000)
-    #timerange = np.linspace(0, 5, 1000000)
     X0 = np.random.rand(N*3 + 9, 1)*1E-9
     Xd0 = np.random.rand(N*3 + 9, 1)*1E-9
 
@@ -155,7 +154,7 @@ def make_chaari_2006_model_w_dict():
     #Xd0 = np.zeros((N * 3 + 9, 1))
 
     solve_atr = {"solver_alg": "Radau",
-                 "proportional_damping_constant": 0.003,
+                 "proportional_damping_constant": 0.03,
                  "time_varying_proportional_damping": False,
                  "X0": X0,
                  "Xd0": Xd0,
@@ -170,6 +169,99 @@ def make_chaari_2006_model_w_dict():
     return PG_info
 
 
+
+def make_no_torque_no_detak_rand_init():
+    # Gearbox layout
+    # ##################################################################################################################
+    # Number of planet gears
+    N = 4
+
+    # Number of gear teeth
+    Z_r = 70
+    Z_s = 30
+    Z_p = 20
+
+    # Pressure angles
+    alpha_s = np.deg2rad(21.34)  # Pressure angle at sun gear
+    alpha_r = np.deg2rad(21.34)  # Pressure angle at ring gear
+
+    gearbox_layout = {"N": N,
+                      "Z_r": Z_r,
+                      "Z_s": Z_s,
+                      "Z_p": Z_p,
+                      "alpha_s": alpha_s,
+                      "alpha_r": alpha_r}
+
+    #  Mass and inertia
+    ####################################################################################################################
+    m_c = 3.0  # [kg] Carrier mass
+    m_r = 0.588  # [kg] Ring mass
+    m_s = 0.46  # [kg] Sun mass
+    m_p = 0.177  # [kg] Planet 1 mass
+
+    Ir2_c = 1.5  # [kg] Carrier       #These values are I/r^2
+    Ir2_r = 0.759  # [kg] Ring
+    Ir2_s = 0.272  # [kg] Sun
+    Ir2_p = 0.1  # [kg] Planet
+
+    m_atr = {"m_c": m_c,
+             "m_r": m_r,
+             "m_s": m_s,
+             "m_p": m_p,
+             "Ir2_c": Ir2_c,
+             "Ir2_r": Ir2_r,
+             "Ir2_s": Ir2_s,
+             "Ir2_p": Ir2_p}
+
+    # Stiffness properties
+    ####################################################################################################################
+    k_Sp = 2 * 10 ** 8  # [N/m]  # Sun-planet gear mesh stiffness
+    k_rp = 2 * 10 ** 8  # [N/m]  # Ring-Planet gear mesh stiffness
+    k_p = 10 ** 8  # [N/m]  # Bearing stiffness
+    k_ru = 10 ** 9  # [N/m]  # Rotational stiffness preventing ring gear from rotating
+
+    delta_k = 0 # 0.5*k_rp
+
+    k_atr = {"k_Sp": k_Sp,
+             "k_rp": k_rp,
+             "delta_k": delta_k,
+             "k_p": k_p,
+             "k_ru": k_ru}
+
+    #  Operating conditions
+    ####################################################################################################################
+    Omega_c = 2 * np.pi * 1285 / 60  # [rad/s]  # Constant angular speed of planet carrier
+    T_s = 0#10  # [N/m]  # Sun torque applied to the sun gear
+
+    opp_atr = {"Omega_c": Omega_c,
+               "T_s": T_s,
+               "base_excitation": False}
+
+    #  Solver attributes
+    ####################################################################################################################
+    timerange = np.linspace(0, 0.031, 10000)
+
+    np.random.seed(1)
+    X0 = np.random.rand(N*3 + 9, 1)*1E-9
+    Xd0 = np.random.rand(N*3 + 9, 1)*1E-9
+
+    #X0 = np.zeros((N * 3 + 9, 1))
+    #Xd0 = np.zeros((N * 3 + 9, 1))
+
+    solve_atr = {"solver_alg": "Radau",
+                 "proportional_damping_constant": 0.000003,
+                 "time_varying_proportional_damping": False,
+                 "X0": X0,
+                 "Xd0": Xd0,
+                 "time_range": timerange
+                 }
+
+    PG_info = {"gearbox_layout": gearbox_layout,
+               "m_atr": m_atr,
+               "k_atr": k_atr,
+               "opp_atr": opp_atr,
+               "solve_atr": solve_atr}
+    return PG_info
 # def make_lin_1999_model():
 #     # PARKER 1999
 #     # Number of planet gears

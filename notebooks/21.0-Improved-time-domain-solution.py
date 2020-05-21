@@ -9,7 +9,9 @@ import time
 
 plt.close("all")
 
-PG_info_dict = lmm_models.make_chaari_2006_model_w_dict()
+#PG_info_dict = lmm_models.make_chaari_2006_model_w_dict()
+PG_info_dict = lmm_models.make_no_torque_no_detak_rand_init()
+
 
 PG = pglmm.Planetary_Gear(PG_info_dict)
 def fft(data, fs):
@@ -38,16 +40,10 @@ def fft(data, fs):
 
 PG.get_natural_freqs()
 PG.get_solution()
-PG.plot_solution("Displacement")
-#sol = PG.get_transducer_vibration()
-
+PG.plot_solution("Displacement", labels=True)
+PG.plot_solution("Velocity", labels=True)
+# sol = PG.get_transducer_vibration()
 #d = definitions.root + "\\" + "data\\external\\lmm\\"
-#np.save(d + "transducer_vib_diagnostics1.npy", sol)
+#np.save(d + "transducer_vib_diagnostics2.npy", sol)
 
-#t_range = np.linspace(0,0.1,1000)
-#Keobj = pglmm.K_e(PG)
-#ss = Keobj.smooth_square(t_range,100,1/100)
-
-#plt.figure()
-#plt.plot(ss)
-#PG.plot_stiffness_mat( plot= "sign")
+PG.plot_stiffness_and_damping_mat()

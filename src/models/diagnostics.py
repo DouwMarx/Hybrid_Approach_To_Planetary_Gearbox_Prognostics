@@ -111,7 +111,7 @@ class Diagnostics(object):
         -------
 
         """
-        return np.linalg.norm(candidate * 1000 - self.data * 1000)
+        return np.linalg.norm(candidate * 10 - self.data * 10)
 
     def do_optimisation(self):
         sol = opt.differential_evolution(self.f_min,
