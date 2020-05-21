@@ -133,7 +133,7 @@ class Stiff_DE(object):
                               dense_output=True,
                               t_eval=self.time_range,
                               rtol=1e-3,
-                              atol=1e-6)
+                              atol=1e-8)
 
         y = sol.y.T
 
