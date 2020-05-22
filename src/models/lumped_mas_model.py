@@ -1447,9 +1447,9 @@ class T(object):
         """
         T_vec = np.zeros((9 + 3 * self.N, 1))
 
-        vb = 0.001  # constant base velocity # In this case the base is the planet carrier
+        vb = 0.00000001  # constant base velocity # In this case the base is the planet carrier
         xb = vb * t  # base displacement
-        T_vec[2, 0] = self.kru * xb  # -(1+70/30)*self.T_s
+        #T_vec[2, 0] = self.kru* xb  # -(1+70/30)*self.T_s
         T_vec[8, 0] = - self.T_s  # Sun
 
         return T_vec
@@ -1468,8 +1468,8 @@ class T(object):
 
         """
         T_vec = np.zeros((9 + 3 * self.N, 1))
-        T_vec[2, 0] = self.T_s #0
-        T_vec[8, 0] = 0# self.T_s  # Sun
+        #T_vec[2, 0] = self.T_s #0
+        T_vec[8, 0] = self.T_s# self.T_s  # Sun
 
         return T_vec
 
@@ -1927,8 +1927,6 @@ class Planetary_Gear(object):
 
         if labels:
             plt.legend()
-
-
 
         plt.figure("x-translation, carrier, sun, planet" + state_time_der)
         plt.plot(self.time_range, self.time_domain_solution[:, start + 0], label="x_c")

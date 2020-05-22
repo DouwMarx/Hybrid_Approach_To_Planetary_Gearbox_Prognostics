@@ -133,7 +133,7 @@ class Stiff_DE(object):
                               dense_output=True,
                               t_eval=self.time_range,
                               rtol=1e-3,
-                              atol=1e-8)
+                              atol=1e-9)
 
         y = sol.y.T
 
@@ -337,6 +337,8 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
         # plt.xlabel("Time [s]")
         # p = plt.plot(self.time_range[1:], solution[1:, start:end])
         # plt.legend(iter(p), lables)
+
+        print("plotting from second order solvers class")
 
         plt.figure("Rotational DOF, carrier, sun, planet" + state_time_der)
         plt.plot(self.time_range, solution[:, start + 0], label="u_c")
