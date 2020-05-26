@@ -235,7 +235,8 @@ static
 
 # Private/ Sensitive
 reports/
-
+data/external/fem
+data/external/lmm
 
 #Crack measurement temporary info storage
 crack_length.txt
