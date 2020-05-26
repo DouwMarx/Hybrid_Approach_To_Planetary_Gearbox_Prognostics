@@ -6,13 +6,39 @@
 \newpage
 
 \chapter*{Summary}
-This report documents the process of obtaining the scope of research for a hybrid approach to condition monitoring of planetary gearboxes in wind turbines. Relevant literature is reviewed to determine whether a hybrid prognostics approach for planetary gearboxes could have potential. A planetary gearbox test rig is constructed that is capable of simulating wind turbine loading conditions. As an introduction to the proposed hybrid methodology, an $18$ DOF planetary gearbox lumped mass model is programmed and the proposed hybrid methodology is applied to a battery prognostics dataset.
 
+This dissertation proposes a hybrid method for the remaining useful life prediction of a planet gear tooth root crack in a planetary gearbox.The hybrid method aims to exploit the advantages of both physics based and data driven models.
 
+The an accelerometer fixed to the gearbox housing is used to measure the gearbox vibration. A lumped mass model that incorporates information about the gear mesh stiffness is used to infer the model parameters relating the the heath state given the operating conditions. The time varying mesh stiffness of the simulation is calculated using the finite element method and the change in stiffness at a given moment in time is used as a means of transient excitation to the lumped mass model. 
+
+A diagnostics model trained on healthy machine data provides the change in gear mesh stiffness as as a function of a given meshing transient.  
+
+Finally a state estimation technique is used to predict the crack length and remaining useful life. Remaining useful life is useful allows to make maintenance decisions.
 
 \chapter{Introduction}
 
 This chapter gives background on the problem of condition monitoring and provides an overview of the work contained in this report.
+
+Various maintenance strategies have been applied to rotating machinery in the past. The most elementary maintenance technique is run to failure maintenance. With this maintenance strategy, maintenance is only conducted when breakdowns occur.
+
+A more advanced maintenance strategy is time-based preventative maintenance where maintenance is conducted at some periodic interval. However, with time-based preventative maintenance, maintenance is performed irrespective of the condition of the machine. This can result in unnecessary maintenance expenses. 
+
+Condition-based maintenance aims to address the shortcomings of the above-mentioned strategies by recommending maintenance actions based on the information collected through condition monitoring. Maintenance is only performed when the collected information indicates that the machine has degraded to an extent that it requires maintenance. Ultimately, a condition-based maintenance strategy can lead to a significant decrease in maintenance cost \citep{Jardine2006}.
+
+Condition monitoring of rotating machinery has the potential to reduce the cost of maintenance operations and increase availability \cite{Cubillo2016}.
+
+
+
+\cite{Nie2013} mentions the following methods that have been applied in wind turbine condition monitoring.
+\begin{itemize}
+	\item Time frequency Analysis
+	\item Acoustic emission
+	\item Oil monitoring
+	\item SCADA historical data 
+	\item Vibration analysis
+\end{itemize}
+
+Vibration analysis, which is used in this investigation, is the most widely applied technique for condition monitoring. If a fault occurs in a mechanical component, the machine's vibration profile will be altered, indicating possible damage in the machine \citep{Salameh2018}. The vibration signal is typically obtained from the machine with the use of an accelerometer.
 
 
 \section{Background}
@@ -63,27 +89,6 @@ Condition monitoring of planetary gearboxes is therefore performed because a fai
 
 
 
-\subsection{Vibration based condition monitoring}
-
-
-Various maintenance strategies have been applied to rotating machinery in the past. The most elementary maintenance technique is run to failure maintenance. With this maintenance strategy, maintenance is only conducted when breakdowns occur.
-
-A more advanced maintenance strategy is time-based preventative maintenance where maintenance is conducted at some periodic interval. However, with time-based preventative maintenance, maintenance is performed irrespective of the condition of the machine. This can result in unnecessary maintenance expenses. 
-
-Condition-based maintenance aims to address the shortcomings of the above-mentioned strategies by recommending maintenance actions based on the information collected through condition monitoring. Maintenance is only performed when the collected information indicates that the machine has degraded to an extent that it requires maintenance. Ultimately, a condition-based maintenance strategy can lead to a significant decrease in maintenance cost \citep{Jardine2006}.
-
-
-
-\cite{Nie2013} mentions the following methods that have been applied in wind turbine condition monitoring.
-\begin{itemize}
-	\item Time frequency Analysis
-	\item Acoustic emission
-	\item Oil monitoring
-	\item SCADA historical data 
-	\item Vibration analysis
-\end{itemize}
-
-Vibration analysis, which is used in this investigation, is the most widely applied technique for condition monitoring. If a fault occurs in a mechanical component, the machine's vibration profile will be altered, indicating possible damage in the machine \citep{Salameh2018}. The vibration signal is typically obtained from the machine with the use of an accelerometer.
 
 
 % Several factors contribute to the complexity of wind turbine gearbox maintenance. Firstly, the maintenance practices applied to traditional fixed axis gearboxes are not directly applicable to planetary gearboxes. Figure \ref{F:Urbanek} shows a typical wind turbine gearbox consisting of  a planetary gearbox stage, followed by two fixed axis gear stages. Planetary gearboxes are used in wind turbines due to their high torque to size ratio. 
@@ -102,11 +107,11 @@ Vibration analysis, which is used in this investigation, is the most widely appl
 
 \subsection{Diagnostics and Prognostics}
 
-The field of condition-based maintenance is divided into two main fields. Diagnostics aims to detect, isolate and identify a fault when it occurs. 
+The field of condition-based maintenance is divided into two main fields. Diagnostics aims to detect, isolate and identify a fault when it occurs. Diagnostics deals with the current health state. 
 
 Common signal processing methods used in diagnostics methods include: Fourier transform, short-time Fourier transform, Wigner-Ville Distribution, Wavelet transform, empirical mode decomposition and support vector machines \cite{Salameh2018}. 
 
-Prognostics, on the other hand, aims to predict the failure event before it occurs \citep{Jardine2006}. Performing diagnostics if often a requirement for prognostics. The applicable failure mode is determined using diagnostics before prognostics can be performed. Prognostics in condition based maintenance aims to predict remaining useful life (RUL) of a machine from condition information \citep{Lei2018}. RUL is defined as the time until failure given the current age and condition of the machine as well as its previous operating conditions \citep{Jardine2006}.
+Prognostics, on the other hand, aims to predict the failure event before it occurs \citep{Jardine2006}. Performing diagnostics if often a requirement for prognostics. The applicable failure mode is determined using diagnostics before prognostics can be performed. Prognostics in condition based maintenance aims to predict remaining useful life (RUL) of a machine from condition information \citep{Lei2018}. RUL is defined as the time until failure given the current age and condition of the machine as well as its previous operating conditions \citep{Jardine2006}. Prognostics aims to estimate the future health state.
 
 
 \subsection{Hybrid Prognostics}
@@ -144,8 +149,14 @@ As mentioned, hybrid models intend to combine different prognostics methods to e
 
 The second class of hybrid models combine data-driven approaches with other data-driven approaches. This class is also divided into two types. The first type involves the merging of results from the two data-driven models. With the second type, the results from one data-driven model is fed into the other data-driven model.
 
+This investigation makes use of the hybrid methodology both in damage state estimation and future state prediction.
 
 
+
+\cite{Cubillo2016} presents a review on physics based models in prognostics of gears and bearings. 
+Data driven models are based on statistical and machine learning methods that do not make use of the knowledge of the physics of the problem. Advantage in cluede that knowlege of the physics of the problem is not required but it required large training sets.
+
+Physics based models are mathematical models that describe the physics of a problem with the aim of estimating its current or future health state.
 %\section{Problem Statement}
 
 %Can a hybrid methodology be used to model a planetary gearbox? 
@@ -177,6 +188,13 @@ Apparently some planetary gearboxes are designed with flexible ring gears to ens
 
 \section{Hypothesis}
 % This says what we want to prove. A statement that should be proved true or false.
+
+\section{Problem overview}
+The acceleration signal is processed and reduced in dimensionality
+Diagnostics model is then used to quantify the damage of the component 
+Damage propagation model is applied to estimate the future damage state. 
+Remaining useful life is computed based on EOL threashold and the predictive damage model 
+\cite{Ellis2019}
 
 \section{Overview of Report}
 Chapter \ref{S:Literature} is a literature review that lists previous work in the field of planetary gearbox condition monitoring and explains various methods and concepts that are required for the implementation and understanding of a hybrid planetary gearbox prognostics approach.
