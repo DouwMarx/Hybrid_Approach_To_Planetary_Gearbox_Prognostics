@@ -233,6 +233,9 @@ static
 *.h5
 *.npy
 
+# Private/ Sensitive
+reports/
+
 
 #Crack measurement temporary info storage
 crack_length.txt
