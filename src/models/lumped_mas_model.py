@@ -212,8 +212,8 @@ class K_b(object):
         if gear == "ring":
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
-        #if gear == "carrier":  # Carrier also resists rotational motion
-        #    K_jb[2, 2] = self.kru
+       # if gear == "carrier":  # Carrier also resists rotational motion
+           # K_jb[2, 2] = self.kru
         #if gear == "sun":  # sun also resists rotational motion
         #    K_jb[2, 2] = self.kru
 
@@ -1467,9 +1467,12 @@ class T(object):
         T   : (9+3xN) x 1  numpy array
 
         """
+        C = 10
+
         T_vec = np.zeros((9 + 3 * self.N, 1))
-        #T_vec[2, 0] = self.T_s #0
-        T_vec[8, 0] = self.T_s# self.T_s  # Sun
+        T_vec[2, 0] = C/0.024#self.T_s
+        T_vec[5, 0] = C/0.056
+        T_vec[8, 0] =- C/0.016
 
         return T_vec
 

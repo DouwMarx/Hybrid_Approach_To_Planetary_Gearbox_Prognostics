@@ -18,7 +18,7 @@ for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in
         with open(definitions.root + "\\data\\processed" + "\\" + filename[0:-3] + ".pgdata", 'wb') as config:
             pickle.dump(d, config)
     except:
-        print(filename, "gives problems - super specific")
+        print(filename, "gives problems - Possible that magnetic switch threshold is set inappropriately")
         continue
 
 

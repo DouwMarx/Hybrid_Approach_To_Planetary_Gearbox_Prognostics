@@ -10,8 +10,8 @@ import time
 plt.close("all")
 
 #PG_info_dict = lmm_models.make_chaari_2006_model_w_dict()
-#PG_info_dict = lmm_models.make_no_torque_no_detak_rand_init()
-PG_info_dict = lmm_models.make_torque_no_detak_rand_init_base_exitation()
+PG_info_dict = lmm_models.make_no_torque_no_detak_rand_init()
+#PG_info_dict = lmm_models.make_torque_no_detak_rand_init_base_exitation()
 
 PG = pglmm.Planetary_Gear(PG_info_dict)
 def fft(data, fs):
@@ -38,11 +38,14 @@ def fft(data, fs):
     return freq, magnitude, phase
 
 
-PG.get_natural_freqs()
+#PG.get_natural_freqs()
 PG.get_solution()
 PG.plot_solution("Displacement", labels=True)
 PG.plot_solution("Velocity", labels=True)
-# sol = PG.get_transducer_vibration()
+sol = PG.get_transducer_vibration()
+
+plt.figure()
+plt.plot(sol)
 #d = definitions.root + "\\" + "data\\external\\lmm\\"
 #np.save(d + "transducer_vib_diagnostics2.npy", sol)
 
