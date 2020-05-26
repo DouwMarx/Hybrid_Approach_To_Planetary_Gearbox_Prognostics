@@ -109,7 +109,6 @@ class Dataset_Plotting(object):
 
         return
 
-
     def plot_TSA(self):
         """
        Plots the TSA
@@ -139,6 +138,22 @@ class Dataset_Plotting(object):
         """
 
         plt.plot(self.dataset["Time"].values, self.dataset[data_channel], "k")
+        plt.ylabel(data_channel)
+        plt.xlabel("time [s]")
+
+    def plot_time_series_4(self, data_channel):
+        """
+        plots one of the dataframe attributes
+        ----------
+        data: String
+            Name of the heading of the dataset to be FFTed
+
+        Returns
+        -------
+
+        """
+
+        plt.plot(self.dataset["Time"].values, self.dataset[data_channel]**4, "k")
         plt.ylabel(data_channel)
         plt.xlabel("time [s]")
 
@@ -313,9 +328,9 @@ class Signal_Processing(object):
         tnew = np.array([])
         #tnew = np.array([0])
         ave_rot_time = np.average(np.diff(trigger_times))
-        print(ave_rot_time)
+        #print(ave_rot_time)
         samples_per_rev = int(fs*ave_rot_time)
-        print(samples_per_rev)
+        #print(samples_per_rev)
         for index in range(len(trigger_times) - 1):
             section = np.linspace(trigger_times[index], trigger_times[index + 1], samples_per_rev)
             tnew = np.hstack((tnew, section))
@@ -387,7 +402,7 @@ class Time_Synchronous_Averaging(object):
         for index in window_center_index[1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
             windows[window_count, :] = acc[index - window_half_length:index + window_half_length + 1]
             window_count += 1
-        return windows**2
+        return windows
 
     def Window_average(self, window_array, rotations_to_repeat):
         """ Computes the average of windows extracted from the extract_windows function
@@ -546,7 +561,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         """
 
         # Compute trigger times for the magnetic pickup
-        trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 1)
+        trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 8)
         self.derived_attributes.update({"trigger_time_mag" : trigger_time, "trigger_index_mag" : trigger_index})
 
         order_t, order_sig, samples_per_rev = self.order_track("Acc_Sun")
@@ -563,10 +578,18 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
             self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
             self.info.update({"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
             self.info.update({"rpm_sun_ave": average_rpm*self.PG.GR})  # Notice that info is updated not in compute info function
-        except:
+
+            # Compute Gear mesh frequency
+            self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"]/60)})
+
+            # Compute planet pass frequency
+            self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"]/60})
+        except ValueError("Possible problem with tachometer trigger threshold"):
             self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
             self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
             self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
+
+
 
         # Compute TSA for sun gear acc
         #TSA = self.Compute_TSA()

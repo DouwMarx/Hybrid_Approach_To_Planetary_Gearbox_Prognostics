@@ -231,7 +231,7 @@ def make_no_torque_no_detak_rand_init():
     #  Operating conditions
     ####################################################################################################################
     Omega_c = 2 * np.pi * 1285 / 60  # [rad/s]  # Constant angular speed of planet carrier
-    T_s = 0#10  # [N/m]  # Sun torque applied to the sun gear
+    T_s = 10  # [N/m]  # Sun torque applied to the sun gear
 
     opp_atr = {"Omega_c": Omega_c,
                "T_s": T_s,
@@ -249,7 +249,7 @@ def make_no_torque_no_detak_rand_init():
     #Xd0 = np.zeros((N * 3 + 9, 1))
 
     solve_atr = {"solver_alg": "Radau",
-                 "proportional_damping_constant": 3E-6,
+                 "proportional_damping_constant": 3E-2,
                  "time_varying_proportional_damping": False,
                  "X0": X0,
                  "Xd0": Xd0,
@@ -324,7 +324,7 @@ def make_torque_no_detak_rand_init_base_exitation():
     #  Operating conditions
     ####################################################################################################################
     Omega_c = 2 * np.pi * 1285 / 60  # [rad/s]  # Constant angular speed of planet carrier
-    T_s = 10  # [N/m]  # Sun torque applied to the sun gear
+    T_s = 100  # [N/m]  # Sun torque applied to the sun gear
 
     opp_atr = {"Omega_c": Omega_c,
                "T_s": T_s,
@@ -342,7 +342,7 @@ def make_torque_no_detak_rand_init_base_exitation():
     #Xd0 = np.zeros((N * 3 + 9, 1))
 
     solve_atr = {"solver_alg": "Radau",
-                 "proportional_damping_constant": 3E-6,
+                 "proportional_damping_constant": 3E-2,
                  "time_varying_proportional_damping": False,
                  "X0": X0,
                  "Xd0": Xd0,
