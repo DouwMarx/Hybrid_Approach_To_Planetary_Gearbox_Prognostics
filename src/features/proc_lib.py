@@ -35,9 +35,9 @@ class Dataset_Plotting(object):
         plt.plot(self.derived_attributes["t_rpm_mag"], rpm)
         plt.xlabel("Time [s]")
         plt.ylabel("Input RPM")
-        plt.text(0, max(rpm), "Average motor speed: " + str(int(self.info["rpm_sun_ave"])) + " RPM")
+        plt.text(0,max(rpm),"Average motor speed: " + str(int(self.info["rpm_sun_ave"]))+ " RPM")
 
-    def plot_fft(self, data, fs, plot_gmf=False):
+    def plot_fft(self, data,fs,plot_gmf = False):
         """
         Computes and plots the FFT for a given signal
         Parameters
@@ -49,29 +49,31 @@ class Dataset_Plotting(object):
         -------
 
         """
-        freq, mag, phase = self.fft(data, fs)
+        freq, mag, phase = self.fft(data,fs)
+
 
         plt.figure()
-        # max_height = 2
+        #max_height = 2
         plt.plot(freq, mag, "k")
         plt.ylabel("Magnitude")
         plt.xlabel("Frequency [Hz]")
 
         if plot_gmf == True:
-            GMF = self.PG.GMF(self.info["rpm_sun_ave"] / 60)
-            # FF1 = GMF/self.PG.Z_p
-            FF = self.PG.FF1(self.info["rpm_sun_ave"] / 60)
+            GMF = self.PG.GMF(self.info["rpm_sun_ave"]/60)
+            #FF1 = GMF/self.PG.Z_p
+            FF = self.PG.FF1(self.info["rpm_sun_ave"]/60)
             max_height = np.max(mag)
             plt.vlines(np.arange(1, 5) * GMF, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
-            # plt.vlines(np.arange(1, 3) * FF, max_height, 'c', zorder=10, label="GMF and Harmonics")
-            # plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
+            #plt.vlines(np.arange(1, 3) * FF, max_height, 'c', zorder=10, label="GMF and Harmonics")
+            #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
 
-        # plt.xlim(0, 6000)
-        # plt.show()
+        #plt.xlim(0, 6000)
+        #plt.show()
 
         return
 
-    def plot_order_spectrum(self, data, samples_per_rev, plot_gmf=False):
+
+    def plot_order_spectrum(self, data,samples_per_rev,plot_gmf = False):
         """
         Computes and plots the FFT for a given signal
         Parameters
@@ -85,26 +87,25 @@ class Dataset_Plotting(object):
         """
         freq, mag, phase = self.fft(data, samples_per_rev)
 
+
         plt.figure()
-        # max_height = 2
+        #max_height = 2
         plt.plot(freq, mag, "k")
         plt.ylabel("Magnitude")
         plt.xlabel("Carrier orders")
 
         if plot_gmf == True:
-            GMF = self.PG.GMF(self.info["rpm_sun_ave"] / 60)
+            GMF = self.PG.GMF(self.info["rpm_sun_ave"]/60)
 
-            FF = self.PG.FF1(self.info["rpm_sun_ave"] / 60)
-            # FF1 = GMF/self.PG.Z_p
+            FF = self.PG.FF1(self.info["rpm_sun_ave"]/60)
+            #FF1 = GMF/self.PG.Z_p
             max_height = np.max(mag)
-            plt.vlines(np.arange(1, 8) * GMF / samples_per_rev, 0, max_height, 'r', zorder=10,
-                       label="GMF and Harmonics")
-            plt.vlines(np.arange(1, 3) * FF / samples_per_rev, 0, max_height, 'c', zorder=10,
-                       label="Fault frequency and Harmonics")
-            # plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
+            plt.vlines(np.arange(1, 8) * GMF/samples_per_rev, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
+            plt.vlines(np.arange(1, 3) * FF/samples_per_rev, 0, max_height, 'c', zorder=10, label= "Fault frequency and Harmonics" )
+            #plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
 
-        # plt.xlim(0, 6000)
-        # plt.show()
+        #plt.xlim(0, 6000)
+        #plt.show()
 
         return
 
@@ -152,10 +153,9 @@ class Dataset_Plotting(object):
 
         """
 
-        plt.plot(self.dataset["Time"].values, self.dataset[data_channel] ** 4, "k")
+        plt.plot(self.dataset["Time"].values, self.dataset[data_channel]**4, "k")
         plt.ylabel(data_channel)
         plt.xlabel("time [s]")
-
 
 class Tachos_And_Triggers(object):
     """This class is used to work with magnetic switch and tacho data"""
@@ -238,7 +238,7 @@ class Tachos_And_Triggers(object):
                 if i == True:
                     Pos.append(cnt)
 
-        if len(Pos) < 3:
+        if len(Pos)<3:
             raise ValueError("Threshold for RPM measurement is probably too high")
 
         yt = tt[Pos]
@@ -284,14 +284,13 @@ class Tachos_And_Triggers(object):
         t = np.arange(t0, t1 + 1 / Fs, 1 / Fs)
         return t
 
-
 class Signal_Processing(object):
     """This class contains signal processing related functions"""
 
     def sampling_rate(self):
         """Compute the sampling rate from a timeseries"""
         timeseries = self.dataset["Time"].values
-        # print(self.dataset["Time"])
+        #print(self.dataset["Time"])
         return np.ceil(1 / np.average(timeseries[1:] - timeseries[0:-1]))
 
     def fft(self, data, fs):
@@ -310,8 +309,8 @@ class Signal_Processing(object):
         """
         d = data
 
-        #        d = self.dataset[data].values
-        #        fs = self.info["f_s"]
+#        d = self.dataset[data].values
+#        fs = self.info["f_s"]
         length = len(d)
         Y = np.fft.fft(d) / length
         magnitude = np.abs(Y)[0:int(length / 2)]
@@ -319,7 +318,7 @@ class Signal_Processing(object):
         freq = np.fft.fftfreq(length, 1 / fs)[0:int(length / 2)]
         return freq, magnitude, phase
 
-    def order_track(self, data):
+    def order_track(self,data):
         d = self.dataset[data].values
         t = self.dataset["Time"]
         fs = self.info["f_s"]
@@ -327,20 +326,20 @@ class Signal_Processing(object):
         trigger_times = self.derived_attributes["trigger_time_mag"]
 
         tnew = np.array([])
-        # tnew = np.array([0])
+        #tnew = np.array([0])
         ave_rot_time = np.average(np.diff(trigger_times))
-        # print(ave_rot_time)
-        samples_per_rev = int(fs * ave_rot_time)
-        # print(samples_per_rev)
+        #print(ave_rot_time)
+        samples_per_rev = int(fs*ave_rot_time)
+        #print(samples_per_rev)
         for index in range(len(trigger_times) - 1):
             section = np.linspace(trigger_times[index], trigger_times[index + 1], samples_per_rev)
             tnew = np.hstack((tnew, section))
+
 
         interp_obj = interp.interp1d(t, d, kind='cubic')
         interp_sig = interp_obj(tnew)
 
         return tnew, interp_sig, samples_per_rev
-
 
 class Time_Synchronous_Averaging(object):
     """
@@ -350,7 +349,7 @@ class Time_Synchronous_Averaging(object):
     Take note that the sun gear accelerometer is used
     """
 
-    def Window_extract(self, offset):
+    def Window_extract(self,sample_offset):
         """Extracts a rectangular window depending on the average frequency of rotation of the planet gear
         ----------
         acc: array
@@ -376,35 +375,31 @@ class Time_Synchronous_Averaging(object):
 
         fs = self.info["f_s"]
         Z_p = self.PG.Z_p
-        # acc = self.dataset["Acc_Sun"].values
+        #acc = self.dataset["Acc_Sun"].values
         acc = self.derived_attributes["order_track_signal"]
 
-        fc_ave = 1 / (self.info["rpm_carrier_ave"] / 60)
+        fc_ave = 1 / (self.info["rpm_carrier_ave"] /60)
 
         f_p_ave = self.PG.f_p(fc_ave)
 
-        #       window_length = 2*int(fs * (1 / f_p_ave) / Z_p)
-        # window_length = 1 * int(fs / 2 * (1 / f_p_ave) / Z_p)
-        window_length = int(self.info["f_s"] * 0.3) # Time (by inspection) That there is a high amplitude of vibration as
-        # gear passes transducer
+#        window_length = 2*int(fs * (1 / f_p_ave) / Z_p)
+        window_length = 1 * int(fs/2 * (1 / f_p_ave) / Z_p)
 
         if window_length % 2 == 0:  # Make sure that the window length is uneven
             window_length += 1
 
-        # print("window length calculated as ", window_length, "samples")
+        #print("window length calculated as ", window_length, "samples")
 
         window_half_length = int((window_length - 1) / 2)
-        window_center_index = self.derived_attributes["trigger_index_mag"] + offset
-        #window_center_index = np.arange(0, len(acc), fs / 2).astype(int)
+        #window_center_index = self.derived_attributes["trigger_index_mag"] + sample_offset
+        window_center_index = np.arange(0, len(acc), fs/2).astype(int)
 
-        n_revs = np.shape(window_center_index)[
-                     0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
+        n_revs = np.shape(window_center_index)[ 0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
 
         windows = np.zeros((n_revs, window_length))  # Initialize an empty array that will hold the extracted windows
 
         window_count = 0
-        for index in window_center_index[
-                     1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
+        for index in window_center_index[1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
             windows[window_count, :] = acc[index - window_half_length:index + window_half_length + 1]
             window_count += 1
         return windows
@@ -425,8 +420,8 @@ class Time_Synchronous_Averaging(object):
             """
 
         n_samples_for_average = int(np.floor(np.shape(window_array)[0] / rotations_to_repeat))
-        # n_samples_for_average =1
-        # print(n_samples_for_average)
+        #n_samples_for_average =1
+        #print(n_samples_for_average)
 
         averages = np.zeros((rotations_to_repeat, np.shape(window_array)[1]))
 
@@ -458,7 +453,7 @@ class Time_Synchronous_Averaging(object):
 
         return averages_in_order, planet_gear_revolution
 
-    def Compute_TSA(self, sample_offset, plot=False):
+    def Compute_TSA(self, sample_offset, plot = False):
 
         winds = self.Window_extract(sample_offset)
 
@@ -476,10 +471,10 @@ class Time_Synchronous_Averaging(object):
             angles = np.linspace(0, 360, len(together))
             plt.plot(angles, together)
             for line in range(np.shape(aves)[0]):
-                plt.vlines(line * np.shape(aves)[1] * np.average(np.diff(angles)), minimum, maximum)
+                plt.vlines(line*np.shape(aves)[1]*np.average(np.diff(angles)), minimum, maximum)
+
 
         return together
-
 
 class Callibration(object):
     """
@@ -503,7 +498,7 @@ class Callibration(object):
         Note that this callibration was performed by fitting a straight line though 7 datapoints: See Torque_Callibration.xlsx
         """
 
-        return 8.9067 * Voltage + 0.1318
+        return 8.9067*Voltage + 0.1318
 
     def Temperature(self, Voltage):
         """
@@ -518,9 +513,9 @@ class Callibration(object):
         T: The torque in Nm
         """
 
-        return 23.77 * Voltage - 25.009
+        return 23.77*Voltage - 25.009
 
-    def change_df_column(self, Column_name, Callibration_function_to_apply):
+    def change_df_column(self,Column_name ,Callibration_function_to_apply):
         """
         Perform the scaling of a signal to read the actual values and not voltages as originally measured
 
@@ -539,7 +534,6 @@ class Callibration(object):
 
 class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, Callibration):
     """This class creates objects that include a particular dataset, then planetary gearbox configuration used and derived attributes from the dataset"""
-
     def __init__(self, dataset, PG_Object):
         """
         Initializes the Dataset object
@@ -553,7 +547,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         self.change_df_column("T_oil", self.Temperature)
 
         self.PG = PG_Object
-        self.info = {}  # Dictionary that stores information about the dataset
+        self.info = {}   # Dictionary that stores information about the dataset
         self.derived_attributes = {}  # Dictionary that stores computed attributes from the dataset
 
         # Save the info of the dataset to the object
@@ -570,39 +564,38 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
 
         # Compute trigger times for the magnetic pickup
         trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 8)
-        self.derived_attributes.update({"trigger_time_mag": trigger_time, "trigger_index_mag": trigger_index})
+        self.derived_attributes.update({"trigger_time_mag" : trigger_time, "trigger_index_mag" : trigger_index})
 
         order_t, order_sig, samples_per_rev = self.order_track("Acc_Sun")
-        self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig,
-                                        "order_track_samples_per_rev": samples_per_rev})
+        self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig, "order_track_samples_per_rev": samples_per_rev})
 
         # Compute the number of fatigue cycles (Note that this is stored in info and not derived attributes
-        # n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
-        # n_fatigue_cycles = self.PG.fatigue_cycles(n_carrier_revs)
-        # self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
+        #n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
+        #n_fatigue_cycles = self.PG.fatigue_cycles(n_carrier_revs)
+        #self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
 
         #  Compute the RPM over time according to the magnetic pickup
         try:
             rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 8, 1, 1, self.info["f_s"])
             self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
-            self.info.update(
-                {"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
-            self.info.update(
-                {"rpm_sun_ave": average_rpm * self.PG.GR})  # Notice that info is updated not in compute info function
+            self.info.update({"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
+            self.info.update({"rpm_sun_ave": average_rpm*self.PG.GR})  # Notice that info is updated not in compute info function
 
             # Compute Gear mesh frequency
-            self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"] / 60)})
+            self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"]/60)})
 
             # Compute planet pass frequency
-            self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
+            self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"]/60})
         except ValueError("Possible problem with tachometer trigger threshold"):
             self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
             self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
             self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
 
+
+
         # Compute TSA for sun gear acc
-        # TSA = self.Compute_TSA()
-        # self.derived_attributes.update({"TSA_Sun": TSA})
+        #TSA = self.Compute_TSA()
+        #self.derived_attributes.update({"TSA_Sun": TSA})
 
     def compute_info(self):
         """
@@ -618,10 +611,8 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         duration = self.dataset["Time"].values[-1]
         self.info.update({"duration": duration})
 
-
 class PG(object):
     """This class creates planetary gearbox objects in order to determine their expected frequency response"""
-
     def __init__(self, Z_r, Z_s, Z_p):
         self.Z_r = Z_r
         self.Z_s = Z_s
@@ -629,8 +620,8 @@ class PG(object):
         self.GR = self.GR_calc()
 
         self.carrier_revs_to_repeat = 12  # The number of revolution of the carrier required for a given planet gear
-        # tooth to mesh with the same ring gear tooth. This could be calculated based
-        # on the input parameters with the meshing sequence function is extended
+                                          # tooth to mesh with the same ring gear tooth. This could be calculated based
+                                          # on the input parameters with the meshing sequence function is extended
 
         self.Mesh_Sequence = self.Meshing_sequence()  # Calculate the meshing sequence
 
@@ -647,7 +638,7 @@ class PG(object):
         GMF: Float
             The gear mesh frequency in Hz
             """
-        return f_sun * self.Z_r * self.Z_s / (self.Z_r + self.Z_s)
+        return f_sun*self.Z_r*self.Z_s/(self.Z_r + self.Z_s)
 
     def GR_calc(self):
         """Gear ratio for planetary gearbox with stationary ring gear
@@ -662,7 +653,7 @@ class PG(object):
             """
         return 1 + self.Z_r / self.Z_s
 
-    def f_p(self, f_c):
+    def f_p(self,f_c):
         """Frequency of rotation of planetary gears
         Parameters
         ----------
@@ -675,9 +666,9 @@ class PG(object):
         f_p: Float
             Frequency of rotation of planet gear
             """
-        return f_c * self.Z_r / self.Z_p
+        return f_c*self.Z_r/self.Z_p
 
-    def GMF(self, f_s):
+    def GMF(self,f_s):
         """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
         Parameters
         ----------
@@ -690,10 +681,10 @@ class PG(object):
         GMF: Float
             Frequency of rotation of planet gear
             """
-        fc = f_s / self.GR
-        return self.f_p(fc) * self.Z_p
+        fc = f_s/self.GR
+        return self.f_p(fc)*self.Z_p
 
-    def FF1(self, f_s):
+    def FF1(self,f_s):
         """Calculates the gear mesh frequency for a given a sun gear input frequency. The gearbox is therefore running in the speed down configuration
         Parameters
         ----------
@@ -706,10 +697,10 @@ class PG(object):
         FF1: Float
             Fault frequency due to fault on planet gear
             """
-        f_c = f_s / self.GR  # Calculate the frequency of rotation of the carrier
+        f_c = f_s/self.GR # Calculate the frequency of rotation of the carrier
         fp = self.f_p(f_c)
-        FF1 = 2 * fp  # The fault will manifest in the vibration twice per revolution of the planet gear:
-        # once at the sun gear and once at the ring gear
+        FF1 = 2*fp # The fault will manifest in the vibration twice per revolution of the planet gear:
+                    # once at the sun gear and once at the ring gear
         return FF1
 
     def Meshing_sequence(self):
@@ -725,8 +716,8 @@ class PG(object):
             """
 
         Mesh_Sequence = []
-        for n_rev in range(self.carrier_revs_to_repeat):  # Notice that the sequence starts repeating after 12 rotations
-            Mesh_Sequence.append((n_rev * self.Z_r) % self.Z_p)
+        for n_rev in range(self.carrier_revs_to_repeat): #Notice that the sequence starts repeating after 12 rotations
+            Mesh_Sequence.append((n_rev*self.Z_r)%self.Z_p)
 
         return Mesh_Sequence
 
@@ -742,10 +733,11 @@ class PG(object):
         -------
         fatigue_cycles
         """
-        return float(carrier_revs) * (self.Z_r / self.Z_p)  # (number of revs)(number of cycles per revolution)
+        return float(carrier_revs)*(self.Z_r/self.Z_p) # (number of revs)(number of cycles per revolution)
+
 
     @classmethod
-    def RPM_to_f(cls, RPM):
+    def RPM_to_f(cls,RPM):
         """Function converts revolutions per minute to Herz
         Parameters
         ----------
@@ -758,11 +750,21 @@ class PG(object):
         f:  Float
             Frequency [Hz]
             """
-        return RPM / 60
+        return RPM/60
 
+
+plt.close("all")
 
 Zr = 62
 Zs = 13
 Zp = 24
 
-Bonfiglioli = PG(Zr, Zs, Zp)
+Bonfiglioli = PG(Zr,Zs,Zp)
+
+Input_RPM = 550  #RPM
+
+image_save_path = r"C:\Users\douwm\Google Drive\Meesters\Meeting_Preparations\Date_Here"
+Z_crack_im_path = r"C:\Users\douwm\Google Drive\Meesters\Crack_Photos_Preliminary_Test\Z_Check_Growth"
+
+
+
