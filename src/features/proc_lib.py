@@ -164,6 +164,7 @@ class Tachos_And_Triggers(object):
         """Calculates the times at which the damaged planet gear passes the magnetic switch
         Parameters
         ----------
+        trig_level
         tacho: string
              the tacho to be used for calculation ie. 'Tacho_Carrier', 'Tacho_Sun','1PR_Mag_Pickup'
 
@@ -183,6 +184,9 @@ class Tachos_And_Triggers(object):
         indexes = np.where(dy > 0.8)
 
         time_points = time[indexes]
+
+        if len(time_points)<10:
+            raise ValueError("Tacho trigger indexes less than 10")
 
         return indexes[0], time_points
 
@@ -375,15 +379,20 @@ class Time_Synchronous_Averaging(object):
 
         fs = self.info["f_s"]
         Z_p = self.PG.Z_p
-        #acc = self.dataset["Acc_Sun"].values
-        acc = self.derived_attributes["order_track_signal"]
+
+        acc = self.dataset["Acc_Carrier"].values
+#        acc = self.derived_attributes["order_track_signal"]
 
         fc_ave = 1 / (self.info["rpm_carrier_ave"] /60)
 
         f_p_ave = self.PG.f_p(fc_ave)
 
-#        window_length = 2*int(fs * (1 / f_p_ave) / Z_p)
-        window_length = 1 * int(fs/2 * (1 / f_p_ave) / Z_p)
+        #       window_length = 2*int(fs * (1 / f_p_ave) / Z_p)
+        # window_length = 1 * int(fs / 2 * (1 / f_p_ave) / Z_p)
+        time_per_planet_rev = 1/f_p_ave
+
+        window_length = int(self.info["f_s"] *time_per_planet_rev* 0.1)  #Take 10% of a revolution
+        # gear passes transducer
 
         if window_length % 2 == 0:  # Make sure that the window length is uneven
             window_length += 1
@@ -391,10 +400,10 @@ class Time_Synchronous_Averaging(object):
         #print("window length calculated as ", window_length, "samples")
 
         window_half_length = int((window_length - 1) / 2)
-        #window_center_index = self.derived_attributes["trigger_index_mag"] + sample_offset
-        window_center_index = np.arange(0, len(acc), fs/2).astype(int)
+        window_center_index = self.derived_attributes["trigger_index_mag"] + sample_offset
+        # window_center_index = np.arange(0, len(acc), fs / 2).astype(int)
 
-        n_revs = np.shape(window_center_index)[ 0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
+        n_revs = np.shape(window_center_index)[0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
 
         windows = np.zeros((n_revs, window_length))  # Initialize an empty array that will hold the extracted windows
 
@@ -532,9 +541,252 @@ class Callibration(object):
         return
 
 
+class TransientAnalysis(object):
+    """
+    Class for investigating the gear mesh transients
+    """
+
+    def get_peaks(self, signal, plot=False):
+        samples_per_gearmesh = self.info["f_s"] * (1 / self.derived_attributes["GMF_ave"])
+
+        indices, properties = sig.find_peaks(signal,
+                                             height=30,
+                                             distance=samples_per_gearmesh * 0.8)
+
+        peaks = signal[indices]
+
+        if plot:
+            wind_len = len(signal)
+            ts = 1 / self.info["f_s"]
+            time_end = wind_len * ts
+            trange = np.linspace(0, time_end, wind_len)
+            plt.figure()
+            plt.plot(trange, signal)
+            #ind, peaks, prop = self.get_peaks(signal)
+            plt.scatter(indices * ts, peaks, marker="x", c="black")
+
+            plt.figure()
+            plt.hist(np.diff(indices) / self.info["f_s"])
+            plt.xlabel("Time between extracted mesh transient peaks [s]")
+            plt.ylabel("Frequency of occurrence")
+
+            #plt.figure("Peak value")
+            #plt.hist(peaks)
+            #plt.xlabel("Vibration magnitude [mg]")
+            #plt.ylabel("Frequency of occurrence")
+
+        return indices, peaks, properties
+
+    def get_transients(self, signal, plot=False):
+        """
+        Extracts the gear mesh transients for a given signal
+        Parameters
+        ----------
+        signal
+
+        Returns
+        -------
+
+        """
+        # samples_before = int(0.001 * 38600)
+        # samples_after = int(0.001 * 38600)
+        samples_before = int(0.0002 * 38600)
+        samples_after = int(0.0008 * 38600)
+
+        ind, peaks, prop = self.get_peaks(signal)
+
+        t_gm = np.diff(ind) / self.info["f_s"]
+
+        ind = ind[1:-1]  # eliminate first and final peak
+        ind_start = ind - samples_before
+        ind_end = ind + samples_after
+
+        transients_store = np.zeros((len(ind), samples_after + samples_before))
+        for i in range(len(ind)):
+            transient = signal[ind_start[i]:ind_end[i]]
+            transients_store[i, :] = transient
+
+        if plot:
+            ts = 1 / self.info["f_s"]
+            time_end = (samples_before + samples_after) * ts
+            time_range = np.linspace(0, time_end, samples_before + samples_after)
+            plt.figure()
+            plt.plot(time_range, transients_store.T)
+
+        return transients_store, peaks, t_gm
+
+    def interpolate_transients(self, transients, plot=False):
+        """
+        Improve time resolution and smoothness of transients by interpolation
+        Parameters
+        ----------
+        transients
+
+        Returns
+        -------
+
+        """
+
+        new_length = 200
+        interpolate_store = np.zeros((np.shape(transients)[0], new_length))
+
+        for sig, i in zip(transients, range(len(transients))):
+            # Do FFT on signal segment (transient)
+
+            interp_func = interp.interp1d(np.linspace(0, 1, len(sig)), sig, kind="cubic")
+            d = interp_func(np.linspace(0, 1, new_length))
+
+            interpolate_store[i, :] = d
+
+        if plot:
+            plt.figure("Interpolated transients")
+            plt.plot(np.linspace(0, 1, new_length), interpolate_store.T)
+            plt.xlabel("Time [s]")
+            plt.ylabel("Magnitude")
+
+        return interpolate_store
+
+    def get_stats_over_all_windows(self, windows, plot_results=False, plot_checks = False):
+        all_peaks = np.array([])
+        all_t_gm = np.array([])
+        all_prom_freqs = np.array([])
+        for window in windows:
+            trans, peaks, t_gm = self.get_transients(window)
+
+            # prom_freqs = get_prominent_freqs_over_all_transients(trans)
+            prom_freqs = 1 / self.get_prominent_period_over_all_transients(trans)
+
+            all_peaks = np.hstack((all_peaks, peaks))
+            all_t_gm = np.hstack((all_t_gm, t_gm))
+            all_prom_freqs = np.hstack((all_prom_freqs, prom_freqs))
+
+        if plot_results:
+
+            plt.figure("Transient peak value")
+            plt.hist(all_peaks)
+            plt.xlabel("Transient Peak Vibration Magnitude [mg]")
+            plt.ylabel("Frequency of occurrence")
+
+            plt.figure("Most prominent frequency")
+            plt.hist(all_prom_freqs)
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Frequency of occurrence")
+
+        if plot_checks:
+            plt.figure("Time between peaks")
+            plt.hist(all_t_gm)
+            plt.xlabel("Time between extracted mesh transient peaks [s]")
+            plt.ylabel("Frequency of occurrence")
+
+            n = np.random.randint(0, np.shape(windows)[0])  # Choose one of the windows randomly
+            sig = windows[n, :]
+
+            self.get_peaks(sig, plot=True)
+            self.get_transients(sig,plot=True)
+
+
+        peaks_stats = np.array([np.mean(all_peaks),np.std(all_peaks)])
+        prom_freqs_stats = np.array([np.mean(all_prom_freqs),np.std(all_prom_freqs)])
+        return peaks_stats,prom_freqs_stats
+
+    def get_prominent_freqs_over_all_transients(self, transients, plot=False):
+        """
+        Get the most prominent frequency of vibration of the transient
+        Parameters
+        ----------
+        sig
+
+        Returns
+        -------
+
+        """
+        # Remove peaks in frequency spectrum with period longer than transient length
+        length = np.shape(transients)[1]
+        t_transient = length / self.info["f_s"]
+        f_lower_cutoff = 2.5 * 1 / t_transient
+
+        fs = self.info["f_s"]
+        freq = np.fft.fftfreq(length, 1 / fs)[0:int(length / 2)]
+        print("freq_res:", np.average(np.diff(freq)))
+        cut_off_index = np.argmax(np.diff(np.sign(freq - f_lower_cutoff))) + 1
+
+        fft_mag_store = np.zeros((np.shape(transients)[0], int(length / 2)))
+
+        for sig, i in zip(transients, range(len(transients))):
+            # Do FFT on signal segment (transient)
+            d = sig
+
+            Y = np.fft.fft(d) / length
+            magnitude = np.abs(Y)[0:int(length / 2)]
+            # phase = np.angle(Y)[0:int(length / 2)]
+
+            fft_mag_store[i, :] = magnitude
+
+        spectra_peak_locs = np.argmax(fft_mag_store[:, cut_off_index:], axis=1)
+        most_promiment_freqs = freq[cut_off_index:][spectra_peak_locs]
+
+        if plot:
+            plt.figure("Frequency spectra of transients")
+            plt.plot(freq, fft_mag_store.T)
+            plt.scatter(freq, fft_mag_store.T[:, 0])
+            # plt.vlines(f_lower_cutoff, np.min(fft_mag_store), np.max(fft_mag_store))
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Magnitude")
+
+            plt.figure("Most prominent frequency in transient")
+            plt.hist(most_promiment_freqs)
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Frequency of occurrence")
+
+        return most_promiment_freqs
+
+    def get_prominent_period_over_all_transients(self, transients, plot=False):
+        """
+        Get the most prominent frequency of vibration of the transient
+        Parameters
+        ----------
+        sig
+
+        Returns
+        -------
+
+        """
+
+        fs = self.info["f_s"]
+
+        all_period_store = np.array([])
+
+        for signal, i in zip(transients, range(len(transients))):
+            # Find peaks in signal
+
+            indices, properties = sig.find_peaks(np.abs(signal))
+
+            period = 2 * np.diff(indices) / fs  # Period in seconds based on positive and negative peaks
+
+            all_period_store = np.hstack((all_period_store, period))
+
+        if plot:
+            # plt.figure("Frequency spectra of transients")
+            # plt.plot(freq, fft_mag_store.T)
+            # plt.scatter(freq, fft_mag_store.T[:,0])
+            # #plt.vlines(f_lower_cutoff, np.min(fft_mag_store), np.max(fft_mag_store))
+            # plt.xlabel("Frequency [Hz]")
+            # plt.ylabel("Magnitude")
+
+            plt.figure("Most prominent frequency in transient")
+            plt.hist(all_period_store)
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Frequency of occurrence")
+
+        return all_period_store
+
+
 class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, Callibration):
     """This class creates objects that include a particular dataset, then planetary gearbox configuration used and derived attributes from the dataset"""
-    def __init__(self, dataset, PG_Object):
+
+    def __init__(self, dataset, PG_Object, name):
+
+        self.dataset_name = name
         """
         Initializes the Dataset object
 
