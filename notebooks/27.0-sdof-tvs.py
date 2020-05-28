@@ -17,7 +17,7 @@ class SimpleHarmonicOscillator(object):
         self.t_range = np.linspace(0, 10, 1000)
 
         self.t_step_start = 3
-        self.t_step_duration = 4
+        self.t_step_duration = 2
 
     def Xdot(self, t, X):
         E = np.array([[0, 1], [-self.k(t) / self.m, -self.c / self.m]])
@@ -83,7 +83,7 @@ class SimpleHarmonicOscillator(object):
                 return 0  + self.k_mean
 
             elif t <= self.t_step_start + self.t_step_duration:
-                return (np.sin(2* np.pi * t/self.t_step_duration)+1) * self.delta_k   + self.k_mean
+                return (-np.cos(2*np.pi *(t-self.t_step_start)/self.t_step_duration )+1) * self.delta_k   + self.k_mean
 
             else:
                 return 0  + self.k_mean
