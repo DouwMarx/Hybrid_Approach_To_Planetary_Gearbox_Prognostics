@@ -238,5 +238,8 @@ reports/
 data/external/fem
 data/external/lmm
 
+# Models
+models/sympy_lambda_funcs
+
 #Crack measurement temporary info storage
 crack_length.txt

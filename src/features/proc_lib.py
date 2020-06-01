@@ -3,7 +3,7 @@ import scipy.signal as s
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.signal as sig
-import pickle
+import src.models.analytical_sdof_model as an_sdof
 import scipy.interpolate as interp
 
 
@@ -571,7 +571,7 @@ class TransientAnalysis(object):
 
         return indices, peaks, properties
 
-    def get_transients(self, signal, plot=False):
+    def get_transients(self, signal,time_before_peak,time_after_peak, plot=False):
         """
         Extracts the gear mesh transients for a given signal section (window)
         Parameters
@@ -582,8 +582,6 @@ class TransientAnalysis(object):
         -------
 
         """
-        time_before_peak = 0.0002
-        time_after_peak = 0.0008
 
         samples_before = int(time_before_peak * self.info["f_s"])
         samples_after = int(time_after_peak * self.info["f_s"])
@@ -642,12 +640,15 @@ class TransientAnalysis(object):
 
         return interpolate_store
 
-    def get_stats_over_all_windows(self, windows, plot_results=False, plot_checks=False):
+    def get_peak_freq_stats_over_all_windows(self, windows, plot_results=False, plot_checks=False):
         all_peaks = np.array([])
         all_t_gm = np.array([])
         all_prom_freqs = np.array([])
+
+        time_before_peak = 0.0002
+        time_after_peak = 0.0008
         for window in windows:
-            trans, peaks, t_gm = self.get_transients(window)
+            trans, peaks, t_gm = self.get_transients(window,time_before_peak,time_after_peak)
 
             # prom_freqs = get_prominent_freqs_over_all_transients(trans)
             prom_freqs = 1 / self.get_prominent_period_over_all_transients(trans)
@@ -691,7 +692,7 @@ class TransientAnalysis(object):
             axs[1,0].hlines(self.info["Acc_Carrier_SD"],trange[0],trange[-1],colors ="r", linestyles = "dashed")
 
             axs[1, 1].set_title("Extracted Transients")
-            transients, peaks, t_gm = self.get_transients(sig, plot=False)
+            transients, peaks, t_gm = self.get_transients(sig,time_before_peak,time_after_peak, plot=False)
             trans_len = np.shape(transients)[1]
             time_end = trans_len * ts
             time_range = np.linspace(0, time_end, trans_len)
@@ -700,7 +701,7 @@ class TransientAnalysis(object):
             axs[0, 1].set_title("First 5 sec of measurement")
             n_samples = int(5 * self.info["f_s"])
 
-            n_trig = np.where(self.derived_attributes["trigger_time_mag"] < 5)
+            n_trig = np.where(self.derived_attributes["trigger_time_mag"] < 4.9)
             trigtimes = self.derived_attributes["trigger_time_mag"]
             axs[0, 1].plot(self.dataset["Time"].values[0:n_samples], self.dataset["Acc_Carrier"].values[0:n_samples])
             axs[0, 1].vlines(trigtimes[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "r")
@@ -715,6 +716,102 @@ class TransientAnalysis(object):
         peaks_stats = np.array([np.mean(all_peaks), np.std(all_peaks)])
         prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs)])
         return peaks_stats, prom_freqs_stats
+
+    def get_sdof_stats_over_all_windows(self, windows, plot_results=False, plot_checks=False):
+        all_mod_params = np.empty((4,0))
+
+        time_before_peak = 0.0002
+        time_after_peak = 0.0008
+        for window in windows:
+            trans, peaks, t_gm = self.get_transients(window,time_before_peak,time_after_peak)
+
+            mod_params = self.get_sdof_fit_over_all_transients(trans)
+
+            all_mod_params = np.hstack((all_mod_params, mod_params))
+
+        model_param_stats = np.array([np.mean(all_mod_params,axis=1), np.std(all_mod_params,axis=1)])
+        if plot_results:
+            fig,axs = plt.subplots(2,2)
+            axs[0,0].set_title("Damping ratio zeta")
+            axs[0,0].hist((all_mod_params[0,:]))
+            axs[0,0].set_xlabel("Dampling ratio zeta")
+            axs[0,0].set_ylabel("Frequency of occurrence")
+
+            axs[1,0].set_title("Undamped natural frequency omega_n")
+            axs[1,0].hist((all_mod_params[1, :]/(2*np.pi)))
+            axs[1,0].set_xlabel("Undamped natural frequency omega_n [Hz]")
+            axs[1,0].set_ylabel("frequency of occurrence")
+
+            axs[0,1].set_title("d_0")
+            axs[0,1].hist((all_mod_params[2, :]))
+            axs[0,1].set_xlabel("d_0 [m]")
+            axs[0,1].set_ylabel("frequency of occurrence")
+
+            axs[1,1].set_title("v_0")
+            axs[1,1].hist((all_mod_params[3, :]))
+            axs[1,1].set_xlabel("v_0")
+            axs[1,1].set_ylabel("frequency of occurrence")
+
+        if plot_checks:
+        #     fig, axs = plt.subplots(2, 2)
+        #
+        #     fig.suptitle(self.dataset_name)
+        #     axs[0, 0].set_title("Time between extracted peaks")
+        #     axs[0, 0].hist(all_t_gm)
+        #     axs[0, 0].set_xlabel("Time between extracted mesh transient peaks [s]")
+        #     axs[0, 0].set_ylabel("Frequency of occurrence")
+        #
+            # Choose one of the windows randomly
+            n = np.random.randint(0, np.shape(windows)[0])
+            sig = windows[n, :]
+        #
+        #     axs[1, 0].set_title("Transients selected in window")
+        #     indices, peaks, properties = self.get_peaks(sig, plot=False)
+        #     wind_len = len(sig)
+        #     ts = 1 / self.info["f_s"]
+        #     time_end = wind_len * ts
+        #     trange = np.linspace(0, time_end, wind_len)
+        #     axs[1, 0].plot(trange, sig)
+        #     axs[1, 0].scatter(indices * ts, peaks, marker="x", c="black")
+        #     axs[1,0].hlines(self.info["Acc_Carrier_SD"],trange[0],trange[-1],colors ="r", linestyles = "dashed")
+        #
+            transients, peaks, t_gm = self.get_transients(sig,time_before_peak,time_after_peak, plot=False)
+            ts = 1 / self.info["f_s"]
+            trans_len = np.shape(transients)[1]
+            time_end = trans_len * ts
+            time_range = np.linspace(0, time_end, trans_len)
+
+            params = self.get_sdof_fit_over_all_transients(transients[0:5,:])
+            plt.figure()
+            for trans,model in zip(transients[0:5,:],range(4)):
+                plt.scatter(time_range, trans)
+                sdof_obj  = an_sdof.one_dof_sys(trans,self.info["f_s"])
+                model_parameters = params[:,model]
+                model = sdof_obj.xdd_func(model_parameters[0],model_parameters[1],time_range,model_parameters[2],model_parameters[3])
+
+                plt.plot(time_range, model)
+                plt.ylim(-1000,1000)
+                plt.xlabel("time [s]")
+        #
+        #     axs[0, 1].set_title("First 5 sec of measurement")
+        #     n_samples = int(5 * self.info["f_s"])
+        #
+        #     n_trig = np.where(self.derived_attributes["trigger_time_mag"] < 4.9)
+        #     trigtimes = self.derived_attributes["trigger_time_mag"]
+        #     axs[0, 1].plot(self.dataset["Time"].values[0:n_samples], self.dataset["Acc_Carrier"].values[0:n_samples])
+        #     axs[0, 1].vlines(trigtimes[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "r")
+        #
+        #     window_duration = self.derived_attributes["window_fraction"] * self.info["carrier_period_ave"]
+        #     wind_high = trigtimes[1:-1] + 0.5 * window_duration
+        #     wind_low = trigtimes[1:-1] - 0.5 * window_duration
+        #
+        #     axs[0, 1].vlines(wind_low[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "c")
+        #     axs[0, 1].vlines(wind_high[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "c")
+        #
+        # peaks_stats = np.array([np.mean(all_peaks), np.std(all_peaks)])
+        # prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs)])
+        #return peaks_stats, prom_freqs_stats
+        return model_param_stats
 
     def get_prominent_freqs_over_all_transients(self, transients, plot=False):
         """
@@ -806,6 +903,48 @@ class TransientAnalysis(object):
             plt.ylabel("Frequency of occurrence")
 
         return all_period_store
+
+
+    def get_sdof_fit_over_all_transients(self, transients, plot=False):
+        """
+        Fit the solution to a sdof lmm to the data
+        Parameters
+        ----------
+        sig
+
+        Returns
+        -------
+
+        """
+
+        fs = self.info["f_s"]
+
+        all_param_store = np.empty((4,0))
+
+        for signal, i in zip(transients, range(len(transients))):
+            # Find peaks in signal
+
+            sdof_obj = an_sdof.one_dof_sys(signal, fs)
+            sol =  sdof_obj.do_least_squares()
+            opt_params = np.array([sol["x"]]).T
+
+            all_param_store = np.hstack((all_param_store, opt_params))
+
+        # if plot:
+        #     # plt.figure("Frequency spectra of transients")
+        #     # plt.plot(freq, fft_mag_store.T)
+        #     # plt.scatter(freq, fft_mag_store.T[:,0])
+        #     # #plt.vlines(f_lower_cutoff, np.min(fft_mag_store), np.max(fft_mag_store))
+        #     # plt.xlabel("Frequency [Hz]")
+        #     # plt.ylabel("Magnitude")
+        #
+        #     plt.figure("Most prominent frequency in transient")
+        #     plt.hist(all_period_store)
+        #     plt.xlabel("Frequency [Hz]")
+        #     plt.ylabel("Frequency of occurrence")
+
+        return all_param_store
+        #return all_period_store
 
 
 class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, Callibration):
