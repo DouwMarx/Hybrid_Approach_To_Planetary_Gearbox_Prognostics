@@ -1492,8 +1492,31 @@ class PG_ratios(object):
         self.carrier_revs_to_repeat = 12  # The number of revolution of the carrier required for a given planet gear
         # tooth to mesh with the same ring gear tooth. This could be calculated based
         # on the input parameters with the meshing sequence function is extended
+        self.planet_ring_reset = self.n_reset("planet")
+        self.planet_sun_reset = self.n_reset("sun")
+
 
         self.Mesh_Sequence = self.Meshing_sequence()  # Calculate the meshing sequence
+
+    def n_reset(self,gear):
+        """
+        Calculates the number of required carrier revolutions for either planet or sun to have the same mesh happening again.
+        For every x revolutions the same planet-ring teeth will be in mesh for instance
+
+        This function is from Smidt 2009 and originally from Samuel, Conroy and Pines 2004
+        Returns
+        -------
+
+        """
+        if gear == "planet":
+            return int(np.lcm(self.Z_p,self.Z_r)/self.Z_r)
+
+        if gear == "sun":
+            return int(np.lcm(self.Z_s, self.Z_r) / self.Z_r)
+
+    def revs_to_tooth_0(self,current_tooth):
+        i = np.where(np.array(self.Mesh_Sequence) == current_tooth)
+        return i[0]
 
     def GMF1(self, f_sun):
         """Function that returns the gear mesh frequency for a given sun gear rotation speed f_s
@@ -1586,7 +1609,7 @@ class PG_ratios(object):
             """
 
         Mesh_Sequence = []
-        for n_rev in range(self.carrier_revs_to_repeat):  # Notice that the sequence starts repeating after 12 rotations
+        for n_rev in range(self.planet_ring_reset):  # Notice that the sequence starts repeating after 12 rotations
             Mesh_Sequence.append((n_rev * self.Z_r) % self.Z_p)
 
         return Mesh_Sequence

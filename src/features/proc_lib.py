@@ -713,8 +713,8 @@ class TransientAnalysis(object):
             axs[0, 1].vlines(wind_low[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "c")
             axs[0, 1].vlines(wind_high[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "c")
 
-        peaks_stats = np.array([np.mean(all_peaks), np.std(all_peaks)])
-        prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs)])
+        peaks_stats = np.array([np.mean(all_peaks), np.std(all_peaks), np.median(all_peaks)])
+        prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs),np.median(all_peaks)])
         return peaks_stats, prom_freqs_stats
 
     def get_sdof_stats_over_all_windows(self, windows, plot_results=False, plot_checks=False):
@@ -729,7 +729,7 @@ class TransientAnalysis(object):
 
             all_mod_params = np.hstack((all_mod_params, mod_params))
 
-        model_param_stats = np.array([np.mean(all_mod_params,axis=1), np.std(all_mod_params,axis=1)])
+        model_param_stats = np.array([np.mean(all_mod_params,axis=1), np.std(all_mod_params,axis=1), np.median(all_mod_params,axis=1)])
         if plot_results:
             fig,axs = plt.subplots(2,2)
             axs[0,0].set_title("Damping ratio zeta")
