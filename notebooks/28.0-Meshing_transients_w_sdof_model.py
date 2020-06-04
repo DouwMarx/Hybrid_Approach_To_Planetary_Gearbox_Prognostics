@@ -34,7 +34,7 @@ for gear_width in [""]:#,"t"]:
         tobj.dataset = data.dataset
         tobj.dataset_name = data.dataset_name
 
-        model_param_stats = tobj.get_sdof_stats_over_all_windows(winds, plot_results=True, plot_checks=True)
+        model_param_stats = tobj.get_sdof_stats_over_all_windows(winds, plot_results=False, plot_checks=False)
 
         # if gear_width == "":
         #     g1stats[i,0] = rpm_sun_ave

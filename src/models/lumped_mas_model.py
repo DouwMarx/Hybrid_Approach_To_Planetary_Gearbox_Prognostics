@@ -1514,9 +1514,9 @@ class PG_ratios(object):
         if gear == "sun":
             return int(np.lcm(self.Z_s, self.Z_r) / self.Z_r)
 
-    def revs_to_tooth_0(self,current_tooth):
+    def revs_to_tooth_0(self, current_tooth):
         i = np.where(np.array(self.Mesh_Sequence) == current_tooth)
-        return i[0]
+        return i[0][0]
 
     def GMF1(self, f_sun):
         """Function that returns the gear mesh frequency for a given sun gear rotation speed f_s

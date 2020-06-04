@@ -14,3 +14,6 @@ PG = pglmm.Planetary_Gear(info_dict)
 
 r_obj = pglmm.PG_ratios(PG.Z_r,PG.Z_s,PG.Z_p)
 
+
+for t in range(2, 23, 2):
+    print([t,12-r_obj.revs_to_tooth_0(t)])
