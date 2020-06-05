@@ -25,7 +25,7 @@ print("Average RPM of motor over the course of the test as based on 1XPR magneti
 fp_ave = data.PG.f_p(data.info["rpm_carrier_ave"]/60)
 print("Average planet gear rotational speed", fp_ave, "Rev/s")
 
-tsa = data.Compute_TSA(0, plot=True)
+tsa = data.compute_tsa(0, plot=True)
 
 #data.plot_rpm_over_time()
 

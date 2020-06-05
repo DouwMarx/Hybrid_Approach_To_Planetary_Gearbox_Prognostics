@@ -49,8 +49,8 @@ plt.close("all")
 filename = "g1t_p0_v9_0.pgdata"
 
 #voltage_list = ["9_0","8_8","8_6","8_4"]
-#voltage_list = ["8_6"]
-voltage_list = ["9_8","9_6","9_4","9_2","9_0","8_8","8_6","8_4","8_2","8_0"]
+voltage_list = ["8_6"]
+#voltage_list = ["9_8","9_6","9_4","9_2","9_0","8_8","8_6","8_4","8_2","8_0"]
 
 g1stats = np.zeros((len(voltage_list),19))
 g1tstats = np.zeros((len(voltage_list),19))

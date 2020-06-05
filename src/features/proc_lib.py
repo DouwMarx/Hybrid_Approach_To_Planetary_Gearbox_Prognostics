@@ -354,7 +354,8 @@ class Time_Synchronous_Averaging(object):
     Take note that the sun gear accelerometer is used
     """
 
-    def window_extract(self, sample_offset_fraction, fraction_of_revolution):
+    def window_extract(self, sample_offset_fraction, fraction_of_revolution, signal_name, plot=False):
+
         """Extracts a rectangular window depending on the average frequency of rotation of the planet gear
         ----------
         acc: array
@@ -379,35 +380,45 @@ class Time_Synchronous_Averaging(object):
             n windows each with m samples
             """
 
-        acc = self.dataset["Acc_Carrier"].values
+        acc = self.dataset[signal_name].values
 
+        # Notice that the average carrier period is used to ensure equal window lengths.
+        # The assumption is that the RPM varies little enough that this is allowable
+        # Also, the natural frequency of the transients is expected to be time independent
         carrier_period = self.info["carrier_period_ave"]
 
-        window_length = int(
-            self.info["f_s"] * carrier_period * fraction_of_revolution)  # Takes fraction of a revolution
-        # gear passes transducer
+        # Number of samples for fraction of revolution at average speed
+        window_length = int(self.info["f_s"] * carrier_period * fraction_of_revolution)
 
         if window_length % 2 == 0:  # Make sure that the window length is uneven
             window_length += 1
 
-        offset_length = int(
-            self.info["f_s"] * carrier_period * sample_offset_fraction)  # Takes fraction of a revolution
+        # Takes fraction of a revolution
+        offset_length = int(self.info["f_s"] * carrier_period * sample_offset_fraction)
         window_half_length = int((window_length - 1) / 2)
         window_center_index = self.derived_attributes["trigger_index_mag"] + offset_length
 
-        n_revs = np.shape(window_center_index)[
-                     0] - 2  # exclude the first and last revolution to prevent errors with insufficient window length
+        # Exclude the first and last revolution to prevent errors with insufficient window length
+        n_revs = np.shape(window_center_index)[0] - 2
 
         windows = np.zeros((n_revs, window_length))  # Initialize an empty array that will hold the extracted windows
 
         window_count = 0
-        for index in window_center_index[
-                     1:-1]:  # exclude the first and last revolution to prevent errors with insufficient window length
+
+        # Exclude the first and last revolution to prevent errors with insufficient window length
+        for index in window_center_index[1:-1]:
             windows[window_count, :] = acc[index - window_half_length:index + window_half_length + 1]
             window_count += 1
+
+        if plot:
+            plt.figure("All Extracted")
+            plt.plot(windows.T)
+
+            plt.figure("Average of all Extracted")
+            plt.plot(np.average(windows, axis=0))
         return windows
 
-    def Window_average(self, window_array, rotations_to_repeat):
+    def window_average(self, window_array, plot=False):
         """ Computes the average of windows extracted from the extract_windows function
         ----------
         window_array: array
@@ -421,19 +432,31 @@ class Time_Synchronous_Averaging(object):
         Averages: nxm Array
             n gear teeth of the planet gear each with an averaged window of m samples
             """
-
+        rotations_to_repeat = len(self.PG.Mesh_Sequence)
         n_samples_for_average = int(np.floor(np.shape(window_array)[0] / rotations_to_repeat))
-        # n_samples_for_average =1
-        # print(n_samples_for_average)
+        sig_len = np.shape(window_array)[1]
 
-        averages = np.zeros((rotations_to_repeat, np.shape(window_array)[1]))
-
+        averages = np.zeros((rotations_to_repeat, sig_len))
+        all_per_teeth = np.zeros((n_samples_for_average, rotations_to_repeat, sig_len))
+        print("n samples per average ",n_samples_for_average)
         for sample in range(n_samples_for_average):
             averages += window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat, :]
+            all_per_teeth[sample, :, :] = window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat, :]
+
+        # int_wind = window_array[0:n_samples_for_average*rotations_to_repeat, :]
+        # r = np.reshape(int_wind.T, (n_samples_for_average, rotations_to_repeat, sig_len))
+
+        if plot:
+            fig, axs = plt.subplots(rotations_to_repeat, 2)
+
+            for tooth_pair in range(rotations_to_repeat):
+                sigs = all_per_teeth[:, tooth_pair, :].T
+                axs[tooth_pair, 0].plot(sigs)
+                axs[tooth_pair, 1].plot(np.average(sigs, axis=1))
 
         return averages
 
-    def Aranged_averaged_windows(self, window_averages, meshing_sequence):
+    def aranged_averaged_windows(self, window_averages, meshing_sequence):
         """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
         ----------
         window_averages: array
@@ -456,14 +479,14 @@ class Time_Synchronous_Averaging(object):
 
         return averages_in_order, planet_gear_revolution
 
-    def Compute_TSA(self, sample_offset, plot=False):
+    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal_name, plot=False):
 
-        winds = self.window_extract(sample_offset)
+        winds = self.window_extract(fraction_offset, fraction_of_revolution, signal_name)
 
-        aves = self.Window_average(winds, 12)
+        aves = self.window_average(winds)
 
         mesh_seq = list(np.ndarray.astype(np.array(self.PG.Meshing_sequence()) / 2, int))
-        arranged, together = self.Aranged_averaged_windows(aves, mesh_seq)
+        arranged, together = self.aranged_averaged_windows(aves, mesh_seq)
 
         if plot:
             plt.figure()
@@ -571,7 +594,7 @@ class TransientAnalysis(object):
 
         return indices, peaks, properties
 
-    def get_transients(self, signal,time_before_peak,time_after_peak, plot=False):
+    def get_transients(self, signal, time_before_peak, time_after_peak, plot=False):
         """
         Extracts the gear mesh transients for a given signal section (window)
         Parameters
@@ -648,7 +671,7 @@ class TransientAnalysis(object):
         time_before_peak = 0.0002
         time_after_peak = 0.0008
         for window in windows:
-            trans, peaks, t_gm = self.get_transients(window,time_before_peak,time_after_peak)
+            trans, peaks, t_gm = self.get_transients(window, time_before_peak, time_after_peak)
 
             # prom_freqs = get_prominent_freqs_over_all_transients(trans)
             prom_freqs = 1 / self.get_prominent_period_over_all_transients(trans)
@@ -689,10 +712,10 @@ class TransientAnalysis(object):
             trange = np.linspace(0, time_end, wind_len)
             axs[1, 0].plot(trange, sig)
             axs[1, 0].scatter(indices * ts, peaks, marker="x", c="black")
-            axs[1,0].hlines(self.info["Acc_Carrier_SD"],trange[0],trange[-1],colors ="r", linestyles = "dashed")
+            axs[1, 0].hlines(self.info["Acc_Carrier_SD"], trange[0], trange[-1], colors="r", linestyles="dashed")
 
             axs[1, 1].set_title("Extracted Transients")
-            transients, peaks, t_gm = self.get_transients(sig,time_before_peak,time_after_peak, plot=False)
+            transients, peaks, t_gm = self.get_transients(sig, time_before_peak, time_after_peak, plot=False)
             trans_len = np.shape(transients)[1]
             time_end = trans_len * ts
             time_range = np.linspace(0, time_end, trans_len)
@@ -714,83 +737,85 @@ class TransientAnalysis(object):
             axs[0, 1].vlines(wind_high[n_trig], self.info["min_acc_carrier"], self.info["max_acc_carrier"], "c")
 
         peaks_stats = np.array([np.mean(all_peaks), np.std(all_peaks), np.median(all_peaks)])
-        prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs),np.median(all_peaks)])
+        prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs), np.median(all_peaks)])
         return peaks_stats, prom_freqs_stats
 
     def get_sdof_stats_over_all_windows(self, windows, plot_results=False, plot_checks=False):
-        all_mod_params = np.empty((4,0))
+        all_mod_params = np.empty((4, 0))
 
         time_before_peak = 0.0002
         time_after_peak = 0.0008
         for window in windows:
-            trans, peaks, t_gm = self.get_transients(window,time_before_peak,time_after_peak)
+            trans, peaks, t_gm = self.get_transients(window, time_before_peak, time_after_peak)
 
             mod_params = self.get_sdof_fit_over_all_transients(trans)
 
             all_mod_params = np.hstack((all_mod_params, mod_params))
 
-        model_param_stats = np.array([np.mean(all_mod_params,axis=1), np.std(all_mod_params,axis=1), np.median(all_mod_params,axis=1)])
+        model_param_stats = np.array(
+            [np.mean(all_mod_params, axis=1), np.std(all_mod_params, axis=1), np.median(all_mod_params, axis=1)])
         if plot_results:
-            fig,axs = plt.subplots(2,2)
-            axs[0,0].set_title("Damping ratio zeta")
-            axs[0,0].hist((all_mod_params[0,:]))
-            axs[0,0].set_xlabel("Dampling ratio zeta")
-            axs[0,0].set_ylabel("Frequency of occurrence")
+            fig, axs = plt.subplots(2, 2)
+            axs[0, 0].set_title("Damping ratio zeta")
+            axs[0, 0].hist((all_mod_params[0, :]))
+            axs[0, 0].set_xlabel("Dampling ratio zeta")
+            axs[0, 0].set_ylabel("Frequency of occurrence")
 
-            axs[1,0].set_title("Undamped natural frequency omega_n")
-            axs[1,0].hist((all_mod_params[1, :]/(2*np.pi)))
-            axs[1,0].set_xlabel("Undamped natural frequency omega_n [Hz]")
-            axs[1,0].set_ylabel("frequency of occurrence")
+            axs[1, 0].set_title("Undamped natural frequency omega_n")
+            axs[1, 0].hist((all_mod_params[1, :] / (2 * np.pi)))
+            axs[1, 0].set_xlabel("Undamped natural frequency omega_n [Hz]")
+            axs[1, 0].set_ylabel("frequency of occurrence")
 
-            axs[0,1].set_title("d_0")
-            axs[0,1].hist((all_mod_params[2, :]))
-            axs[0,1].set_xlabel("d_0 [m]")
-            axs[0,1].set_ylabel("frequency of occurrence")
+            axs[0, 1].set_title("d_0")
+            axs[0, 1].hist((all_mod_params[2, :]))
+            axs[0, 1].set_xlabel("d_0 [m]")
+            axs[0, 1].set_ylabel("frequency of occurrence")
 
-            axs[1,1].set_title("v_0")
-            axs[1,1].hist((all_mod_params[3, :]))
-            axs[1,1].set_xlabel("v_0")
-            axs[1,1].set_ylabel("frequency of occurrence")
+            axs[1, 1].set_title("v_0")
+            axs[1, 1].hist((all_mod_params[3, :]))
+            axs[1, 1].set_xlabel("v_0")
+            axs[1, 1].set_ylabel("frequency of occurrence")
 
         if plot_checks:
-        #     fig, axs = plt.subplots(2, 2)
-        #
-        #     fig.suptitle(self.dataset_name)
-        #     axs[0, 0].set_title("Time between extracted peaks")
-        #     axs[0, 0].hist(all_t_gm)
-        #     axs[0, 0].set_xlabel("Time between extracted mesh transient peaks [s]")
-        #     axs[0, 0].set_ylabel("Frequency of occurrence")
-        #
+            #     fig, axs = plt.subplots(2, 2)
+            #
+            #     fig.suptitle(self.dataset_name)
+            #     axs[0, 0].set_title("Time between extracted peaks")
+            #     axs[0, 0].hist(all_t_gm)
+            #     axs[0, 0].set_xlabel("Time between extracted mesh transient peaks [s]")
+            #     axs[0, 0].set_ylabel("Frequency of occurrence")
+            #
             # Choose one of the windows randomly
             n = np.random.randint(0, np.shape(windows)[0])
             sig = windows[n, :]
-        #
-        #     axs[1, 0].set_title("Transients selected in window")
-        #     indices, peaks, properties = self.get_peaks(sig, plot=False)
-        #     wind_len = len(sig)
-        #     ts = 1 / self.info["f_s"]
-        #     time_end = wind_len * ts
-        #     trange = np.linspace(0, time_end, wind_len)
-        #     axs[1, 0].plot(trange, sig)
-        #     axs[1, 0].scatter(indices * ts, peaks, marker="x", c="black")
-        #     axs[1,0].hlines(self.info["Acc_Carrier_SD"],trange[0],trange[-1],colors ="r", linestyles = "dashed")
-        #
-            transients, peaks, t_gm = self.get_transients(sig,time_before_peak,time_after_peak, plot=False)
+            #
+            #     axs[1, 0].set_title("Transients selected in window")
+            #     indices, peaks, properties = self.get_peaks(sig, plot=False)
+            #     wind_len = len(sig)
+            #     ts = 1 / self.info["f_s"]
+            #     time_end = wind_len * ts
+            #     trange = np.linspace(0, time_end, wind_len)
+            #     axs[1, 0].plot(trange, sig)
+            #     axs[1, 0].scatter(indices * ts, peaks, marker="x", c="black")
+            #     axs[1,0].hlines(self.info["Acc_Carrier_SD"],trange[0],trange[-1],colors ="r", linestyles = "dashed")
+            #
+            transients, peaks, t_gm = self.get_transients(sig, time_before_peak, time_after_peak, plot=False)
             ts = 1 / self.info["f_s"]
             trans_len = np.shape(transients)[1]
             time_end = trans_len * ts
             time_range = np.linspace(0, time_end, trans_len)
 
-            params = self.get_sdof_fit_over_all_transients(transients[0:5,:])
+            params = self.get_sdof_fit_over_all_transients(transients[0:5, :])
             plt.figure()
-            for trans,model in zip(transients[0:5,:],range(4)):
+            for trans, model in zip(transients[0:5, :], range(4)):
                 plt.scatter(time_range, trans)
-                sdof_obj  = an_sdof.one_dof_sys(trans,self.info["f_s"])
-                model_parameters = params[:,model]
-                model = sdof_obj.xdd_func(model_parameters[0],model_parameters[1],time_range,model_parameters[2],model_parameters[3])
+                sdof_obj = an_sdof.one_dof_sys(trans, self.info["f_s"])
+                model_parameters = params[:, model]
+                model = sdof_obj.xdd_func(model_parameters[0], model_parameters[1], time_range, model_parameters[2],
+                                          model_parameters[3])
 
                 plt.plot(time_range, model)
-                plt.ylim(-1000,1000)
+                plt.ylim(-1000, 1000)
                 plt.xlabel("time [s]")
         #
         #     axs[0, 1].set_title("First 5 sec of measurement")
@@ -810,7 +835,7 @@ class TransientAnalysis(object):
         #
         # peaks_stats = np.array([np.mean(all_peaks), np.std(all_peaks)])
         # prom_freqs_stats = np.array([np.mean(all_prom_freqs), np.std(all_prom_freqs)])
-        #return peaks_stats, prom_freqs_stats
+        # return peaks_stats, prom_freqs_stats
         return model_param_stats
 
     def get_prominent_freqs_over_all_transients(self, transients, plot=False):
@@ -904,7 +929,6 @@ class TransientAnalysis(object):
 
         return all_period_store
 
-
     def get_sdof_fit_over_all_transients(self, transients, plot=False):
         """
         Fit the solution to a sdof lmm to the data
@@ -919,13 +943,13 @@ class TransientAnalysis(object):
 
         fs = self.info["f_s"]
 
-        all_param_store = np.empty((4,0))
+        all_param_store = np.empty((4, 0))
 
         for signal, i in zip(transients, range(len(transients))):
             # Find peaks in signal
 
             sdof_obj = an_sdof.one_dof_sys(signal, fs)
-            sol =  sdof_obj.do_least_squares()
+            sol = sdof_obj.do_least_squares()
             opt_params = np.array([sol["x"]]).T
 
             all_param_store = np.hstack((all_param_store, opt_params))
@@ -944,7 +968,7 @@ class TransientAnalysis(object):
         #     plt.ylabel("Frequency of occurrence")
 
         return all_param_store
-        #return all_period_store
+        # return all_period_store
 
 
 class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, Callibration):
@@ -998,36 +1022,38 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         # self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
 
         #  Compute the RPM over time according to the magnetic pickup
-        try:
-            rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 8, 1, 1, self.info["f_s"])
-            self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
+        #try:
+        rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 8, 1, 1, self.info["f_s"])
+        self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
 
-            self.info.update(
-                {"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
-            self.info.update(
-                {"rpm_sun_ave": average_rpm * self.PG.GR})  # Notice that info is updated not in compute info function
-            self.info.update({"rpm_sun_sd": np.std(rpm * self.PG.GR)})
+        self.info.update(
+            {"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
+        self.info.update(
+            {"rpm_sun_ave": average_rpm * self.PG.GR})  # Notice that info is updated not in compute info function
+        self.info.update({"rpm_sun_sd": np.std(rpm * self.PG.GR)})
 
-            self.info.update({"carrier_period_ave": 1 / (average_rpm / 60)})
+        self.info.update({"carrier_period_ave": 1 / (average_rpm / 60)})
 
-            # Compute Gear mesh frequency
-            self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"] / 60)})
+        # Compute Gear mesh frequency
+        self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"] / 60)})
 
-            # Compute planet pass frequency
-            self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
+        # Compute planet pass frequency
+        self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
 
-            # Get the vibration windows as planet gear passes transducer
-            window_frac = 0.30  # Make use of a tenth of the revolutions vibration
-            window_offset_frac = 0  # How far to offset the window from the magnetic switch pulse
-            self.derived_attributes.update({"window_fraction": window_frac,
-                                            "window_offset_frac": window_offset_frac})
-            winds = self.window_extract(window_offset_frac, window_frac)
-            self.derived_attributes.update({"extracted_windows": winds})
+        # Get the vibration windows as planet gear passes transducer
+        window_frac = 0.30  # Make use of a tenth of the revolutions vibration
+        window_offset_frac = 0  # How far to offset the window from the magnetic switch pulse
+        self.derived_attributes.update({"window_fraction": window_frac,
+                                        "window_offset_frac": window_offset_frac})
 
-        except ValueError("Possible problem with tachometer trigger threshold"):
-            self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
-            self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
-            self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
+        winds = self.window_extract(window_offset_frac, window_frac, "Acc_Carrier")  # Notice that the Carrier
+        self.derived_attributes.update({"extracted_windows": winds})                 # accelerometer is used
+
+    #except:
+        #print("Possible problem with tachometer trigger threshold")
+        #self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
+        #self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
+        #self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
 
         # Compute TSA for sun gear acc
         # TSA = self.Compute_TSA()
@@ -1054,7 +1080,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
 
         self.info.update({"min_acc_carrier": mini})
         self.info.update({"max_acc_carrier": maxi})
-        self.info.update({"Acc_Carrier_SD":SD})
+        self.info.update({"Acc_Carrier_SD": SD})
 
 
 class PG(object):

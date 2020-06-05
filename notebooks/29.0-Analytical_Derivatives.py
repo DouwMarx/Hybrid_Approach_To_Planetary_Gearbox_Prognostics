@@ -59,10 +59,19 @@ def make_1dof_spring_mass_system(plot=False):
 
     return xdotdot_func, jac_func, xdotdot_latex,jac_latex
 
-xddf,jf,xddlx,jlx = make_1dof_spring_mass_system(plot=False)
+#xddf,jf,xddlx,jlx = make_1dof_spring_mass_system(plot=False)
+
+def delta_k(m,x0,xd0,omega_n,zeta,xdd0):
+    top = m*xdd0 -zeta*2*omega_n*m*xd0
+    bot = x0
+    right = omega_n**2 * m
+    return top/bot - right
+
+full = delta_k(0.153,2.7263e-7,2.92246e-4,1.8183e4,5.28378e-2,121/9.8)
+half = delta_k(0.104,2.8722-7,2.832-4,1.8709e4,4.19341e-2,139/9.8)
 
 
 
 
-
-
+print(full)
+print(half)
