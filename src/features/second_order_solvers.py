@@ -274,6 +274,19 @@ class LMM_sys(RungeKutta, Newmark_Beta, Stiff_DE):
     """
 
     def __init__(self, M, C, K, f, X0, Xd0, time_range):
+        """
+
+        Parameters
+        ----------
+        M: Numpy array 2nx2n
+        C  Numpy array 2nx2n
+        K  Time dependent function K(t) = Numpy array 2nx2N
+        f  Time dependent function f(t) = Numpy array 2nx1
+        X0 Numpy array 2nx1
+        Xd0 Numpy array 2nx1
+        time_range Numpy array
+        """
+
         self.M = M
         self.M_inv = np.linalg.inv(M)
         self.C = C

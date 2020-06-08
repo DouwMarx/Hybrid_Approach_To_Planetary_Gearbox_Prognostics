@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 import scipy as sci
 import time
 import src.features.second_order_solvers as solvers
-import sys
-import numpy
+import scipy.integrate as inter
 
 class M(object):
     """
@@ -1478,6 +1477,7 @@ class T(object):
 
 
 class PG_ratios(object):
+    # TODO: Note that this class is probably
     """
     Ratios in a planetary gearbox
     At this stage this class is duplicated in proclib.py as PG
@@ -2062,4 +2062,172 @@ class Planetary_Gear(object):
         winds = tp.window_extract(window_length, y, self.Omega_c, self.fs)
         return winds
 
+# ================================================================================================================== #
 
+
+class SimpleHarmonicOscillator(object):
+    def __init__(self, info_dict, tvms_type):
+        self.m = info_dict["m"]
+        self.c = info_dict["c"]
+        self.F = info_dict["F"]
+
+        self.delta_k = info_dict["delta_k"]
+        self.k_mean = info_dict["k_mean"]
+
+        self.X0 = info_dict["X0"]
+
+        self.t_range = info_dict["t_range"]
+
+        self.t_step_start = info_dict["t_step_start"]
+        self.t_step_duration = info_dict["t_step_duration"]
+
+        # Make a stiffness object and get a function from it.
+        self.k = Ksho(self, tvms_type).k_func
+
+    def Xdot(self, t, X):
+        E = np.array([[0, 1], [-self.k(t) / self.m, -self.c / self.m]])
+        Q = np.array([[0], [self.F / self.m]])
+
+        return np.dot(E, X) + Q
+
+    def Xdotdot(self, y):
+        """
+
+        Parameters
+        ----------
+        y: Solution to the integrated differential equation
+
+        Returns
+        -------
+
+        """
+        Xdotdot = np.zeros((2, len(self.t_range)))
+        for t, i in zip(self.t_range, range(len(self.t_range))):
+            E = np.array([[0, 1], [-self.k(t) / self.m, -self.c / self.m]])
+            Q = np.array([[0], [self.F / self.m]])
+            Xdd = np.dot(E, np.array([y[:, i]]).T) + Q
+            Xdotdot[:, i] = Xdd[:, 0]
+
+        return Xdotdot.T[:, 1]
+
+    def integrate_ode(self):
+        sol = inter.solve_ivp(self.Xdot, [self.t_range[0], self.t_range[-1]],
+                              self.X0,
+                              vectorized=True,
+                              t_eval=self.t_range)
+        return sol
+
+    def plot_sol(self):
+
+        sol = self.integrate_ode()
+        fig,axs = plt.subplots(2,2)
+        axs[0,0].set_title("Displacement")
+        axs[0,0].plot(sol["t"], sol["y"][0, :])
+
+        axs[0,1].set_title("Velocity")
+        axs[0,1].plot(sol["t"], sol["y"][1, :])
+
+        axs[1,1].set_title("Acceleration")
+        axs[1,1].plot(sol["t"], self.Xdotdot(sol["y"]))
+
+        klist = []
+        for t in self.t_range:
+            klist.append(self.k(t))
+
+        axs[1,0].set_title("TVMS")
+        axs[1,0].plot(self.t_range, klist)
+class Ksho(object):
+    def __init__(self, model_obj, variant):
+        self.model = model_obj
+
+        var_dict = {"square_delta": self.square_delta,
+                    "square_mean_delta": self.square_mean_delta,
+                    "sine_delta": self.sine_delta,
+                    "sine_mean_delta": self.sine_mean_delta,
+                    "sine_mean_delta_drop": self.sine_mean_delta_drop,
+                    "sine_mean_delta_step": self.sine_mean_delta_step,
+                    "dropstep": self.dropstep}
+
+        self.k_func = var_dict[variant]
+
+    def square_delta(self, t):
+        if t <= self.model.t_step_start:
+            return 0
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return self.model.delta_k
+
+        else:
+            return 0
+
+    def square_mean_delta(self, t):
+        if t <= self.model.t_step_start:
+            return self.model.k_mean
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return self.model.k_mean + self.model.delta_k
+
+        else:
+            return self.model.k_mean
+
+    def sine_delta(self, t):
+        if t <= self.model.t_step_start:
+            return 0
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return (np.cos(0.5 * 2 * np.pi * t) + 1) * self.model.delta_k  # + self.k_mean
+
+        else:
+            return 0  # self.k_mean
+
+    def sine_mean_delta(self, t):
+        if t <= self.model.t_step_start:
+            return 0 + self.model.k_mean
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return (-np.cos(
+                2 * np.pi * (
+                        t - self.model.t_step_start) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
+
+        else:
+            return 0 + self.model.k_mean
+
+    def sine_mean_delta_drop(self, t):
+        if t <= self.model.t_step_start:
+            return self.model.k_mean + self.model.delta_k
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return 0.5*(np.cos(2*np.pi*0.5*(t - self.model.t_step_start)/self.model.t_step_duration) + 1)*self.model.delta_k + self.model.k_mean
+
+        else:
+            return self.model.k_mean
+
+    def sine_mean_delta_step(self, t):
+        if t <= self.model.t_step_start:
+            return self.model.k_mean
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return 0.5 * (-np.cos(
+                np.pi * (
+                        t - self.model.t_step_start) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
+
+        else:
+            return self.model.delta_k + self.model.k_mean
+
+    def dropstep(self, t):
+        d = 0.5
+
+        if t <= self.model.t_step_start:
+            return self.model.k_mean + self.model.delta_k
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration:
+            return 0.5*(np.cos(2*np.pi*0.5*(t - self.model.t_step_start)/self.model.t_step_duration) + 1)*self.model.delta_k + self.model.k_mean
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration + d:
+            return self.model.k_mean
+
+        elif t <= self.model.t_step_start + self.model.t_step_duration + d + self.model.t_step_duration:
+            return 0.5 * (-np.cos(
+                np.pi * (
+                        t - self.model.t_step_start - self.model.t_step_duration -d) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
+
+        else:
+            return self.model.delta_k + self.model.k_mean
