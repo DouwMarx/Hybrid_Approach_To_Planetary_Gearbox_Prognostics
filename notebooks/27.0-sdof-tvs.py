@@ -16,7 +16,7 @@ X0 = np.array([F / (k_mean + delta_k), 0])
 
 
 t_range = np.linspace(0, 10, 1000)
-t_step_start = 1
+t_step_start = 0
 t_step_duration = 1
 
 sdof_dict = {"m": m,
@@ -27,18 +27,20 @@ sdof_dict = {"m": m,
              "X0": X0,
              "t_range": t_range,
              "t_step_start": t_step_start,
-             "t_step_duration": t_step_duration}
+             "t_step_duration": t_step_duration,
+             "tvms_type": "sine_mean_delta_drop"}
 
-sho1 = pglmm.SimpleHarmonicOscillator(sdof_dict, "dropstep")
+sho1 = pglmm.SimpleHarmonicOscillator(sdof_dict)
 
-sol = sho1.integrate_ode()
-# sho1.plot_sol()
+sol,t  = sho1.get_transducer_vibration()
+sho1.plot_sol()
 
-optfor = {"m": [0, 0],
-          "c": [0, 0],
-          "F": [0, 0],
-          "delta_k": [0, 0],
-          "k_mean": [0, 0],
-          "X0": [0, 0]}
-
-d = diag.Diagnostics(sol["y"], optfor, sdof_dict)
+# optfor = {"m": [9, 11],
+#           #"c": [4, 6],
+#          # "F": [3, 5],
+#          # "delta_k": [400, 500],
+#           "k_mean": [8000, 1200]}
+#
+# d = diag.Diagnostics(sol, optfor, sdof_dict, pglmm.SimpleHarmonicOscillator)
+#
+# d.do_optimisation()

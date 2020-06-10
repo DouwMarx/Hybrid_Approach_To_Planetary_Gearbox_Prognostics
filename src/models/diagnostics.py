@@ -52,8 +52,10 @@ class Diagnostics(object):
     Used to find the optimum parameters for a given set of measurements
     """
 
-    def __init__(self, pg_data, optimize_for, PG_info_dict):
+    def __init__(self, pg_data, optimize_for, PG_info_dict, lmm):
         self.data = pg_data  # Depending what should be used in minimizing the cost, this could take a different value
+
+        self.lmm  = lmm #The class of LMM to use as model
 
         self.optimize_for = optimize_for
         self.pglmm_info = PG_info_dict
@@ -84,16 +86,15 @@ class Diagnostics(object):
         dim_count = 0
         for var_to_opt_for, theta_index, dimensionality in zip(self.opt_for_var, range(len(self.opt_for_var)),
                                                                self.opt_for_var_dimensionality):
-            #  edit_dict_var(self.pglmm_info, var_to_opt_for, theta[theta_index])
             if dimensionality == 1:
                 edit_dict_var(self.pglmm_info, var_to_opt_for, theta[dim_count])  # TODO: Fix to work for the multidimensional intial values
             else:
                 edit_dict_var(self.pglmm_info, var_to_opt_for, np.array([theta[dim_count: dim_count + dimensionality]]).T)
             dim_count += dimensionality
 
-        PG = pglmm.Planetary_Gear(self.pglmm_info)
-        sol = PG.get_transducer_vibration()
-        return self.cost(sol)
+        PG = self.lmm(self.pglmm_info)
+        y,t = PG.get_transducer_vibration()
+        return self.cost(y)
 
     def cost(self, candidate):
         """
@@ -111,10 +112,28 @@ class Diagnostics(object):
 
     def do_optimisation(self):
         sol = opt.differential_evolution(self.f_min,
-                                         self.opt_for_bnds,
+                                         #self.opt_for_bnds,
+                                         self.bound_array,
                                          polish=True,
                                          disp=True)
         return sol
+
+    def plot_fit(self):
+        print("Note that this will plot the initial candidate if the optimisation has not been run yet")
+        plt.figure()
+        t_high_res = np.linspace(self.pglmm_info["t_range"][0],self.pglmm_info["t_range"][-1],1000)
+        high_res_dict = self.pglmm_info.copy()   # Make a copy of the dictionary and replace its timerange with resolution finer
+                                          # than sampling rate
+        high_res_dict["t_range"] = t_high_res
+        PG = self.lmm(high_res_dict)
+        y,t = PG.get_transducer_vibration()
+        plt.plot(t,y, label = "Fit")
+        plt.plot(self.pglmm_info["t_range"],self.data,"-ok",label = "Measured TSA")
+
+        exclude_keys = lambda d,keys: {x: d[x] for x in d if x not in keys}
+        print("Model parameters")
+        e_k = exclude_keys(self.pglmm_info,["t_range"])
+        for key, value in e_k.items(): print( "{}: {}".format(key, value))
 
 
 def edit_dict_var(adict, k, v):

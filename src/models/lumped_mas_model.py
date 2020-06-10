@@ -2054,7 +2054,8 @@ class Planetary_Gear(object):
     def get_transducer_vibration(self):
         self.get_solution()  # Ensure that the solution has been run
         transp = Transmission_Path(self)
-        return transp.y()
+        t = self.time_range
+        return transp.y(), t
 
     def get_windows(self, window_length):
         tp = Transmission_Path(self)
@@ -2066,7 +2067,9 @@ class Planetary_Gear(object):
 
 
 class SimpleHarmonicOscillator(object):
-    def __init__(self, info_dict, tvms_type):
+    def __init__(self, info_dict):
+        self.tvms_type = info_dict["tvms_type"]
+
         self.m = info_dict["m"]
         self.c = info_dict["c"]
         self.F = info_dict["F"]
@@ -2082,7 +2085,7 @@ class SimpleHarmonicOscillator(object):
         self.t_step_duration = info_dict["t_step_duration"]
 
         # Make a stiffness object and get a function from it.
-        self.k = Ksho(self, tvms_type).k_func
+        self.k = Ksho(self,self.tvms_type).k_func
 
     def Xdot(self, t, X):
         E = np.array([[0, 1], [-self.k(t) / self.m, -self.c / self.m]])
@@ -2115,20 +2118,25 @@ class SimpleHarmonicOscillator(object):
                               self.X0,
                               vectorized=True,
                               t_eval=self.t_range)
-        return sol
+        return sol["y"], sol["t"]
+
+    def get_transducer_vibration(self):
+        sol,t = self.integrate_ode()
+        xdd = self.Xdotdot(sol)
+        return xdd,t
 
     def plot_sol(self):
 
-        sol = self.integrate_ode()
+        sol,t = self.integrate_ode()
         fig,axs = plt.subplots(2,2)
         axs[0,0].set_title("Displacement")
-        axs[0,0].plot(sol["t"], sol["y"][0, :])
+        axs[0,0].plot(t, sol[0, :])
 
         axs[0,1].set_title("Velocity")
-        axs[0,1].plot(sol["t"], sol["y"][1, :])
+        axs[0,1].plot(t, sol[1, :])
 
         axs[1,1].set_title("Acceleration")
-        axs[1,1].plot(sol["t"], self.Xdotdot(sol["y"]))
+        axs[1,1].plot(t, self.Xdotdot(sol))
 
         klist = []
         for t in self.t_range:
@@ -2136,6 +2144,7 @@ class SimpleHarmonicOscillator(object):
 
         axs[1,0].set_title("TVMS")
         axs[1,0].plot(self.t_range, klist)
+
 class Ksho(object):
     def __init__(self, model_obj, variant):
         self.model = model_obj
