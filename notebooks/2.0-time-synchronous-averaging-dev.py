@@ -14,13 +14,19 @@ directory = definitions.root + "\\data\\processed\\" + filename
 with open(directory, 'rb') as filename:
     data = pickle.load(filename)
 
-data.plot_rpm_over_time()
+#data.plot_rpm_over_time()
 
+# Band pass filter the signal
+sigprocobj = proc.Signal_Processing()
+sigprocobj.info = data.info
+sigprocobj.dataset = data.dataset
+sigprocobj.filter_column("Acc_Carrier", 3000, 3500)
 tsa_obj = proc.Time_Synchronous_Averaging()
 
+# Create a TSA object
 tsa_obj.info = data.info
 tsa_obj.derived_attributes = data.derived_attributes
-tsa_obj.dataset = data.dataset
+tsa_obj.dataset = sigprocobj.dataset # Notice that the dataset is exchanged for filtered dataset
 tsa_obj.dataset_name = data.dataset_name
 tsa_obj.PG = data.PG
 
@@ -30,4 +36,5 @@ wind_ave = tsa_obj.window_average(winds,plot=True)
 
 #tsa = data.Compute_TSA(0,3/62, plot=True)
 #data.plot_rpm_over_time()
+
 

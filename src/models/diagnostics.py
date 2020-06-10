@@ -6,6 +6,7 @@ import time
 import matplotlib.pyplot as plt
 import src.models.lumped_mas_model as pglmm
 import models.lumped_mas_model.llm_models as lmm_models
+import dill
 
 
 # class Inverse_Probelm(object):
@@ -108,14 +109,16 @@ class Diagnostics(object):
         -------
 
         """
-        return np.linalg.norm(candidate * 10 - self.data * 10)
+        return np.linalg.norm(candidate - self.data)
 
     def do_optimisation(self):
-        sol = opt.differential_evolution(self.f_min,
-                                         #self.opt_for_bnds,
+        f = dill.loads(dill.dumps(self.f_min))
+        sol = opt.differential_evolution(f,
                                          self.bound_array,
                                          polish=True,
-                                         disp=True)
+                                         disp=True,
+                                         tol = 1e-9,
+                                         workers=1)
         return sol
 
     def plot_fit(self):
@@ -157,3 +160,15 @@ def edit_dict_var(adict, k, v):
             edit_dict_var(adict[key], k, v)
 
 
+# class MethodProxy(object):
+#     def __init__(self, obj, method):
+#         self.obj = obj
+#         if isinstance(method, basestring):
+#             self.methodName = method
+#         else:
+#         assert callable(method)
+#         self.methodName = method.func_name
+#     def __call__(self, *args, **kwargs):
+#     return getattr(self.obj, self.methodName)(*args, **kwargs)
+#
+# picklableMethod = MethodProxy(someObj, someObj.method)

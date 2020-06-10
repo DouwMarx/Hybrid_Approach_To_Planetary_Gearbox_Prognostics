@@ -2079,6 +2079,10 @@ class SimpleHarmonicOscillator(object):
 
         self.X0 = info_dict["X0"]
 
+        self.Xd0 = info_dict["Xd0"]
+
+        self.X00 = np.array([self.X0, self.Xd0])
+
         self.t_range = info_dict["t_range"]
 
         self.t_step_start = info_dict["t_step_start"]
@@ -2115,7 +2119,7 @@ class SimpleHarmonicOscillator(object):
 
     def integrate_ode(self):
         sol = inter.solve_ivp(self.Xdot, [self.t_range[0], self.t_range[-1]],
-                              self.X0,
+                              self.X00,
                               vectorized=True,
                               t_eval=self.t_range)
         return sol["y"], sol["t"]

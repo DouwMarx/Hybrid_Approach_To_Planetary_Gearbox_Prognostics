@@ -345,6 +345,22 @@ class Signal_Processing(object):
 
         return tnew, interp_sig, samples_per_rev
 
+    def filter(self,signal,lowcut,highcut):
+        nyq = self.info["f_s"]
+        low = lowcut/nyq
+        high = highcut/nyq
+
+        order = 5
+        b,a = sig.butter(order, [low,high], btype="band")
+        return sig.filtfilt(b,a,signal)
+
+    def filter_column(self,signame,lowcut,highcut):
+        sig = self.dataset[signame].values
+        fsig = self.filter(sig,lowcut,highcut)
+        key_name = "Filtered_" + signame
+        self.dataset[key_name] = fsig
+        return
+
 
 class Time_Synchronous_Averaging(object):
     """

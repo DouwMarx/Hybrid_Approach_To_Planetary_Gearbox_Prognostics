@@ -34,7 +34,7 @@ def make_data():
     np.save(directory[0:],tooth)
 
 # Load the save signal section for quick iteration
-d = np.load(directory + ".npy")
+d = np.load(directory + ".npy")[0:50]
 
 # Plot the original tsa data
 #plt.figure()
@@ -44,18 +44,20 @@ t_orig = np.linspace(0,len(d)/38600,len(d))
 
 # Default model parameters
 m = 0.1938
-k_mean = 0.1*10e5
-c =(k_mean + m)*0.03
-F = 100
+k_mean = 10e8
+c = 0
+F = 1000
 
 delta_k =  0.5*k_mean
 
 #X0 = np.array([0, 0])
-X0 = np.array([-F / (k_mean + delta_k), 0])
+X0 = F / (k_mean + delta_k)
+Xd0 = 0
+
 
 
 t_step_start = 0
-t_step_duration = 5/38600
+t_step_duration = 7/38600
 
 sdof_dict = {"m": m,
              "c": c,
@@ -63,6 +65,7 @@ sdof_dict = {"m": m,
              "delta_k": delta_k,
              "k_mean": k_mean,
              "X0": X0,
+             "Xd0":Xd0,
              "t_range": t_orig,
              "t_step_start": t_step_start,
              "t_step_duration": t_step_duration,
@@ -75,14 +78,21 @@ sdof_dict = {"m": m,
 #t,startpoint_sys_sol = startpoint_sys.get_transducer_vibration() # Find the solution to the lmm
 #plt.plot(t_range,startpoint_sys_sol)
 
-optfor = {"c": [0.1*c, 10*c],
-           "F": [0.1*F, 100*F],
-            "delta_k": [0.01*delta_k , 100*delta_k],
-           "k_mean": [0.01*k_mean, 100*k_mean]}
+optfor = {
+#{"c": [1e-12*c, 10c],
+           "F": [0.001*F, 1000*F],
+            "delta_k": [0.1*delta_k , 10*delta_k],
+           "k_mean": [0.1*k_mean, 10*k_mean],
+          "X0":[-1e-5,1e-5],
+          "Xd0":[-1e-2,1e-2],
+        "t_step_duration":[t_step_duration*0.1,t_step_duration*10],
+        "t_step_start":[0,t_step_duration*10]}
 
 diag_obj = diag.Diagnostics(d,optfor,sdof_dict,pglmm.SimpleHarmonicOscillator)
-diag_obj.plot_fit()
+#diag_obj.plot_fit()
 
 s = diag_obj.do_optimisation()
 #print(s)
 diag_obj.plot_fit()
+
+
