@@ -8,7 +8,12 @@ import definitions
 
 def main():
 
-    directory = definitions.root + "\\data\\raw\\pre_lockdown_full_and_half_facewidth"
+    #directory = "D:\\M_Data\\raw\\Pre_WSS_tests"
+
+    directory = "D:\\M_Data\\raw\\pre_wss_G1_full_crack_opt_speed"
+
+    #directory = definitions.root + "\\data\\raw\\Pre_WSS_tests"
+    #directory = definitions.root + "\\data\\raw\\pre_lockdown_full_and_half_facewidth"
     #directory = definitions.root + "\\data\\raw\\no_rotation_frequencies"
     #directory = definitions.root + "\\data\\raw\\test_bench_torque_capability"
     #directory = definitions.root + "\\data\\raw\\tooth_missing_single_planet"
@@ -44,7 +49,8 @@ def main():
             df.columns = ['Time', 'Acc_Carrier', 'Acc_Sun', 'Tacho_Carrier', 'Tacho_Sun', '1PR_Mag_Pickup', 'T_amb',
                           'T_oil', 'Torque']
 
-            save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-12].lower() + ".h5"   #This also omits the sampling frequency from the filename
+            #save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-12].lower() + ".h5"   #This also omits the sampling frequency from the filename
+            save_dir = "D:\\M_Data\\interim\\pre_wss_full_crack_optim_speed" + "\\" + filename[0:-12].lower() + ".h5"
             df.to_hdf(save_dir, key="df" , mode="w")
             continue
 

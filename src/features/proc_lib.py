@@ -397,6 +397,7 @@ class Time_Synchronous_Averaging(object):
             """
 
         acc = self.dataset[signal_name].values
+        #acc = self.derived_attributes["order_track_signal"]
 
         # Notice that the average carrier period is used to ensure equal window lengths.
         # The assumption is that the RPM varies little enough that this is allowable
@@ -469,8 +470,10 @@ class Time_Synchronous_Averaging(object):
                 sigs = all_per_teeth[:, tooth_pair, :].T
                 axs[tooth_pair, 0].plot(sigs)
                 axs[tooth_pair, 1].plot(np.average(sigs, axis=1))
+                #axs[tooth_pair,0].set_ylim(-50,50)
+                #axs[tooth_pair,1].set_ylim(-50,50)
 
-        return averages
+        return averages,all_per_teeth
 
     def aranged_averaged_windows(self, window_averages, meshing_sequence):
         """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.

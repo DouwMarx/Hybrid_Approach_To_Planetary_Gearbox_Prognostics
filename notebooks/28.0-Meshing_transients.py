@@ -49,8 +49,8 @@ plt.close("all")
 filename = "g1t_p0_v9_0.pgdata"
 
 #voltage_list = ["9_0","8_8","8_6","8_4"]
-voltage_list = ["8_6"]
-#voltage_list = ["9_8","9_6","9_4","9_2","9_0","8_8","8_6","8_4","8_2","8_0"]
+#voltage_list = ["8_6"]
+voltage_list = ["9_8","9_6","9_4","9_2","9_0","8_8","8_6","8_4","8_2","8_0"]
 
 g1stats = np.zeros((len(voltage_list),19))
 g1tstats = np.zeros((len(voltage_list),19))
@@ -83,7 +83,7 @@ for gear_width in ["","t"]:
         tobj.dataset = data.dataset
         tobj.dataset_name = data.dataset_name
 
-        peak_stats, freq_stats = tobj.get_peak_freq_stats_over_all_windows(winds, plot_results=True, plot_checks=False)
+        peak_stats, freq_stats = tobj.get_peak_freq_stats_over_all_windows(winds, plot_results=False, plot_checks=False)
         model_param_stats = tobj.get_sdof_stats_over_all_windows(winds, plot_results=False, plot_checks=False)
 
         rpm_sun_ave = data.info["rpm_sun_ave"]
