@@ -233,6 +233,9 @@ static
 *.h5
 *.npy
 
+#MCMC runs
+*.stan_res
+
 # Private/ Sensitive
 reports/
 data/external/fem
