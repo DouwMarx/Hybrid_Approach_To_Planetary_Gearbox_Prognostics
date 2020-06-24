@@ -14,6 +14,7 @@ import definitions
 #directory = definitions.root + "\\data\\interim\\pre_wss"
 
 directory = "D:\\M_Data\\interim\\pre_wss_full_crack_optim_speed"
+#directory = "D:\\M_Data\\interim\\tooth_missing_single_planet"
 
 for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in a folder
     try:

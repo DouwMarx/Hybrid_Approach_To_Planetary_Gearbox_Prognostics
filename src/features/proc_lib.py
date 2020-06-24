@@ -346,7 +346,7 @@ class Signal_Processing(object):
         return tnew, interp_sig, samples_per_rev
 
     def filter(self,signal,lowcut,highcut):
-        nyq = self.info["f_s"]
+        nyq = self.info["f_s"]/2
         low = lowcut/nyq
         high = highcut/nyq
 
@@ -470,7 +470,7 @@ class Time_Synchronous_Averaging(object):
                 sigs = all_per_teeth[:, tooth_pair, :].T
                 axs[tooth_pair, 0].plot(sigs)
                 axs[tooth_pair, 1].plot(np.average(sigs, axis=1))
-                #axs[tooth_pair,0].set_ylim(-50,50)
+                #axs[tooth_pair,0].set_ylim(-250,250)
                 #axs[tooth_pair,1].set_ylim(-50,50)
 
         return averages,all_per_teeth
