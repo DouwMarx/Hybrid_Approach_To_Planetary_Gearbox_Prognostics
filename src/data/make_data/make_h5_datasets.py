@@ -3,59 +3,14 @@ import os
 import pandas as pd
 from scipy.io import loadmat
 from tqdm import tqdm
-
+import src.data.make_data.data_proc as dproc
 import definitions
 
-def main():
+data_dir = "D:\\M_Data\\raw\\G2"
+# save_dir = "D:\\M_Data\\interim\\pre_wss_full_crack_optim_speed"
+#
+# for filename in tqdm(os.listdir(data_dir)):  # Loop through all of the files in a folder
+#     dproc.make_h5(data_dir, filename, save_dir)
 
-    #directory = "D:\\M_Data\\raw\\Pre_WSS_tests"
+dproc.make_h5_for_dir_contents(data_dir, split=True)
 
-    directory = "D:\\M_Data\\raw\\pre_wss_G1_full_crack_opt_speed"
-
-    #directory = definitions.root + "\\data\\raw\\Pre_WSS_tests"
-    #directory = definitions.root + "\\data\\raw\\pre_lockdown_full_and_half_facewidth"
-    #directory = definitions.root + "\\data\\raw\\no_rotation_frequencies"
-    #directory = definitions.root + "\\data\\raw\\test_bench_torque_capability"
-    #directory = definitions.root + "\\data\\raw\\tooth_missing_single_planet"
-
-    for filename in tqdm(os.listdir(directory)):  # Loop through all of the files in a folder
-        if filename.endswith('.xlsx'):   # This section deals with .xlsx files
-            dir = directory + '\\' + filename
-            df = pd.read_excel(dir, header = 1)  # Set the headers of the dataframe to be line 2 in excel sheet
-            df = df.drop(range(47), axis=0)   # Remove blank lines and units of channels
-            df.columns = ['Time', 'Acc_Carrier', 'Acc_Sun', 'Tacho_Carrier', 'Tacho_Sun', '1PR_Mag_Pickup','T_amb', 'T_oil', 'Torque']
-            df = df.reset_index(drop=True)  # Makes sure that the indexes start from zero
-            df = df.astype("float")  # Changes the data type to float
-
-
-            save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-5].lower() + ".h5"
-            df.to_hdf(save_dir, key="df" , mode="w")
-            continue
-
-        if filename.endswith('.MAT'):   # This section deals with .MAT files
-            dir = directory + '\\' + filename
-            mat = loadmat(dir)  # load mat-file
-            mat.keys()
-
-            df = pd.DataFrame(data=np.hstack((mat['Channel_1_Data'],
-                                              mat['Channel_2_Data'],
-                                              mat['Channel_3_Data'],
-                                              mat['Channel_4_Data'],
-                                              mat['Channel_5_Data'],
-                                              mat['Channel_6_Data'],
-                                              mat['Channel_7_Data'],
-                                              mat['Channel_8_Data'],
-                                              mat['Channel_9_Data'])))
-            df.columns = ['Time', 'Acc_Carrier', 'Acc_Sun', 'Tacho_Carrier', 'Tacho_Sun', '1PR_Mag_Pickup', 'T_amb',
-                          'T_oil', 'Torque']
-
-            #save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-12].lower() + ".h5"   #This also omits the sampling frequency from the filename
-            save_dir = "D:\\M_Data\\interim\\pre_wss_full_crack_optim_speed" + "\\" + filename[0:-12].lower() + ".h5"
-            df.to_hdf(save_dir, key="df" , mode="w")
-            continue
-
-        else:
-            continue
-
-if __name__ == "__main__":
-    main()

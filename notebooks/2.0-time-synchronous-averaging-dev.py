@@ -15,14 +15,19 @@ directory = definitions.root + "\\data\\processed\\" + filename
 with open(directory, 'rb') as filename:
     data = pickle.load(filename)
 
+#Plot rpm over time
 #data.plot_rpm_over_time()
 
 # Band pass filter the signal
 sigprocobj = proc.Signal_Processing()
 sigprocobj.info = data.info
 sigprocobj.dataset = data.dataset
-#sigprocobj.filter_column("Acc_Carrier", 38400/13, 38400/9)
-sigprocobj.filter_column("Acc_Carrier",400,2000)
+
+# filt_params = {"type": "band",
+#                "low_cut": 1000,
+#                "high_cut": 2000}
+
+#sigprocobj.filter_column("Acc_Carrier",400,2000)
 tsa_obj = proc.Time_Synchronous_Averaging()
 
 # Create a TSA object
@@ -32,16 +37,16 @@ tsa_obj.dataset = sigprocobj.dataset # Notice that the dataset is exchanged for 
 tsa_obj.dataset_name = data.dataset_name
 tsa_obj.PG = data.PG
 
+filtered = False
 
 offset_frac = (1/62)*(0.0)
-winds = tsa_obj.window_extract(offset_frac, 2*1/62, "Filtered_Acc_Carrier", plot=False)
-#winds = tsa_obj.window_extract(offset_frac, 2*1/62, "Acc_Carrier", plot=False)
+
+if filtered:
+    winds = tsa_obj.window_extract(offset_frac, 2*1/62, "Filtered_Acc_Carrier",order_track=True, plot=False)
+else:
+    winds = tsa_obj.window_extract(offset_frac, 2*1/62, "Acc_Carrier",order_track=True, plot=False)
+
 wind_ave,all_p_teeth = tsa_obj.window_average(winds,plot=True)
+ave_in_order,planet_gear_rev = tsa_obj.aranged_averaged_windows(wind_ave,plot=True)
 
-#np.save("Synchronized_samples",all_p_teeth[:,4,60:216].T)
-#tsa = data.Compute_TSA(0,3/62, plot=True)
-#data.plot_rpm_over_time()
-
-#plt.figure()
-#plt.plot(winds.T)
 
