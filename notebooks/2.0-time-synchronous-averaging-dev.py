@@ -10,7 +10,9 @@ plt.close("all")
 #  Load the dataset object
 #filename = "g1t_p0_v8_0.pgdata"
 #filename = "cycle_2_end.pgdata"
-filename = "g1_fc_1000_long.pgdata"
+#filename = "g1_fc_1000_long.pgdata"
+filename = "g1_p7_8.8.pgdata"
+
 directory = definitions.root + "\\data\\processed\\" + filename
 with open(directory, 'rb') as filename:
     data = pickle.load(filename)
@@ -19,9 +21,9 @@ with open(directory, 'rb') as filename:
 #data.plot_rpm_over_time()
 
 # Band pass filter the signal
-sigprocobj = proc.Signal_Processing()
-sigprocobj.info = data.info
-sigprocobj.dataset = data.dataset
+# sigprocobj = proc.Signal_Processing()
+# sigprocobj.info = data.info
+# sigprocobj.dataset = data.dataset
 
 # filt_params = {"type": "band",
 #                "low_cut": 1000,
@@ -33,7 +35,7 @@ tsa_obj = proc.Time_Synchronous_Averaging()
 # Create a TSA object
 tsa_obj.info = data.info
 tsa_obj.derived_attributes = data.derived_attributes
-tsa_obj.dataset = sigprocobj.dataset # Notice that the dataset is exchanged for filtered dataset
+# tsa_obj.dataset = sigprocobj.dataset # Notice that the dataset is exchanged for filtered dataset
 tsa_obj.dataset_name = data.dataset_name
 tsa_obj.PG = data.PG
 

@@ -399,6 +399,14 @@ class Signal_Processing(object):
             self.dataset[key_name] = fsig
         return
 
+
+    def square_column(self, signame):
+        sig = self.dataset[signame].values
+        key_name = "squared_" + signame
+        self.dataset[key_name] = sig**2
+        return
+
+
     def filter_at_range_of_freqs(self, type, pgdata):
         freq_range = 500
         low_start = 100
@@ -474,7 +482,10 @@ class Time_Synchronous_Averaging(object):
             """
 
         if order_track:
-            acc = self.derived_attributes["order_track_signal"]
+            # TODO: Be able to use an filtered order track signal
+           # acc = self.derived_attributes["order_track_signal"]
+            acc = self.derived_attributes[signal_name]
+
             # Number of samples used per revolution when performing order tracking
             odt_samples_p_rev = self.derived_attributes["order_track_samples_per_rev"]
             window_length = int(odt_samples_p_rev * fraction_of_revolution)
@@ -608,6 +619,8 @@ class Time_Synchronous_Averaging(object):
                 axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
                 # axs[tooth_pair,0].set_ylim(-250,250)
                 # axs[tooth_pair,1].set_ylim(-50,50)
+            plt.xlabel("Samples @ 38400Hz")
+            plt.suptitle("TSA for each gear tooth")
 
         return averages_in_order, planet_gear_revolution
 
@@ -1146,6 +1159,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 8)
         self.derived_attributes.update({"trigger_time_mag": trigger_time, "trigger_index_mag": trigger_index})
 
+        # Perform order tracking
         order_t, order_sig, samples_per_rev = self.order_track("Acc_Sun")
         self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig,
                                         "order_track_samples_per_rev": samples_per_rev})
