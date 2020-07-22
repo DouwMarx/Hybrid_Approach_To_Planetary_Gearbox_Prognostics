@@ -31,6 +31,7 @@ class Dataset_Plotting(object):
 
         """
         plt.figure()
+        plt.title("RPM over time")
         rpm = self.derived_attributes["rpm_mag"]
         plt.plot(self.derived_attributes["t_rpm_mag"], rpm)
         plt.xlabel("Time [s]")
@@ -181,7 +182,9 @@ class Tachos_And_Triggers(object):
 
         y = np.sign(tach - trig_level)
         dy = np.diff(y)
+
         indexes = np.where(dy > 0.8)
+        #indexes = np.where(dy < 0.8) # This means slope at trigger is negative
 
         time_points = time[indexes]
 
@@ -343,7 +346,8 @@ class Signal_Processing(object):
         return freq, magnitude, phase
 
     def order_track(self, data):
-        d = self.dataset[data].values
+        # d = self.dataset[data].values
+        d = data
         t = self.dataset["Time"]
         fs = self.info["f_s"]
 
@@ -351,6 +355,8 @@ class Signal_Processing(object):
 
         tnew = np.array([])
         # tnew = np.array([0])
+
+        # Find a reasonable number of samples for a revolution
         ave_rot_time = np.average(np.diff(trigger_times))
         # print(ave_rot_time)
         samples_per_rev = int(fs * ave_rot_time)
@@ -405,7 +411,7 @@ class Signal_Processing(object):
         self.dataset[key_name] = sig ** 2
         return
 
-    def filter_at_range_of_freqs(self, type, pgdata):
+    def filter_at_range_of_freqs(self,channel, type, pgdata):
         freq_range = 500
         low_start = 100
         bot_freqs = low_start + np.arange(0, 7) * freq_range
@@ -423,7 +429,7 @@ class Signal_Processing(object):
                 filter_params = {"type": "low",
                                  "cut": bot_freq + freq_range}
 
-            sigprocobj.filter_column("Acc_Carrier", filter_params)
+            sigprocobj.filter_column(channel, filter_params)
             tsa_obj = Time_Synchronous_Averaging()
 
             # Create a TSA object
@@ -435,14 +441,14 @@ class Signal_Processing(object):
 
             offset_frac = (1 / 62) * (0.0)
             if type == "band":
-                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62, "filtered_bp_Acc_Carrier", plot=False)
+                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62, tsa_obj.dataset["filtered_bp_" + channel ].values, plot=False)
             else:
-                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62, "filtered_lp_Acc_Carrier", plot=False)
+                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62, tsa_obj.dataset["filtered_lp_" + channel ].values, plot=False)
 
             wind_ave, all_p_teeth = tsa_obj.window_average(winds, plot=False)
 
             ave_in_order, planet_gear_rev = tsa_obj.aranged_averaged_windows(wind_ave, plot=True)
-            plt.suptitle(str(bot_freq) + " -> " + str(bot_freq + freq_range) + " Hz")
+            plt.suptitle("Filter (order tracked) " + channel + " " + str(bot_freq) + " -> " + str(bot_freq + freq_range) + " Hz")
             plt.show()
         return
 
@@ -455,7 +461,7 @@ class Time_Synchronous_Averaging(object):
     Take note that the sun gear accelerometer is used
     """
 
-    def window_extract(self, sample_offset_fraction, fraction_of_revolution, signal_name, order_track=True, plot=False):
+    def window_extract(self, sample_offset_fraction, fraction_of_revolution, signal, order_track=True, plot=False):
 
         """Extracts a rectangular window either based on average velocity or instantaneous velocity depending on
         order_tracking = True/False
@@ -480,24 +486,34 @@ class Time_Synchronous_Averaging(object):
             """
 
         if order_track:
-            # TODO: Be able to use an filtered order track signal
             # acc = self.derived_attributes["order_track_signal"]
-            acc = self.derived_attributes[signal_name]
+            # acc = self.derived_attributes[signal_name]
+
+            # Do order tracking
+            sigprocobj = Signal_Processing()
+            sigprocobj.dataset = self.dataset
+            sigprocobj.info = self.info
+            sigprocobj.derived_attributes = self.derived_attributes
+
+            # tnew, interp_sig, samples_per_rev = self.order_track(signal) This only works when dealing with dataset?
+            tnew, interp_sig, samples_per_rev = sigprocobj.order_track(signal)
+            acc = interp_sig
 
             # Number of samples used per revolution when performing order tracking
-            odt_samples_p_rev = self.derived_attributes["order_track_samples_per_rev"]
-            window_length = int(odt_samples_p_rev * fraction_of_revolution)
+            window_length = int(samples_per_rev * fraction_of_revolution)
+
 
             if window_length % 2 == 0:  # Make sure that the window length is uneven
                 window_length += 1
 
             # Takes fraction of a revolution
-            offset_length = int(odt_samples_p_rev * sample_offset_fraction)
+            offset_length = int(samples_per_rev * sample_offset_fraction)
             window_half_length = int((window_length - 1) / 2)
-            window_center_index = np.arange(0, len(acc), odt_samples_p_rev) + offset_length
+            window_center_index = np.arange(0, len(acc), samples_per_rev) + offset_length
 
-        if order_track == False:
-            acc = self.dataset[signal_name].values
+        if not order_track:
+            # acc = self.dataset[signal_name].values
+            acc = signal
             # Notice that the average carrier period could be used to ensure equal window lengths.
             # The assumption is that the RPM varies little enough that this is allowable
             # Also, the natural frequency of the transients is expected to be time independent
@@ -552,7 +568,8 @@ class Time_Synchronous_Averaging(object):
 
         averages = np.zeros((rotations_to_repeat, sig_len))
         all_per_teeth = np.zeros((n_samples_for_average, rotations_to_repeat, sig_len))
-        print("n samples per average ", n_samples_for_average)
+
+        # print("n samples per average ", n_samples_for_average)
         for sample in range(n_samples_for_average):
             averages += window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat, :]
             all_per_teeth[sample, :, :] = window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat,
@@ -571,9 +588,9 @@ class Time_Synchronous_Averaging(object):
                 # axs[tooth_pair,0].set_ylim(-250,250)
                 # axs[tooth_pair,1].set_ylim(-50,50)
 
-        return averages, all_per_teeth
+        return averages/n_samples_for_average, all_per_teeth # Division by n_samples to obtain average
 
-    def aranged_averaged_windows(self, window_averages, plot=False):
+    def aranged_averaged_windows(self, window_averages, plot=False, plot_title_addition = ""):
         """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
         ----------
         window_averages: array
@@ -601,7 +618,7 @@ class Time_Synchronous_Averaging(object):
         # The 1 accounts for the discarded sample @ mesh_extract
         ids = ids / 2  # Because we are working with tooth pairs
         ids = ids.astype(int)
-
+        print(type(ids))
         averages_in_order = window_averages[ids]  # Order the array of averages according to the meshing sequence
         planet_gear_revolution = averages_in_order.reshape(-1)
 
@@ -617,17 +634,15 @@ class Time_Synchronous_Averaging(object):
                 # axs[tooth_pair,0].set_ylim(-250,250)
                 # axs[tooth_pair,1].set_ylim(-50,50)
             plt.xlabel("Samples @ 38400Hz")
-            plt.suptitle("TSA for each gear tooth")
+            plt.suptitle("TSA per gear tooth pair: " + plot_title_addition)
 
         return averages_in_order, planet_gear_revolution
 
-    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal_name, plot=False):
+    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal, ordertrack = True, plot=False, plot_title_addition = ""):
 
-        winds = self.window_extract(fraction_offset, fraction_of_revolution, signal_name)
-
-        aves = self.window_average(winds)
-
-        arranged, together = self.aranged_averaged_windows(aves, plot=plot)
+        winds = self.window_extract(fraction_offset, fraction_of_revolution, signal, order_track=ordertrack)
+        aves, apt = self.window_average(winds)
+        arranged, together = self.aranged_averaged_windows(aves, plot=plot, plot_title_addition=plot_title_addition)
 
         # if plot:
         #     plt.figure()
@@ -640,7 +655,7 @@ class Time_Synchronous_Averaging(object):
         #     for line in range(np.shape(aves)[0]):
         #         plt.vlines(line * np.shape(aves)[1] * np.average(np.diff(angles)), minimum, maximum)
 
-        return together
+        return arranged
 
 
 class Callibration(object):
@@ -1151,57 +1166,58 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         :return:
         """
 
-        # Compute trigger times for the magnetic pickup
-        trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", 8)
-        self.derived_attributes.update({"trigger_time_mag": trigger_time, "trigger_index_mag": trigger_index})
+        try:
+            # Compute trigger times for the magnetic pickup
+            triglvl = 3.897 # As computed in 38.0-find-optimum-trigger-loc.py script
+            trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", triglvl)
+            self.derived_attributes.update({"trigger_time_mag": trigger_time, "trigger_index_mag": trigger_index})
 
-        # Perform order tracking
-        order_t, order_sig, samples_per_rev = self.order_track("Acc_Sun")
-        self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig,
-                                        "order_track_samples_per_rev": samples_per_rev})
+            # Perform order tracking
+            # order_t, order_sig, samples_per_rev = self.order_track("Acc_Sun")
+            # self.derived_attributes.update({"order_track_time": order_t, "order_track_signal": order_sig,
+            #                                 "order_track_samples_per_rev": samples_per_rev})
 
-        # Compute the number of fatigue cycles (Note that this is stored in info and not derived attributes
-        # n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
-        # n_fatigue_cycles = self.PG.fatigue_cycles(n_carrier_revs)
-        # self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
+            # Compute the number of fatigue cycles (Note that this is stored in info and not derived attributes
+            # n_carrier_revs = np.shape(self.derived_attributes["trigger_index_mag"])[0]
+            # n_fatigue_cycles = self.PG.fatigue_cycles(n_carrier_revs)
+            # self.info.update({"n_fatigue_cycles": n_fatigue_cycles})
 
-        #  Compute the RPM over time according to the magnetic pickup
-        # try:
-        rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 8, 1, 1, self.info["f_s"])
-        self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
+            #  Compute the RPM over time according to the magnetic pickup
+            rpm, trpm, average_rpm = self.getrpm("1PR_Mag_Pickup", 8, 1, 1, self.info["f_s"])
+            self.derived_attributes.update({"rpm_mag": rpm, "t_rpm_mag": trpm})
 
-        self.info.update(
-            {"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
-        self.info.update(
-            {"rpm_sun_ave": average_rpm * self.PG.GR})  # Notice that info is updated not in compute info function
-        self.info.update({"rpm_sun_sd": np.std(rpm * self.PG.GR)})
+            self.info.update(
+                {"rpm_carrier_ave": average_rpm})  # Notice that info is updated not in compute_info function
+            self.info.update(
+                {"rpm_sun_ave": average_rpm * self.PG.GR})  # Notice that info is updated not in compute info function
+            self.info.update({"rpm_sun_sd": np.std(rpm * self.PG.GR)})
 
-        self.info.update({"carrier_period_ave": 1 / (average_rpm / 60)})
+            self.info.update({"carrier_period_ave": 1 / (average_rpm / 60)})
 
-        # Compute Gear mesh frequency
-        self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"] / 60)})
+            # Compute Gear mesh frequency
+            self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"] / 60)})
 
-        # Compute average planet pass frequency
-        self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
+            # Compute average planet pass frequency
+            self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
 
-        # Get the vibration windows as planet gear passes transducer (Used in computing TSA)
-        # window_frac = 2 / self.PG.Z_r  # Make use of a two teeth window
-        # window_offset_frac = 0  # How far to offset the window from the magnetic switch pulse
-        # self.derived_attributes.update({"window_fraction": window_frac,
-        #                                 "window_offset_frac": window_offset_frac})
-        #
-        # winds = self.window_extract(window_offset_frac, window_frac, "Acc_Carrier")  # Notice that the Carrier
-        # self.derived_attributes.update({"extracted_windows": winds})  # accelerometer is used
+            # Get the vibration windows as planet gear passes transducer (Used in computing TSA)
+            # window_frac = 2 / self.PG.Z_r  # Make use of a two teeth window
+            # window_offset_frac = 0  # How far to offset the window from the magnetic switch pulse
+            # self.derived_attributes.update({"window_fraction": window_frac,
+            #                                 "window_offset_frac": window_offset_frac})
+            #
+            # winds = self.window_extract(window_offset_frac, window_frac, "Acc_Carrier")  # Notice that the Carrier
+            # self.derived_attributes.update({"extracted_windows": winds})  # accelerometer is used
 
-        # Compute the gear mesh sequence at each of the times the planet passes the transducer
-        seq = self.make_mesh_seq_at_time(self.first_meshing_tooth)
-        self.derived_attributes.update({"mesh_sequence_at_planet_pass": seq})  # accelerometer is used
+            # Compute the gear mesh sequence at each of the times the planet passes the transducer
+            seq = self.make_mesh_seq_at_time(self.first_meshing_tooth)
+            self.derived_attributes.update({"mesh_sequence_at_planet_pass": seq})  # accelerometer is used
 
-    # except:
-    # print("Possible problem with tachometer trigger threshold")
-    # self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
-    # self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
-    # self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
+        except:
+            print("Possible problem with tachometer trigger threshold")
+            self.derived_attributes.update({"rpm_mag": "NaN", "t_rpm_mag": "NaN"})
+            self.info.update({"rpm_carrier_ave": "NaN"})  # Notice that info is updated not in compute_info function
+            self.info.update({"rpm_sun_ave": "NaN"})  # Notice that info is updated not in compute info function
 
     # Compute TSA for sun gear acc
     # TSA = self.Compute_TSA()

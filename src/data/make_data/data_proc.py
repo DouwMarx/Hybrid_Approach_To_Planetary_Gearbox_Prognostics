@@ -18,8 +18,10 @@ def make_h5(data_dir, filename,save_dir):
         df = df.astype("float")  # Changes the data type to float
 
 
-        save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-5].lower() + ".h5"
-        df.to_hdf(save_dir, key="df" , mode="w")
+        # save_dir = definitions.root + "\\data\\interim" + "\\" + filename[0:-5].lower() + ".h5"
+        # df.to_hdf(save_dir, key="df" , mode="w")
+
+        df.to_hdf(save_dir + "\\" + filename[0:-12].lower() + ".h5", key="df", mode="w")
 
     if filename.endswith('.MAT'):   # This section deals with .MAT files
         dir = data_dir + '\\' + filename
