@@ -6,7 +6,6 @@ import definitions
 import pickle
 import numpy as np
 
-directory = "D:\\M_Data\\interim\\G1\\g1_full"
 file_name = "g1_p7.h5"
 
 #dproc.make_pgdata(directory,file_name,proc.Bonfiglioli,10)
@@ -23,13 +22,13 @@ sec_time = min_time * 60  # Convert the above statement to seconds
 
 discard_at_end_of_interval = 1  # Amount of seconds of data to discard before the new operating condition was supposed to be set.
 discard_at_beginning_of_interval = 12  # Amount of seconds of data to be discarded at the beginning of a new cycle
-# Should account for time to set new voltage and reaching steady state
+# These discarded sections should account for time to set new voltage and reaching steady state
 
 dataset_start_time = sec_time[0:-1] + discard_at_beginning_of_interval
 dataset_end_time = sec_time[1:] - discard_at_end_of_interval
 
 
-h5_dir = directory = "D:\\M_Data\\interim\\G1\\g1_p7"
+h5_dir  = "D:\\M_Data\\interim\\G1\\g1_p7"
 for d_set,voltage in zip(range(len(voltage_tested)),voltage_tested):
     h5_file_name = "g1_p7_"+ voltage +".h5"
 

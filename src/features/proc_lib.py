@@ -399,13 +399,11 @@ class Signal_Processing(object):
             self.dataset[key_name] = fsig
         return
 
-
     def square_column(self, signame):
         sig = self.dataset[signame].values
         key_name = "squared_" + signame
-        self.dataset[key_name] = sig**2
+        self.dataset[key_name] = sig ** 2
         return
-
 
     def filter_at_range_of_freqs(self, type, pgdata):
         freq_range = 500
@@ -483,7 +481,7 @@ class Time_Synchronous_Averaging(object):
 
         if order_track:
             # TODO: Be able to use an filtered order track signal
-           # acc = self.derived_attributes["order_track_signal"]
+            # acc = self.derived_attributes["order_track_signal"]
             acc = self.derived_attributes[signal_name]
 
             # Number of samples used per revolution when performing order tracking
@@ -515,7 +513,6 @@ class Time_Synchronous_Averaging(object):
             offset_length = int(self.info["f_s"] * carrier_period * sample_offset_fraction)
             window_half_length = int((window_length - 1) / 2)
             window_center_index = self.derived_attributes["trigger_index_mag"] + offset_length
-
 
         # Exclude the first and last revolution to prevent errors with insufficient window length
         n_revs = np.shape(window_center_index)[0] - 2
@@ -630,19 +627,18 @@ class Time_Synchronous_Averaging(object):
 
         aves = self.window_average(winds)
 
-        mesh_seq = list(np.ndarray.astype(np.array(self.PG.Meshing_sequence()) / 2, int))
-        arranged, together = self.aranged_averaged_windows(aves, mesh_seq)
+        arranged, together = self.aranged_averaged_windows(aves, plot=plot)
 
-        if plot:
-            plt.figure()
-            minimum = np.min(together)
-            maximum = np.max(together)
-            plt.ylabel("Response_squared")
-            plt.xlabel("Planet Gear Angle")
-            angles = np.linspace(0, 360, len(together))
-            plt.plot(angles, together)
-            for line in range(np.shape(aves)[0]):
-                plt.vlines(line * np.shape(aves)[1] * np.average(np.diff(angles)), minimum, maximum)
+        # if plot:
+        #     plt.figure()
+        #     minimum = np.min(together)
+        #     maximum = np.max(together)
+        #     plt.ylabel("Response_squared")
+        #     plt.xlabel("Planet Gear Angle")
+        #     angles = np.linspace(0, 360, len(together))
+        #     plt.plot(angles, together)
+        #     for line in range(np.shape(aves)[0]):
+        #         plt.vlines(line * np.shape(aves)[1] * np.average(np.diff(angles)), minimum, maximum)
 
         return together
 
@@ -1188,14 +1184,14 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         # Compute average planet pass frequency
         self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
 
-        # Get the vibration windows as planet gear passes transducer
-        window_frac = 2 / self.PG.Z_r  # Make use of a two teeth window
-        window_offset_frac = 0  # How far to offset the window from the magnetic switch pulse
-        self.derived_attributes.update({"window_fraction": window_frac,
-                                        "window_offset_frac": window_offset_frac})
-
-        winds = self.window_extract(window_offset_frac, window_frac, "Acc_Carrier")  # Notice that the Carrier
-        self.derived_attributes.update({"extracted_windows": winds})  # accelerometer is used
+        # Get the vibration windows as planet gear passes transducer (Used in computing TSA)
+        # window_frac = 2 / self.PG.Z_r  # Make use of a two teeth window
+        # window_offset_frac = 0  # How far to offset the window from the magnetic switch pulse
+        # self.derived_attributes.update({"window_fraction": window_frac,
+        #                                 "window_offset_frac": window_offset_frac})
+        #
+        # winds = self.window_extract(window_offset_frac, window_frac, "Acc_Carrier")  # Notice that the Carrier
+        # self.derived_attributes.update({"extracted_windows": winds})  # accelerometer is used
 
         # Compute the gear mesh sequence at each of the times the planet passes the transducer
         seq = self.make_mesh_seq_at_time(self.first_meshing_tooth)
@@ -1377,15 +1373,9 @@ class PG(object):
         return RPM / 60
 
 
-plt.close("all")
-
+# Make the Bonfiglioli gearbox for easy reference.
 Zr = 62
 Zs = 13
 Zp = 24
 
 Bonfiglioli = PG(Zr, Zs, Zp)
-
-Input_RPM = 550  # RPM
-
-image_save_path = r"C:\Users\douwm\Google Drive\Meesters\Meeting_Preparations\Date_Here"
-Z_crack_im_path = r"C:\Users\douwm\Google Drive\Meesters\Crack_Photos_Preliminary_Test\Z_Check_Growth"
