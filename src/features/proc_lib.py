@@ -1,7 +1,5 @@
 import numpy as np
-import scipy.signal as s
 import matplotlib.pyplot as plt
-import pandas as pd
 import scipy.signal as sig
 import src.models.analytical_sdof_model as an_sdof
 import scipy.interpolate as interp
@@ -184,7 +182,7 @@ class Tachos_And_Triggers(object):
         dy = np.diff(y)
 
         indexes = np.where(dy > 0.8)
-        #indexes = np.where(dy < 0.8) # This means slope at trigger is negative
+        # indexes = np.where(dy < 0.8) # This means slope at trigger is negative
 
         time_points = time[indexes]
 
@@ -388,20 +386,26 @@ class Signal_Processing(object):
         return sig.filtfilt(b, a, signal)
 
     def filter_column(self, signame, params):
-        type = params["type"]
-        if type == "band":
+        ftype = params["type"]
+        if ftype == "band":
             lowcut = params["low_cut"]
             highcut = params["high_cut"]
-            sig = self.dataset[signame].values
-            fsig = self.filter_band_pass(sig, lowcut, highcut)
+            signal = self.dataset[signame].values
+            fsig = self.filter_band_pass(signal, lowcut, highcut)
             key_name = "filtered_bp_" + signame
             self.dataset[key_name] = fsig
 
-        if type == "low":
+        if ftype == "low":
             cut = params["cut"]
-            sig = self.dataset[signame].values
-            fsig = self.filter_low_pass(sig, cut)
+            signal = self.dataset[signame].values
+            fsig = self.filter_low_pass(signal, cut)
             key_name = "filtered_lp_" + signame
+            self.dataset[key_name] = fsig
+
+        if ftype == "wiener":
+            signal = self.dataset[signame].values
+            fsig = sig.wiener(signal)
+            key_name = "filtered_wiener_" + signame
             self.dataset[key_name] = fsig
         return
 
@@ -411,7 +415,7 @@ class Signal_Processing(object):
         self.dataset[key_name] = sig ** 2
         return
 
-    def filter_at_range_of_freqs(self,channel, type, pgdata):
+    def filter_at_range_of_freqs(self, channel, type, pgdata):
         freq_range = 500
         low_start = 100
         bot_freqs = low_start + np.arange(0, 7) * freq_range
@@ -441,16 +445,45 @@ class Signal_Processing(object):
 
             offset_frac = (1 / 62) * (0.0)
             if type == "band":
-                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62, tsa_obj.dataset["filtered_bp_" + channel ].values, plot=False)
+                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62,
+                                               tsa_obj.dataset["filtered_bp_" + channel].values, plot=False)
             else:
-                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62, tsa_obj.dataset["filtered_lp_" + channel ].values, plot=False)
+                winds = tsa_obj.window_extract(offset_frac, 2 * 1 / 62,
+                                               tsa_obj.dataset["filtered_lp_" + channel].values, plot=False)
 
             wind_ave, all_p_teeth = tsa_obj.window_average(winds, plot=False)
 
             ave_in_order, planet_gear_rev = tsa_obj.aranged_averaged_windows(wind_ave, plot=True)
-            plt.suptitle("Filter (order tracked) " + channel + " " + str(bot_freq) + " -> " + str(bot_freq + freq_range) + " Hz")
+            plt.suptitle(
+                "Filter (order tracked) " + channel + " " + str(bot_freq) + " -> " + str(bot_freq + freq_range) + " Hz")
             plt.show()
         return
+
+    def spectrogram(self, signal, fs,nperseg, plot=False, plot_title_addition=""):
+        f, t, Sxx = sig.spectrogram(signal, fs,nperseg=nperseg)
+
+        if plot:
+            plt.title("Spectrogram " + plot_title_addition)
+            # plt.pcolormesh(t, f, Sxx, shading='gouraud')
+            plt.pcolormesh(t, f, Sxx)
+            plt.ylabel('Frequency [Hz]')
+            plt.xlabel('Time [sec]')
+            plt.show()
+        return f, t, Sxx
+
+    def full_spectrogram(self, signal, fs ,plot=False, plot_title_addition=""):
+        f, t, Sxx = sig.spectrogram(signal, fs)
+
+        if plot:
+            plt.figure()
+            plt.title("Spectrogram " + plot_title_addition)
+            #plt.pcolormesh(t, f, Sxx, shading='gouraud',rasterized=True)
+            plt.pcolormesh(t, f, Sxx,rasterized=True)
+            plt.ylabel('Frequency [Hz]')
+            plt.ylim([0,5000])
+            plt.xlabel('Time [sec]')
+            plt.show()
+        return f, t, Sxx
 
 
 class Time_Synchronous_Averaging(object):
@@ -501,7 +534,6 @@ class Time_Synchronous_Averaging(object):
 
             # Number of samples used per revolution when performing order tracking
             window_length = int(samples_per_rev * fraction_of_revolution)
-
 
             if window_length % 2 == 0:  # Make sure that the window length is uneven
                 window_length += 1
@@ -588,9 +620,9 @@ class Time_Synchronous_Averaging(object):
                 # axs[tooth_pair,0].set_ylim(-250,250)
                 # axs[tooth_pair,1].set_ylim(-50,50)
 
-        return averages/n_samples_for_average, all_per_teeth # Division by n_samples to obtain average
+        return averages / n_samples_for_average, all_per_teeth  # Division by n_samples to obtain average
 
-    def aranged_averaged_windows(self, window_averages, plot=False, plot_title_addition = ""):
+    def aranged_averaged_windows(self, window_averages, plot=False, plot_title_addition=""):
         """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
         ----------
         window_averages: array
@@ -618,7 +650,6 @@ class Time_Synchronous_Averaging(object):
         # The 1 accounts for the discarded sample @ mesh_extract
         ids = ids / 2  # Because we are working with tooth pairs
         ids = ids.astype(int)
-        print(type(ids))
         averages_in_order = window_averages[ids]  # Order the array of averages according to the meshing sequence
         planet_gear_revolution = averages_in_order.reshape(-1)
 
@@ -638,7 +669,235 @@ class Time_Synchronous_Averaging(object):
 
         return averages_in_order, planet_gear_revolution
 
-    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal, ordertrack = True, plot=False, plot_title_addition = ""):
+    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal, ordertrack=True, plot=False,
+                    plot_title_addition=""):
+
+        winds = self.window_extract(fraction_offset, fraction_of_revolution, signal, order_track=ordertrack)
+        aves, apt = self.window_average(winds)
+        arranged, together = self.aranged_averaged_windows(aves, plot=plot, plot_title_addition=plot_title_addition)
+
+        # if plot:
+        #     plt.figure()
+        #     minimum = np.min(together)
+        #     maximum = np.max(together)
+        #     plt.ylabel("Response_squared")
+        #     plt.xlabel("Planet Gear Angle")
+        #     angles = np.linspace(0, 360, len(together))
+        #     plt.plot(angles, together)
+        #     for line in range(np.shape(aves)[0]):
+        #         plt.vlines(line * np.shape(aves)[1] * np.average(np.diff(angles)), minimum, maximum)
+
+        return arranged
+
+
+class TSA_Spectrogram(object):
+    """
+    Used to compute the time synchronous average for a planetary gearbox.
+    See A TECHNIQUE FOR CALCULATING THE TIME DOMAIN AVERAGES OF THE VIBRATION OF THE INDIVIDUAL PLANET GEARS AND THE SUN GEAR IN AN EPICYCLIC GEARBOX, McFadden 1994
+
+    Take note that the sun gear accelerometer is used
+    """
+
+    def spec_window_extract(self, sample_offset_fraction, fraction_of_revolution, spectrogram, order_track=False,
+                       plot=False):
+
+        """Extracts a rectangular window either based on average velocity or instantaneous velocity depending on
+        order_tracking = True/False
+        ----------
+        sample_offset_fraction: float
+             fraction of revolution to offset the window centre
+        fraction_of_revolution: float
+             The duration of the window as a fraction of a revolution
+
+        signal_name: string
+                   The signal to be used ie. "Acc_Carrier"
+
+        order_track: boolean
+            whether to use order tracking (that could influence natural freqs) or not
+
+        plot: boolean
+            whether to plot checks or not
+        Returns
+        -------
+        windows: nxm Array
+            n windows each with m samples
+            """
+
+        if order_track:
+            # acc = self.derived_attributes["order_track_signal"]
+            # acc = self.derived_attributes[signal_name]
+
+            # Do order tracking
+            sigprocobj = Signal_Processing()
+            sigprocobj.dataset = self.dataset
+            sigprocobj.info = self.info
+            sigprocobj.derived_attributes = self.derived_attributes
+
+            # tnew, interp_sig, samples_per_rev = self.order_track(signal) This only works when dealing with dataset?
+            tnew, interp_sig, samples_per_rev = sigprocobj.order_track(signal)
+            acc = interp_sig
+
+            # Number of samples used per revolution when performing order tracking
+            window_length = int(samples_per_rev * fraction_of_revolution)
+
+            if window_length % 2 == 0:  # Make sure that the window length is uneven
+                window_length += 1
+
+            # Takes fraction of a revolution
+            offset_length = int(samples_per_rev * sample_offset_fraction)
+            window_half_length = int((window_length - 1) / 2)
+            window_center_index = np.arange(0, len(acc), samples_per_rev) + offset_length
+
+        if not order_track:
+            # acc = self.dataset[signal_name].values
+            # Notice that the average carrier period could be used to ensure equal window lengths.
+            # The assumption is that the RPM varies little enough that this is allowable
+            # Also, the natural frequency of the transients is expected to be time independent
+            carrier_period = self.info["carrier_period_ave"]
+
+            # Number of samples for fraction of revolution at average speed
+            spec_effective_fs = np.shape(spectrogram)[1]/self.info["duration"]
+
+            window_length = int(spec_effective_fs * carrier_period * fraction_of_revolution)
+
+            if window_length % 2 == 0:  # Make sure that the window length is uneven
+                window_length += 1
+
+            # Takes fraction of a revolution
+            offset_length = int(self.info["f_s"] * carrier_period * sample_offset_fraction)
+            window_half_length = int((window_length - 1) / 2)
+            window_center_index = self.derived_attributes["trigger_index_mag"] + offset_length
+
+            # Spectogram has less samples. Find relative value
+            rel_window_center_index = window_center_index/(self.info["f_s"]*self.info["duration"])
+            spec_window_center_index = rel_window_center_index*np.shape(spectrogram)[1]
+            spec_window_center_index = spec_window_center_index.astype(int)
+
+
+        # Exclude the first and last revolution to prevent errors with insufficient window length
+        n_revs = np.shape(window_center_index)[0] - 2
+        n_freqs = np.shape(spectrogram)[0]
+
+        windows = np.zeros(
+            (n_revs, n_freqs, window_length))  # Initialize an empty array that will hold the extracted windows
+        window_count = 0
+
+        # Exclude the first and last revolution to prevent errors with insufficient window length
+
+        for index in spec_window_center_index[1:-1]:
+            windows[window_count,:,:] = spectrogram[:, index - window_half_length:index + window_half_length + 1]
+            window_count += 1
+
+        if plot:
+            plt.figure("All Extracted")
+            plt.plot(windows.T)
+
+            plt.figure("Average of all Extracted")
+            plt.plot(np.average(windows, axis=0))
+        return windows
+
+    def spec_window_average(self, spec_window_array, plot=False):
+        """ Computes the average of windows extracted from the extract_windows function
+        ----------
+        window_array: array
+             List of all extracted windows as calculated by extract_windows function
+
+        rotations_to_repeat: int
+             number of rotations (extracted windows) before an identical tooth meshing occurs to the first meshing configuration
+
+        Returns
+        -------
+        Averages: nxm Array
+            n gear teeth of the planet gear each with an averaged window of m samples
+            """
+        rotations_to_repeat = len(self.PG.Mesh_Sequence)
+        n_samples_for_average = int(np.floor(np.shape(spec_window_array)[0] / rotations_to_repeat))
+        freq_len = np.shape(spec_window_array)[1]
+        sig_len = np.shape(spec_window_array)[2]
+
+        averages = np.zeros((rotations_to_repeat, freq_len, sig_len))
+        all_per_teeth = np.zeros((n_samples_for_average, rotations_to_repeat,freq_len, sig_len))
+
+        # print("n samples per average ", n_samples_for_average)
+        for sample in range(n_samples_for_average):
+            averages += spec_window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat, :, :]
+            all_per_teeth[sample, :, :,:] = spec_window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat,
+                                          :,:]
+
+        # int_wind = window_array[0:n_samples_for_average*rotations_to_repeat, :]
+        # r = np.reshape(int_wind.T, (n_samples_for_average, rotations_to_repeat, sig_len))
+
+        if plot:
+            fig, axs = plt.subplots(rotations_to_repeat, 2)
+
+            for tooth_pair in range(rotations_to_repeat):
+                sigs = all_per_teeth[:, tooth_pair, :].T
+                axs[tooth_pair, 0].plot(sigs)
+                axs[tooth_pair, 1].plot(np.average(sigs, axis=1))
+                # axs[tooth_pair,0].set_ylim(-250,250)
+                # axs[tooth_pair,1].set_ylim(-50,50)
+
+        return averages / n_samples_for_average, all_per_teeth  # Division by n_samples to obtain average
+
+    def spec_aranged_averaged_windows(self, spec_window_averages,time,freq, plot=False, plot_title_addition=""):
+        """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
+        ----------
+        window_averages: array
+             Array of averaged windows obtained from the Window_average function
+
+        meshing_sequence: Array
+                         Meshing sequence of a planetary gearbox (For the Bonfiglioli gearbox, the meshing sequence array should be divided by 2 seeing that only the even numbered planet gear teeth with mesh with a given ring gear tooth.
+
+        Returns
+        -------
+        averages_in_order: nxm Array
+                n gear teeth of the planet gear each with an averaged window of m samples in order of increasing geartooth number
+        planet_gear_revolution: Array of length n*m
+                n gear teeth, m samples  in a window, all samples in the correct order concatenated together.
+            """
+
+        #        averages_in_order = window_averages[
+        #            meshing_sequence]  # Order the array of averages according to the meshing sequence
+        # ids = ids.astype(int)
+
+        len_mesh_seq = len(self.PG.Mesh_Sequence)
+        ids = self.derived_attributes["mesh_sequence_at_planet_pass"][1:len_mesh_seq + 1]
+        # The 1 accounts for the discarded sample @ mesh_extract
+        ids = ids / 2  # Because we are working with tooth pairs
+        ids = ids.astype(int)
+        averages_in_order = spec_window_averages[ids]  # Order the array of averages according to the meshing sequence
+        planet_gear_revolution = averages_in_order.reshape(-1)
+
+        if plot:
+            rotations_to_repeat = np.shape(averages_in_order)[0]
+
+            #fig, axs = plt.subplots(rotations_to_repeat, 1)
+            fig, axs = plt.subplots(1, rotations_to_repeat)
+            maxi = np.max(averages_in_order)
+            mini = np.min(averages_in_order)
+            for tooth_pair in range(rotations_to_repeat):
+                # axs[tooth_pair].plot(averages_in_order[tooth_pair, :])
+                # # 1 because one sample is discarded in window extract
+                # axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
+                tooth = averages_in_order[tooth_pair]
+
+                axs[tooth_pair].pcolormesh(time[0:np.shape(tooth)[1]], freq, tooth,vmin=mini,vmax=maxi)  # , shading='gouraud')
+                # plt.ylabel('Frequency [Hz]')
+                # axs[tooth_pair].set_xlabel('Time [sec]')
+                axs[tooth_pair].set_ylim([0, 6000])
+                if tooth_pair != 0:
+                    axs[tooth_pair].axis("off")
+                    plt.ylabel("Frequency [Hz]")
+                # plt.show()
+                # axs[tooth_pair,0].set_ylim(-250,250)
+                # axs[tooth_pair,1].set_ylim(-50,50)
+            plt.suptitle("TSA of Spectrogram per gear tooth pair: " + plot_title_addition)
+
+
+        return averages_in_order, planet_gear_revolution
+
+    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal, ordertrack=True, plot=False,
+                    plot_title_addition=""):
 
         winds = self.window_extract(fraction_offset, fraction_of_revolution, signal, order_track=ordertrack)
         aves, apt = self.window_average(winds)
@@ -1127,7 +1386,8 @@ class TransientAnalysis(object):
         # return all_period_store
 
 
-class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, Callibration):
+class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Synchronous_Averaging, TSA_Spectrogram,
+              Callibration):
     """This class creates objects that include a particular dataset, then planetary gearbox configuration used and derived attributes from the dataset"""
 
     def __init__(self, dataset, PG_Object, name, first_meshing_tooth):
@@ -1168,7 +1428,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
 
         try:
             # Compute trigger times for the magnetic pickup
-            triglvl = 3.897 # As computed in 38.0-find-optimum-trigger-loc.py script
+            triglvl = 3.897  # As computed in 38.0-find-optimum-trigger-loc.py script
             trigger_index, trigger_time = self.trigger_times("1PR_Mag_Pickup", triglvl)
             self.derived_attributes.update({"trigger_time_mag": trigger_time, "trigger_index_mag": trigger_index})
 
