@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import scipy.signal as sig
 import src.models.analytical_sdof_model as an_sdof
 import scipy.interpolate as interp
+from PyEMD import EMD, EEMD
 
 
 class Dataset_Plotting(object):
@@ -485,6 +486,64 @@ class Signal_Processing(object):
             plt.show()
         return f, t, Sxx
 
+    def eemd(self, tsa_odt):
+        n_tsa_sig = np.shape(tsa_odt)[0]
+
+        # Initialize the figures to be plotted on
+        fig1, axs1 = plt.subplots(n_tsa_sig, 1)
+        fig2, axs2 = plt.subplots(n_tsa_sig, 1)
+        fig3, axs3 = plt.subplots(n_tsa_sig, 1)
+        fig4, axs4 = plt.subplots(n_tsa_sig, 1)
+
+        for tooth_pair in range(n_tsa_sig):
+            # emd = EMD() # EMD is apparently not very robust and therefore we use the more expensive EEMD
+
+            eemd = EEMD(DTYPE=np.float16, # We usually work with float64. This is much cheaper
+                        trials=20,        # We add noise and do the fitting to make it more robust
+                        max_imfs=4,       # Amount of imfs to compute
+                        parallel=False)
+
+            tsa_sig = tsa_odt[tooth_pair, :] # The signal for a given tooth pair
+
+            # imfs = emd(tsa_sig)
+            imfs = eemd(tsa_sig)
+
+            axs1[tooth_pair].plot(imfs[0])
+            axs1[tooth_pair].set_ylabel(str(tooth_pair * 2))
+            fig1.suptitle("EEMD of TSA: imf1")
+
+            axs2[tooth_pair].plot(imfs[1])
+            axs2[tooth_pair].set_ylabel(str(tooth_pair * 2))
+            fig2.suptitle("EEMD of TSA: imf2")
+
+            axs3[tooth_pair].plot(imfs[2])
+            axs3[tooth_pair].set_ylabel(str(tooth_pair * 2))
+            fig3.suptitle("EEMD of TSA: imf3")
+
+            axs4[tooth_pair].plot(imfs[3])
+            axs4[tooth_pair].set_ylabel(str(tooth_pair * 2))
+            fig4.suptitle("EEMD of TSA: imf4")
+
+            plt.xlabel("Samples @ 38400Hz")
+        return
+
+    def cepstrum_pre_whitening(self,signal):
+        """
+        Perfoms cepstrum pre-whitening as discussed in section 2 of "Application of cepstrum
+         pre-whitening for the diagnosis of bearing faults under variable speed conditions" Borghesani, P et al. 2013
+
+        Parameters
+        ----------
+        signal
+
+        Returns
+        -------
+
+        """
+        FTx = np.fft.fft(signal)  # /length Usually you would have to normalize by length but now it would cancel anyway
+        x_cpw = np.fft.ifft(FTx / np.abs(FTx))
+        return x_cpw.real
+
 
 class Time_Synchronous_Averaging(object):
     """
@@ -517,11 +576,24 @@ class Time_Synchronous_Averaging(object):
         windows: nxm Array
             n windows each with m samples
             """
+        if order_track == "precomputed":
+            # Do order tracking
+            interp_sig = signal["interp_sig"]
+            samples_per_rev =signal["samples_per_rev"]
+            acc = interp_sig
 
-        if order_track:
-            # acc = self.derived_attributes["order_track_signal"]
-            # acc = self.derived_attributes[signal_name]
+            # Number of samples used per revolution when performing order tracking
+            window_length = int(samples_per_rev * fraction_of_revolution)
 
+            if window_length % 2 == 0:  # Make sure that the window length is uneven
+                window_length += 1
+
+            # Takes fraction of a revolution
+            offset_length = int(samples_per_rev * sample_offset_fraction)
+            window_half_length = int((window_length - 1) / 2)
+            window_center_index = np.arange(0, len(acc), samples_per_rev) + offset_length
+
+        if order_track == True:
             # Do order tracking
             sigprocobj = Signal_Processing()
             sigprocobj.dataset = self.dataset
@@ -543,7 +615,7 @@ class Time_Synchronous_Averaging(object):
             window_half_length = int((window_length - 1) / 2)
             window_center_index = np.arange(0, len(acc), samples_per_rev) + offset_length
 
-        if not order_track:
+        if order_track==False:
             # acc = self.dataset[signal_name].values
             acc = signal
             # Notice that the average carrier period could be used to ensure equal window lengths.
@@ -724,21 +796,14 @@ class TSA_Spectrogram(object):
             """
 
         if order_track:
-            # acc = self.derived_attributes["order_track_signal"]
-            # acc = self.derived_attributes[signal_name]
-
-            # Do order tracking
-            sigprocobj = Signal_Processing()
-            sigprocobj.dataset = self.dataset
-            sigprocobj.info = self.info
-            sigprocobj.derived_attributes = self.derived_attributes
-
             # tnew, interp_sig, samples_per_rev = self.order_track(signal) This only works when dealing with dataset?
-            tnew, interp_sig, samples_per_rev = sigprocobj.order_track(signal)
-            acc = interp_sig
+
+            interp_spec = spectrogram["interp_spec"]
+            samples_per_rev = spectrogram["samples_per_rev"]
+            total_samples = spectrogram["total_samples"]
 
             # Number of samples used per revolution when performing order tracking
-            window_length = int(samples_per_rev * fraction_of_revolution)
+            window_length = int(samples_per_rev * fraction_of_revolution*np.shape(interp_spec)[1]/total_samples)
 
             if window_length % 2 == 0:  # Make sure that the window length is uneven
                 window_length += 1
@@ -746,7 +811,14 @@ class TSA_Spectrogram(object):
             # Takes fraction of a revolution
             offset_length = int(samples_per_rev * sample_offset_fraction)
             window_half_length = int((window_length - 1) / 2)
-            window_center_index = np.arange(0, len(acc), samples_per_rev) + offset_length
+            window_center_index = np.arange(0, total_samples, samples_per_rev) + offset_length
+
+            # Spectogram has less samples. Find relative value
+            rel_window_center_index = window_center_index/total_samples
+            spec_window_center_index = rel_window_center_index*np.shape(interp_spec)[1]
+            spec_window_center_index = spec_window_center_index.astype(int)
+
+            spectrogram = interp_spec
 
         if not order_track:
             # acc = self.dataset[signal_name].values
@@ -773,11 +845,9 @@ class TSA_Spectrogram(object):
             spec_window_center_index = rel_window_center_index*np.shape(spectrogram)[1]
             spec_window_center_index = spec_window_center_index.astype(int)
 
-
         # Exclude the first and last revolution to prevent errors with insufficient window length
-        n_revs = np.shape(window_center_index)[0] - 2
+        n_revs = np.shape(spec_window_center_index)[0] - 2
         n_freqs = np.shape(spectrogram)[0]
-
         windows = np.zeros(
             (n_revs, n_freqs, window_length))  # Initialize an empty array that will hold the extracted windows
         window_count = 0
@@ -884,7 +954,8 @@ class TSA_Spectrogram(object):
                 axs[tooth_pair].pcolormesh(time[0:np.shape(tooth)[1]], freq, tooth,vmin=mini,vmax=maxi)  # , shading='gouraud')
                 # plt.ylabel('Frequency [Hz]')
                 # axs[tooth_pair].set_xlabel('Time [sec]')
-                axs[tooth_pair].set_ylim([0, 6000])
+
+                axs[tooth_pair].set_ylim([0, 2000])
                 if tooth_pair != 0:
                     axs[tooth_pair].axis("off")
                     plt.ylabel("Frequency [Hz]")
