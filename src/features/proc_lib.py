@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import scipy.signal as sig
 import src.models.analytical_sdof_model as an_sdof
 import scipy.interpolate as interp
+from src.visualization.multipage_pdf import multipage
+import definitions
 from PyEMD import EMD, EEMD
 
 
@@ -460,8 +462,8 @@ class Signal_Processing(object):
             plt.show()
         return
 
-    def spectrogram(self, signal, fs,nperseg, plot=False, plot_title_addition=""):
-        f, t, Sxx = sig.spectrogram(signal, fs,nperseg=nperseg)
+    def spectrogram(self, signal, fs, nperseg, plot=False, plot_title_addition=""):
+        f, t, Sxx = sig.spectrogram(signal, fs, nperseg=nperseg)
 
         if plot:
             plt.title("Spectrogram " + plot_title_addition)
@@ -472,16 +474,16 @@ class Signal_Processing(object):
             plt.show()
         return f, t, Sxx
 
-    def full_spectrogram(self, signal, fs ,plot=False, plot_title_addition=""):
+    def full_spectrogram(self, signal, fs, plot=False, plot_title_addition=""):
         f, t, Sxx = sig.spectrogram(signal, fs)
 
         if plot:
             plt.figure()
             plt.title("Spectrogram " + plot_title_addition)
-            #plt.pcolormesh(t, f, Sxx, shading='gouraud',rasterized=True)
-            plt.pcolormesh(t, f, Sxx,rasterized=True)
+            # plt.pcolormesh(t, f, Sxx, shading='gouraud',rasterized=True)
+            plt.pcolormesh(t, f, Sxx, rasterized=True)
             plt.ylabel('Frequency [Hz]')
-            plt.ylim([0,5000])
+            plt.ylim([0, 5000])
             plt.xlabel('Time [sec]')
             plt.show()
         return f, t, Sxx
@@ -498,12 +500,12 @@ class Signal_Processing(object):
         for tooth_pair in range(n_tsa_sig):
             # emd = EMD() # EMD is apparently not very robust and therefore we use the more expensive EEMD
 
-            eemd = EEMD(DTYPE=np.float16, # We usually work with float64. This is much cheaper
-                        trials=20,        # We add noise and do the fitting to make it more robust
-                        max_imfs=4,       # Amount of imfs to compute
+            eemd = EEMD(DTYPE=np.float16,  # We usually work with float64. This is much cheaper
+                        trials=20,  # We add noise and do the fitting to make it more robust
+                        max_imfs=4,  # Amount of imfs to compute
                         parallel=False)
 
-            tsa_sig = tsa_odt[tooth_pair, :] # The signal for a given tooth pair
+            tsa_sig = tsa_odt[tooth_pair, :]  # The signal for a given tooth pair
 
             # imfs = emd(tsa_sig)
             imfs = eemd(tsa_sig)
@@ -527,7 +529,7 @@ class Signal_Processing(object):
             plt.xlabel("Samples @ 38400Hz")
         return
 
-    def cepstrum_pre_whitening(self,signal):
+    def cepstrum_pre_whitening(self, signal):
         """
         Perfoms cepstrum pre-whitening as discussed in section 2 of "Application of cepstrum
          pre-whitening for the diagnosis of bearing faults under variable speed conditions" Borghesani, P et al. 2013
@@ -579,7 +581,7 @@ class Time_Synchronous_Averaging(object):
         if order_track == "precomputed":
             # Do order tracking
             interp_sig = signal["interp_sig"]
-            samples_per_rev =signal["samples_per_rev"]
+            samples_per_rev = signal["samples_per_rev"]
             acc = interp_sig
 
             # Number of samples used per revolution when performing order tracking
@@ -615,7 +617,7 @@ class Time_Synchronous_Averaging(object):
             window_half_length = int((window_length - 1) / 2)
             window_center_index = np.arange(0, len(acc), samples_per_rev) + offset_length
 
-        if order_track==False:
+        if order_track == False:
             # acc = self.dataset[signal_name].values
             acc = signal
             # Notice that the average carrier period could be used to ensure equal window lengths.
@@ -771,7 +773,7 @@ class TSA_Spectrogram(object):
     """
 
     def spec_window_extract(self, sample_offset_fraction, fraction_of_revolution, spectrogram, order_track=False,
-                       plot=False):
+                            plot=False):
 
         """Extracts a rectangular window either based on average velocity or instantaneous velocity depending on
         order_tracking = True/False
@@ -803,7 +805,7 @@ class TSA_Spectrogram(object):
             total_samples = spectrogram["total_samples"]
 
             # Number of samples used per revolution when performing order tracking
-            window_length = int(samples_per_rev * fraction_of_revolution*np.shape(interp_spec)[1]/total_samples)
+            window_length = int(samples_per_rev * fraction_of_revolution * np.shape(interp_spec)[1] / total_samples)
 
             if window_length % 2 == 0:  # Make sure that the window length is uneven
                 window_length += 1
@@ -814,8 +816,8 @@ class TSA_Spectrogram(object):
             window_center_index = np.arange(0, total_samples, samples_per_rev) + offset_length
 
             # Spectogram has less samples. Find relative value
-            rel_window_center_index = window_center_index/total_samples
-            spec_window_center_index = rel_window_center_index*np.shape(interp_spec)[1]
+            rel_window_center_index = window_center_index / total_samples
+            spec_window_center_index = rel_window_center_index * np.shape(interp_spec)[1]
             spec_window_center_index = spec_window_center_index.astype(int)
 
             spectrogram = interp_spec
@@ -828,7 +830,7 @@ class TSA_Spectrogram(object):
             carrier_period = self.info["carrier_period_ave"]
 
             # Number of samples for fraction of revolution at average speed
-            spec_effective_fs = np.shape(spectrogram)[1]/self.info["duration"]
+            spec_effective_fs = np.shape(spectrogram)[1] / self.info["duration"]
 
             window_length = int(spec_effective_fs * carrier_period * fraction_of_revolution)
 
@@ -841,8 +843,8 @@ class TSA_Spectrogram(object):
             window_center_index = self.derived_attributes["trigger_index_mag"] + offset_length
 
             # Spectogram has less samples. Find relative value
-            rel_window_center_index = window_center_index/(self.info["f_s"]*self.info["duration"])
-            spec_window_center_index = rel_window_center_index*np.shape(spectrogram)[1]
+            rel_window_center_index = window_center_index / (self.info["f_s"] * self.info["duration"])
+            spec_window_center_index = rel_window_center_index * np.shape(spectrogram)[1]
             spec_window_center_index = spec_window_center_index.astype(int)
 
         # Exclude the first and last revolution to prevent errors with insufficient window length
@@ -855,7 +857,7 @@ class TSA_Spectrogram(object):
         # Exclude the first and last revolution to prevent errors with insufficient window length
 
         for index in spec_window_center_index[1:-1]:
-            windows[window_count,:,:] = spectrogram[:, index - window_half_length:index + window_half_length + 1]
+            windows[window_count, :, :] = spectrogram[:, index - window_half_length:index + window_half_length + 1]
             window_count += 1
 
         if plot:
@@ -886,13 +888,14 @@ class TSA_Spectrogram(object):
         sig_len = np.shape(spec_window_array)[2]
 
         averages = np.zeros((rotations_to_repeat, freq_len, sig_len))
-        all_per_teeth = np.zeros((n_samples_for_average, rotations_to_repeat,freq_len, sig_len))
+        all_per_teeth = np.zeros((n_samples_for_average, rotations_to_repeat, freq_len, sig_len))
 
         # print("n samples per average ", n_samples_for_average)
         for sample in range(n_samples_for_average):
             averages += spec_window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat, :, :]
-            all_per_teeth[sample, :, :,:] = spec_window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat,
-                                          :,:]
+            all_per_teeth[sample, :, :, :] = spec_window_array[
+                                             sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat,
+                                             :, :]
 
         # int_wind = window_array[0:n_samples_for_average*rotations_to_repeat, :]
         # r = np.reshape(int_wind.T, (n_samples_for_average, rotations_to_repeat, sig_len))
@@ -909,7 +912,7 @@ class TSA_Spectrogram(object):
 
         return averages / n_samples_for_average, all_per_teeth  # Division by n_samples to obtain average
 
-    def spec_aranged_averaged_windows(self, spec_window_averages,time,freq, plot=False, plot_title_addition=""):
+    def spec_aranged_averaged_windows(self, spec_window_averages, time, freq, plot=False, plot_title_addition=""):
         """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
         ----------
         window_averages: array
@@ -941,7 +944,7 @@ class TSA_Spectrogram(object):
         if plot:
             rotations_to_repeat = np.shape(averages_in_order)[0]
 
-            #fig, axs = plt.subplots(rotations_to_repeat, 1)
+            # fig, axs = plt.subplots(rotations_to_repeat, 1)
             fig, axs = plt.subplots(1, rotations_to_repeat)
             maxi = np.max(averages_in_order)
             mini = np.min(averages_in_order)
@@ -951,7 +954,8 @@ class TSA_Spectrogram(object):
                 # axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
                 tooth = averages_in_order[tooth_pair]
 
-                axs[tooth_pair].pcolormesh(time[0:np.shape(tooth)[1]], freq, tooth,vmin=mini,vmax=maxi)  # , shading='gouraud')
+                axs[tooth_pair].pcolormesh(time[0:np.shape(tooth)[1]], freq, tooth, vmin=mini,
+                                           vmax=maxi)  # , shading='gouraud')
                 # plt.ylabel('Frequency [Hz]')
                 # axs[tooth_pair].set_xlabel('Time [sec]')
 
@@ -963,7 +967,6 @@ class TSA_Spectrogram(object):
                 # axs[tooth_pair,0].set_ylim(-250,250)
                 # axs[tooth_pair,1].set_ylim(-50,50)
             plt.suptitle("TSA of Spectrogram per gear tooth pair: " + plot_title_addition)
-
 
         return averages_in_order, planet_gear_revolution
 
@@ -1469,7 +1472,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         :param PG_Object: Created with the PG class. Includes information such as number of teeth of respective gears
         """
         # Give the dataset a name to identify it later
-        self.dataset_name = name
+        self.dataset_name = name[0:-3]
 
         # Set the first tooth that passes the transducer to know which vibrations correspond to which teeth
         self.first_meshing_tooth = first_meshing_tooth
@@ -1576,6 +1579,128 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         self.info.update({"min_acc_carrier": mini})
         self.info.update({"max_acc_carrier": maxi})
         self.info.update({"Acc_Carrier_SD": SD})
+
+    def sigproc_dset(self, to_apply, channel):
+        """
+        Apply all the signal processing techniques in list to_apply to the selfset and save all of the results as a .pdf
+        Parameters
+        ----------
+        self A .pgdata object
+        to_apply The signal processing techniques to be applied
+        channel The measured channel to apply the signal processing to. Typically "Acc_Sun" or "Acc_Carrier"
+
+        Returns
+        -------
+
+        """
+        # Set the TSA parameters
+        offset_frac = 0
+        rev_frac = 2 / 62
+
+        # TSA no order tracking
+        if "no_order_track" in to_apply:
+            self.compute_tsa(offset_frac,
+                             rev_frac,
+                             self.dataset[channel].values,
+                             ordertrack=False,
+                             plot=True,
+                             plot_title_addition=channel + " not order tracked")
+
+        # TSA order track
+        if "order_track" in to_apply:
+            tsa_odt = self.compute_tsa(offset_frac,
+                                       rev_frac,
+                                       self.dataset[channel].values,
+                                       ordertrack=True,
+                                       plot=True,
+                                       plot_title_addition=channel + " order tracked")
+
+        # Squared signal order tracked
+        if "squared_signal" in to_apply:
+            self.compute_tsa(offset_frac,
+                             rev_frac,
+                             self.dataset[channel].values ** 2,
+                             ordertrack=True,
+                             plot=True,
+                             plot_title_addition=channel + ", squared signal")
+
+        if "wiener_filtered_signal" in to_apply:
+            self.filter_column(channel, {"type": "wiener"})
+            r = self.compute_tsa(offset_frac,
+                                 rev_frac,
+                                 self.dataset["filtered_wiener_" + channel].values,
+                                 ordertrack=True,
+                                 plot=True,
+                                 plot_title_addition=channel + ", Wiener filtered signal")
+
+            print(np.linalg.norm(r))
+            print(np.linalg.norm(tsa_odt))
+
+        # Filtered signal at different frequency ranges
+        if "bp_filtered_signal" in to_apply:
+            self.filter_at_range_of_freqs(channel, "band", self)
+
+        # Empirical Mode decomposition
+        if "EEMD" in to_apply:
+            self.eemd(tsa_odt)
+
+        if "spectrogram" in to_apply:
+            self.full_spectrogram(self.dataset[channel], self.info["f_s"], plot=True, plot_title_addition=channel)
+
+        if "tsa_spectrogram" in to_apply:
+            fs = self.info["f_s"]
+            nperseg = 100
+            f, t, sxx = self.spectrogram(self.dataset[channel].values, fs, nperseg, plot=False)
+            specwinds = self.spec_window_extract(0, 2 / 62, sxx)
+            ave, allperteeth = self.spec_window_average(specwinds)
+            self.spec_aranged_averaged_windows(ave, t, f, plot=True, plot_title_addition=channel)
+
+        if "tsa_odt_spectrogram" in to_apply:
+            tnew, interp_sig, samples_per_rev = self.order_track(self.dataset[channel].values)
+
+            fs = samples_per_rev
+            print(samples_per_rev)
+
+            nperseg = 80
+            f, t, sxx = self.spectrogram(interp_sig, fs, nperseg, plot=False)
+
+            specto_info = {"interp_spec": sxx,
+                           "samples_per_rev": samples_per_rev,
+                           "total_samples": len(tnew)}
+
+            specwinds = self.spec_window_extract(0, 2 / 62, specto_info, order_track=True)
+            ave, allperteeth = self.spec_window_average(specwinds)
+            self.spec_aranged_averaged_windows(ave, t, f, plot=True, plot_title_addition="order_tracked " + channel)
+
+        if "rpm" in to_apply:
+            self.plot_rpm_over_time()
+
+        if "squared_signal_spectrum" in to_apply:
+            tnew, interp_sig, samples_per_rev = self.order_track(self.dataset[channel])
+            self.plot_order_spectrum(self.dataset[channel].values ** 2, samples_per_rev)
+            plt.xlim([0, 800])
+            plt.ylim([0, 20])
+            plt.title("Order tracked squared signal envelope spectrum: " + channel)
+
+        if "abs_odt_cpw_tsa" in to_apply:
+            abs_sig = np.abs(self.dataset[channel].values)
+            tnew, interp_sig, samples_per_rev = self.order_track(abs_sig)
+            cpw = self.cepstrum_pre_whitening(interp_sig)
+            signal = {"interp_sig": interp_sig,
+                      "samples_per_rev": samples_per_rev}
+
+            winds = self.window_extract(offset_frac, rev_frac, signal, order_track="precomputed", plot=False)
+
+            aves, apt = self.window_average(winds)
+            arranged, together = self.aranged_averaged_windows(aves, plot=True,
+                                                               plot_title_addition=channel + " cpw(odt(abs(x)))")
+
+        # Save all of the plotted figures in a single .pdf
+
+        result_path = definitions.root + "\\reports\\signal_processing_results\\"
+        result_file_name = self.dataset_name + "_" + channel + ".pdf"
+        multipage(result_path + result_file_name)  # Save all open figures
+        plt.close("all")  # Close all open figures
 
 
 class PG(object):
