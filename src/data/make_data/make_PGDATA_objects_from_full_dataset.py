@@ -7,11 +7,11 @@ import pickle
 import numpy as np
 
 # Directory with all split up .h5 files
-h5_dir = "D:\\M_Data\\interim\\G2\\g2_p5"
-file_name = "g2_p5.h5"
+h5_dir = "D:\\M_Data\\interim\\G2\\g2_p4"
+file_name = "g2_p4.h5"
 
 # Make sure the full dataset was converted to .pgdata allready so the tooth position info can be extracted
-# dproc.make_pgdata("D:\\M_Data\\interim\\G2\\g2_full","g2_p5.h5",proc.Bonfiglioli,10)
+# dproc.make_pgdata("D:\\M_Data\\interim\\G2\\g2_full","g2_p4.h5",proc.Bonfiglioli,10)
 
 directory = definitions.root + "\\data\\processed\\" + file_name[0:-3] + ".pgdata"
 with open(directory, 'rb') as filename:
@@ -33,7 +33,7 @@ dataset_start_time = sec_time[0:-1] + discard_at_beginning_of_interval
 dataset_end_time = sec_time[1:] - discard_at_end_of_interval
 
 for d_set, voltage in zip(range(len(voltage_tested)), voltage_tested):
-    h5_file_name = "g2_p5_" + voltage + ".h5"
+    h5_file_name = "g2_p4_" + voltage + ".h5"
 
     start_time = dataset_start_time[d_set]
     planet_pass_times = data.derived_attributes["trigger_time_mag"]

@@ -5,6 +5,8 @@ import src.models.analytical_sdof_model as an_sdof
 import scipy.interpolate as interp
 from src.visualization.multipage_pdf import multipage
 import definitions
+import scipy.stats as stats
+import pywt
 from PyEMD import EMD, EEMD
 
 
@@ -39,7 +41,7 @@ class Dataset_Plotting(object):
         plt.ylabel("Input RPM")
         plt.text(0, max(rpm), "Average motor speed: " + str(int(self.info["rpm_sun_ave"])) + " RPM")
 
-    def plot_fft(self, data, fs, plot_gmf=False):
+    def plot_fft(self, data, fs, plot_gmf=False,plot_ff=False):
         """
         Computes and plots the FFT for a given signal
         Parameters
@@ -64,10 +66,16 @@ class Dataset_Plotting(object):
             # FF1 = GMF/self.PG.Z_p
             FF = self.PG.FF1(self.info["rpm_sun_ave"] / 60)
             max_height = np.max(mag)
-            plt.vlines(np.arange(1, 5) * GMF, 0, max_height, 'r', zorder=10, label="GMF and Harmonics")
+            n_to_plot = 8
+            plt.vlines(np.arange(1, n_to_plot) * GMF, 0, max_height, 'g', zorder=10, label="GMF and Harmonics")
             # plt.vlines(np.arange(1, 3) * FF, max_height, 'c', zorder=10, label="GMF and Harmonics")
             # plt.vlines(np.arange(1, 4) * FF1, 0, max_height, 'g', zorder=10, label="FF1 and Harmonics")
 
+        if plot_ff == True:
+            ff = self.PG.FF1(self.info["rpm_sun_ave"] / 60)  #Expected fault frequency
+            max_height = np.max(mag)
+            n_to_plot = 8
+            plt.vlines(np.arange(1, n_to_plot) * ff, 0, max_height, 'r', zorder=10, label="Fault frequency")
         # plt.xlim(0, 6000)
         # plt.show()
 
@@ -376,8 +384,10 @@ class Signal_Processing(object):
         low = lowcut / nyq
         high = highcut / nyq
 
-        order = 5
+        order = 3
         b, a = sig.butter(order, [low, high], btype="band")
+        #return sig.filtfilt(b, a, signal)
+        #return sig.lfilter(b, a, signal)
         return sig.filtfilt(b, a, signal)
 
     def filter_low_pass(self, signal, cutoff):
@@ -420,7 +430,7 @@ class Signal_Processing(object):
 
     def filter_at_range_of_freqs(self, channel, type, pgdata):
         freq_range = 500
-        low_start = 100
+        low_start = 200
         bot_freqs = low_start + np.arange(0, 7) * freq_range
 
         for bot_freq in bot_freqs:
@@ -696,6 +706,114 @@ class Time_Synchronous_Averaging(object):
 
         return averages / n_samples_for_average, all_per_teeth  # Division by n_samples to obtain average
 
+    def window_stats(self, window_array, stat_to_compute, filter_stat=False, relative=False):
+        """ Computes the stats at timepoint of windows extracted from the extract_windows function
+        ----------
+        window_array: array
+             List of all extracted windows as calculated by extract_windows function
+
+        rotations_to_repeat: int
+             number of rotations (extracted windows) before an identical tooth meshing occurs to the first meshing configuration
+
+        Relative computes the statistic when the mean of the statistics over all gear teeth are removed
+        Returns
+        -------
+        Averages: nxm Array
+            n gear teeth of the planet gear each with an averaged window of m samples
+            """
+        rotations_to_repeat = len(self.PG.Mesh_Sequence)
+        n_samples_for_average = int(np.floor(np.shape(window_array)[0] / rotations_to_repeat))
+        sig_len = np.shape(window_array)[1]
+
+        all_per_teeth = np.zeros((n_samples_for_average, rotations_to_repeat, sig_len))
+
+        for sample in range(n_samples_for_average):
+            all_per_teeth[sample, :, :] = window_array[sample * rotations_to_repeat:(sample + 1) * rotations_to_repeat,
+                                          :]
+
+        if stat_to_compute == "kurtosis":
+            stat = stats.kurtosis(all_per_teeth, axis=0)
+
+        if stat_to_compute == "skewness":
+            stat = stats.skew(all_per_teeth, axis=0)
+
+        if stat_to_compute == "variance":
+            stat = stats.variation(all_per_teeth, axis=0)
+
+        if stat_to_compute == "mean":
+            stat = np.average(all_per_teeth, axis=0)
+
+        if relative:
+            mean = np.mean(stat, axis=0)
+            relative_stat = stat - mean
+            stat = relative_stat
+
+        if filter_stat:
+            # Filter the computed stats to smooth it with time
+            samples = 21
+            order = 3
+            stat = sig.savgol_filter(stat, samples, order, axis=1)
+
+        return stat
+
+    def arranged_window_stats(self, window_averages, plot=False,plot_together=False, plot_title_addition=""):
+        """ Takes the computed stats from extracted windows and arranges them in order as determined by the meshing sequence.
+        ----------
+        window_averages: array
+             Array of window stats
+
+        meshing_sequence: Array
+                         Meshing sequence of a planetary gearbox (For the Bonfiglioli gearbox, the meshing sequence array should be divided by 2 seeing that only the even numbered planet gear teeth with mesh with a given ring gear tooth.
+
+        Returns
+        -------
+        averages_in_order: nxm Array
+                n gear teeth of the planet gear each with an averaged window of m samples in order of increasing geartooth number
+        planet_gear_revolution: Array of length n*m
+                n gear teeth, m samples  in a window, all samples in the correct order concatenated together.
+            """
+
+        #        averages_in_order = window_averages[
+        #            meshing_sequence]  # Order the array of averages according to the meshing sequence
+
+        # ids = np.array(meshing_sequence)/2
+        # ids = ids.astype(int)
+
+        len_mesh_seq = len(self.PG.Mesh_Sequence)
+        ids = self.derived_attributes["mesh_sequence_at_planet_pass"][1:len_mesh_seq + 1]
+        # The 1 accounts for the discarded sample @ mesh_extract
+        ids = ids / 2  # Because we are working with tooth pairs
+        ids = ids.astype(int)
+        stats_in_order = window_averages[ids]  # Order the array of averages according to the meshing sequence
+        planet_gear_revolution = stats_in_order.reshape(-1)
+
+        if plot:
+            if plot_together:
+                plt.figure()
+                plt.title("Time synchronous statistic per gear tooth pair: " + plot_title_addition)
+                plt.plot(stats_in_order.T[:, 0:7])
+                plt.legend(["0", "2", "4", "6", "8", "10", "12", "14"])
+
+            else:
+                maxi = np.max(stats_in_order)  # minimum and maximum values
+                mini = np.min(stats_in_order)
+
+                rotations_to_repeat = np.shape(stats_in_order)[0]
+
+                fig, axs = plt.subplots(rotations_to_repeat, 1)
+
+                for tooth_pair in range(rotations_to_repeat):
+                    axs[tooth_pair].plot(stats_in_order[tooth_pair, :])
+                    # 1 because one sample is discarded in window extract
+                    axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
+                    axs[tooth_pair].set_ylim(mini, maxi)  # Set all of the axis limits to be the same
+
+                plt.xlabel("Samples @ 38400Hz")
+                plt.suptitle("Time synchronous statistic per gear tooth pair: " + plot_title_addition)
+
+
+        return stats_in_order, planet_gear_revolution
+
     def aranged_averaged_windows(self, window_averages, plot=False, plot_title_addition=""):
         """ Takes the computed averages of the extracted windows and arranges them in order as determined by the meshing sequence.
         ----------
@@ -728,6 +846,9 @@ class Time_Synchronous_Averaging(object):
         planet_gear_revolution = averages_in_order.reshape(-1)
 
         if plot:
+            maxi = np.max(averages_in_order)  # minimum and maximum values
+            mini = np.min(averages_in_order)
+
             rotations_to_repeat = np.shape(averages_in_order)[0]
 
             fig, axs = plt.subplots(rotations_to_repeat, 1)
@@ -736,10 +857,28 @@ class Time_Synchronous_Averaging(object):
                 axs[tooth_pair].plot(averages_in_order[tooth_pair, :])
                 # 1 because one sample is discarded in window extract
                 axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
-                # axs[tooth_pair,0].set_ylim(-250,250)
-                # axs[tooth_pair,1].set_ylim(-50,50)
+                axs[tooth_pair].set_ylim(mini, maxi)  # Set all of the axis limits to be the same
+
             plt.xlabel("Samples @ 38400Hz")
             plt.suptitle("TSA per gear tooth pair: " + plot_title_addition)
+
+            # plt.figure()
+            # mean = np.mean(averages_in_order, axis=0)
+            # plt.plot(mean)
+
+            # plt.figure()
+            # # print(np.shape(averages_in_order.T))
+            # # print(np.shape(mean))
+            # # m = np.dot(mean,np.ones(np.shape(averages_in_order)))
+            # # print(m)
+            # variance_measure = ((averages_in_order - mean).T) ** 2
+            # plt.plot(variance_measure)
+            # plt.legend(["0", "2", "4", "6", "8", "10", "12", "14"])
+            #
+            # yhat = sig.savgol_filter(variance_measure, 81, 3, axis=0)  # window size 51, polynomial order 3
+            # plt.figure()
+            # plt.plot(yhat[:, 0:7])
+            # plt.legend(["0", "2", "4", "6", "8", "10", "12", "14"])
 
         return averages_in_order, planet_gear_revolution
 
@@ -798,8 +937,6 @@ class TSA_Spectrogram(object):
             """
 
         if order_track:
-            # tnew, interp_sig, samples_per_rev = self.order_track(signal) This only works when dealing with dataset?
-
             interp_spec = spectrogram["interp_spec"]
             samples_per_rev = spectrogram["samples_per_rev"]
             total_samples = spectrogram["total_samples"]
@@ -815,7 +952,7 @@ class TSA_Spectrogram(object):
             window_half_length = int((window_length - 1) / 2)
             window_center_index = np.arange(0, total_samples, samples_per_rev) + offset_length
 
-            # Spectogram has less samples. Find relative value
+            # Spectogram could have less samples. Find relative value
             rel_window_center_index = window_center_index / total_samples
             spec_window_center_index = rel_window_center_index * np.shape(interp_spec)[1]
             spec_window_center_index = spec_window_center_index.astype(int)
@@ -946,31 +1083,23 @@ class TSA_Spectrogram(object):
 
             # fig, axs = plt.subplots(rotations_to_repeat, 1)
             fig, axs = plt.subplots(1, rotations_to_repeat)
+            fig.text(0.5, 0.04, 'Time [s]', ha='center')
+            fig.text(0.04, 0.5, 'Carrier Orders', va='center', rotation='vertical')
             maxi = np.max(averages_in_order)
             mini = np.min(averages_in_order)
             for tooth_pair in range(rotations_to_repeat):
-                # axs[tooth_pair].plot(averages_in_order[tooth_pair, :])
-                # # 1 because one sample is discarded in window extract
-                # axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
                 tooth = averages_in_order[tooth_pair]
 
                 axs[tooth_pair].pcolormesh(time[0:np.shape(tooth)[1]], freq, tooth, vmin=mini,
                                            vmax=maxi)  # , shading='gouraud')
-                # plt.ylabel('Frequency [Hz]')
-                # axs[tooth_pair].set_xlabel('Time [sec]')
+                axs[tooth_pair].set_title(str(tooth_pair*2))
 
-                axs[tooth_pair].set_ylim([0, 2000])
-                if tooth_pair != 0:
-                    axs[tooth_pair].axis("off")
-                    plt.ylabel("Frequency [Hz]")
-                # plt.show()
-                # axs[tooth_pair,0].set_ylim(-250,250)
-                # axs[tooth_pair,1].set_ylim(-50,50)
+                axs[tooth_pair].axis("off")
             plt.suptitle("TSA of Spectrogram per gear tooth pair: " + plot_title_addition)
 
         return averages_in_order, planet_gear_revolution
 
-    def compute_tsa(self, fraction_offset, fraction_of_revolution, signal, ordertrack=True, plot=False,
+    def spec_compute_tsa(self, fraction_offset, fraction_of_revolution, signal, ordertrack=True, plot=False,
                     plot_title_addition=""):
 
         winds = self.window_extract(fraction_offset, fraction_of_revolution, signal, order_track=ordertrack)
@@ -1595,7 +1724,7 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
         """
         # Set the TSA parameters
         offset_frac = 0
-        rev_frac = 2 / 62
+        rev_frac =  2/62
 
         # TSA no order tracking
         if "no_order_track" in to_apply:
@@ -1617,12 +1746,20 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
 
         # Squared signal order tracked
         if "squared_signal" in to_apply:
-            self.compute_tsa(offset_frac,
-                             rev_frac,
-                             self.dataset[channel].values ** 2,
-                             ordertrack=True,
-                             plot=True,
-                             plot_title_addition=channel + ", squared signal")
+            # self.compute_tsa(offset_frac,
+            #                  rev_frac,
+            #                  self.dataset[channel].values ** 2,
+            #                  ordertrack=True,
+            #                  plot=True,
+            #                  plot_title_addition=channel + ", squared signal")
+
+            d = self.dataset[channel].values**2
+
+            winds = self.window_extract(offset_frac, rev_frac, d)
+
+            for metric in ["mean"]:
+                ws = self.window_stats(winds, metric, relative=True, filter_stat=True)
+                self.arranged_window_stats(ws, plot=True, plot_together=True, plot_title_addition=metric + " squared signal " + channel)
 
         if "wiener_filtered_signal" in to_apply:
             self.filter_column(channel, {"type": "wiener"})
@@ -1668,9 +1805,31 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
                            "samples_per_rev": samples_per_rev,
                            "total_samples": len(tnew)}
 
-            specwinds = self.spec_window_extract(0, 2 / 62, specto_info, order_track=True)
+            specwinds = self.spec_window_extract(offset_frac, rev_frac, specto_info, order_track=True)
             ave, allperteeth = self.spec_window_average(specwinds)
             self.spec_aranged_averaged_windows(ave, t, f, plot=True, plot_title_addition="order_tracked " + channel)
+
+        if "tsa_odt_scaleogram" in to_apply:
+            signal = self.dataset[channel].values
+
+            scales = np.logspace(1.6, 2.3, num=50, dtype=np.int32)  # Interesting low frequencies
+
+            tnew, interp_sig, samples_per_rev = self.order_track(signal)
+            fs = samples_per_rev
+
+            waveletname = 'cmor1.5-1.0'
+            coefficients, frequencies = pywt.cwt(interp_sig, scales, waveletname, 1 / fs)
+
+            power = (abs(coefficients)) ** 2
+
+            specto_info = {"interp_spec": power,
+                           "samples_per_rev": samples_per_rev,
+                           "total_samples": len(tnew)}
+
+            specwinds = self.spec_window_extract(offset_frac, rev_frac, specto_info, order_track=True)
+            ave, allperteeth = self.spec_window_average(specwinds)
+            self.spec_aranged_averaged_windows(ave, tnew, frequencies, plot=True,
+                                               plot_title_addition="order_tracked scaleogram" + channel)
 
         if "rpm" in to_apply:
             self.plot_rpm_over_time()
@@ -1694,6 +1853,15 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
             aves, apt = self.window_average(winds)
             arranged, together = self.aranged_averaged_windows(aves, plot=True,
                                                                plot_title_addition=channel + " cpw(odt(abs(x)))")
+
+        if "mean_variance_skewness_kurtosis" in to_apply:
+            d= self.dataset[channel].values
+
+            winds = self.window_extract(offset_frac, rev_frac, d)
+
+            for metric in ["mean", "variance", "skewness", "kurtosis"]:
+                ws = self.window_stats(winds, metric, relative=True, filter_stat=False)
+                self.arranged_window_stats(ws, plot=True,plot_together=True, plot_title_addition= metric + "  " + channel)
 
         # Save all of the plotted figures in a single .pdf
 
