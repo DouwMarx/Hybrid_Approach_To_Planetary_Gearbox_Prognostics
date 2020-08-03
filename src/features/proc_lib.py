@@ -55,7 +55,7 @@ class Dataset_Plotting(object):
         """
         freq, mag, phase = self.fft(data, fs)
 
-        plt.figure()
+        #plt.figure()
         # max_height = 2
         plt.plot(freq, mag, "k")
         plt.ylabel("Magnitude")
@@ -115,8 +115,43 @@ class Dataset_Plotting(object):
 
         # plt.xlim(0, 6000)
         # plt.show()
-
         return
+
+    def plot_squared_order_spectrum(self, data, samples_per_rev, plot_gmf=False,plot_scaling = None):
+        """
+        Computes and plots the FFT for a given signal
+        Parameters
+        ----------
+        data: String
+            Name of the heading of the dataset to be FFTed
+
+        Returns
+        -------
+
+        """
+        freq, mag, phase = self.fft(data, samples_per_rev)
+
+        plt.figure()
+        # max_height = 2
+        plt.plot(freq, mag**2, "k")
+        plt.ylabel("Magnitude")
+        plt.xlabel("Carrier orders")
+
+        if plot_gmf == True:
+            gear_mesh_order = self.PG.Z_r
+
+            fault_order = 2*self.PG.Z_r/self.PG.Z_p  # Amount of times planet revolves in single carrier revolution
+                                                     # Multiplied by 2 as fault acts on ring and sun
+
+            max_height = np.max(mag)
+            plt.vlines(np.arange(1, 8) * gear_mesh_order, 0, max_height, 'r', zorder=10,
+                       label="GMF and Harmonics")
+            plt.vlines(np.arange(1, 3) * fault_order, 0, max_height, 'c', zorder=10,
+                       label="Fault frequency and Harmonics")
+
+        if plot_scaling is not None:
+            xlim = plot_scaling["xlim"]
+            plt.xlim(xlim[0],xlim[1])
 
     def plot_TSA(self):
         """
@@ -385,8 +420,37 @@ class Signal_Processing(object):
         high = highcut / nyq
 
         order = 3
-        b, a = sig.butter(order, [low, high], btype="band")
-        #return sig.filtfilt(b, a, signal)
+        b, a = sig.butter(order, [low, high], btype="bandpass")
+        #return sig.lfilter(b, a, signal)
+        return sig.filtfilt(b, a, signal)
+
+    def filter_band_pass_order(self, signal, lowcut, highcut,fs):
+        nyq = fs/ 2
+        low = lowcut / nyq
+        high = highcut / nyq
+
+        order = 3
+        b, a = sig.butter(order, [low, high], btype="bandpass")
+        #return sig.lfilter(b, a, signal)
+        return sig.filtfilt(b, a, signal)
+
+    def filter_band_stop(self, signal, lowcut, highcut):
+        nyq = self.info["f_s"] / 2
+        low = lowcut / nyq
+        high = highcut / nyq
+
+        order = 3
+        b, a = sig.butter(order, [low, high], btype="bandstop")
+        #return sig.lfilter(b, a, signal)
+        return sig.filtfilt(b, a, signal)
+
+    def filter_band_stop_order(self, signal, lowcut, highcut,fs):
+        nyq = fs / 2
+        low = lowcut / nyq
+        high = highcut / nyq
+
+        order = 3
+        b, a = sig.butter(order, [low, high], btype="bandstop")
         #return sig.lfilter(b, a, signal)
         return sig.filtfilt(b, a, signal)
 
@@ -406,6 +470,14 @@ class Signal_Processing(object):
             signal = self.dataset[signame].values
             fsig = self.filter_band_pass(signal, lowcut, highcut)
             key_name = "filtered_bp_" + signame
+            self.dataset[key_name] = fsig
+
+        if ftype == "bandstop":
+            lowcut = params["low_cut"]
+            highcut = params["high_cut"]
+            signal = self.dataset[signame].values
+            fsig = self.filter_band_stop(signal, lowcut, highcut)
+            key_name = "filtered_bs_" + signame
             self.dataset[key_name] = fsig
 
         if ftype == "low":
@@ -1659,6 +1731,9 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
 
             # Compute Gear mesh frequency
             self.derived_attributes.update({"GMF_ave": self.PG.GMF(self.info["rpm_sun_ave"] / 60)})
+
+            # Compute fault frequency
+            self.derived_attributes.update({"FF1_ave": self.PG.FF1(self.info["rpm_sun_ave"]/60)})
 
             # Compute average planet pass frequency
             self.derived_attributes.update({"PPF_ave": self.info["rpm_carrier_ave"] / 60})
