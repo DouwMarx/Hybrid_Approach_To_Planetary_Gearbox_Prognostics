@@ -613,7 +613,7 @@ class Signal_Processing(object):
 
     def cepstrum_pre_whitening(self, signal):
         """
-        Perfoms cepstrum pre-whitening as discussed in section 2 of "Application of cepstrum
+        Performs cepstrum pre-whitening as discussed in section 2 of "Application of cepstrum
          pre-whitening for the diagnosis of bearing faults under variable speed conditions" Borghesani, P et al. 2013
 
         Parameters
