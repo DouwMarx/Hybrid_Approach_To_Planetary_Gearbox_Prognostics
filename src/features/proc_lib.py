@@ -57,6 +57,7 @@ class Dataset_Plotting(object):
 
         #plt.figure()
         # max_height = 2
+        #plt.plot(freq, mag, "k")
         plt.plot(freq, mag, "k")
         plt.ylabel("Magnitude")
         plt.xlabel("Frequency [Hz]")
@@ -917,7 +918,7 @@ class Time_Synchronous_Averaging(object):
         averages_in_order = window_averages[ids]  # Order the array of averages according to the meshing sequence
         planet_gear_revolution = averages_in_order.reshape(-1)
 
-        if plot:
+        if plot==True:
             maxi = np.max(averages_in_order)  # minimum and maximum values
             mini = np.min(averages_in_order)
 
@@ -934,23 +935,24 @@ class Time_Synchronous_Averaging(object):
             plt.xlabel("Samples @ 38400Hz")
             plt.suptitle("TSA per gear tooth pair: " + plot_title_addition)
 
-            # plt.figure()
-            # mean = np.mean(averages_in_order, axis=0)
-            # plt.plot(mean)
+        if plot=="together":
 
-            # plt.figure()
-            # # print(np.shape(averages_in_order.T))
-            # # print(np.shape(mean))
-            # # m = np.dot(mean,np.ones(np.shape(averages_in_order)))
-            # # print(m)
-            # variance_measure = ((averages_in_order - mean).T) ** 2
-            # plt.plot(variance_measure)
-            # plt.legend(["0", "2", "4", "6", "8", "10", "12", "14"])
-            #
-            # yhat = sig.savgol_filter(variance_measure, 81, 3, axis=0)  # window size 51, polynomial order 3
-            # plt.figure()
-            # plt.plot(yhat[:, 0:7])
-            # plt.legend(["0", "2", "4", "6", "8", "10", "12", "14"])
+            # maxi = np.max(averages_in_order)  # minimum and maximum values
+            # mini = np.min(averages_in_order)
+
+            rotations_to_repeat = np.shape(averages_in_order)[0]
+            plt.figure()
+            plt.title("TSA per geartooth pair")
+
+            for tooth_pair in range(rotations_to_repeat):
+                plt.plot(averages_in_order[tooth_pair, :]**2, label =str(tooth_pair * 2) )
+                # 1 because one sample is discarded in window extract
+                #plt.ylim(mini, maxi)  # Set all of the axis limits to be the same
+                plt.ylabel("tsa of squared signal at freq band")
+
+            plt.xlabel("Samples @ 38400Hz")
+            # plt.legend(loc='lower center')
+            plt.legend()
 
         return averages_in_order, planet_gear_revolution
 
@@ -1827,13 +1829,16 @@ class Dataset(Tachos_And_Triggers, Dataset_Plotting, Signal_Processing, Time_Syn
             #                  ordertrack=True,
             #                  plot=True,
             #                  plot_title_addition=channel + ", squared signal")
+            # first do cpw
+            d = self.cepstrum_pre_whitening(self.dataset[channel].values)
 
-            d = self.dataset[channel].values**2
+            d = d**2
+            #d = self.dataset[channel].values**2
 
             winds = self.window_extract(offset_frac, rev_frac, d)
 
             for metric in ["mean"]:
-                ws = self.window_stats(winds, metric, relative=True, filter_stat=True)
+                ws = self.window_stats(winds, metric, relative=False, filter_stat=False)
                 self.arranged_window_stats(ws, plot=True, plot_together=True, plot_title_addition=metric + " squared signal " + channel)
 
         if "wiener_filtered_signal" in to_apply:

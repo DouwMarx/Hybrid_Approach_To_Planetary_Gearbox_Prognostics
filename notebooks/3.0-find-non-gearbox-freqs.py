@@ -12,7 +12,7 @@ with open(directory, 'rb') as filename:
     motor = pickle.load(filename)
 
     plt.figure()
-    motor.plot_fft("Acc_Sun")
+    motor.plot_fft(motor.dataset["Acc_Sun"],motor.info["f_s"])
     plt.title("Motor Fan Only Frequency Response")
 
 
@@ -23,5 +23,6 @@ with open(directory, 'rb') as filename:
     pump = pickle.load(filename)
 
     plt.figure()
-    pump.plot_fft("Acc_Sun")
+    pump.plot_fft(pump.dataset["Acc_Sun"],pump.info["f_s"])
+
     plt.title("Pump Fan Only Frequency Response")
