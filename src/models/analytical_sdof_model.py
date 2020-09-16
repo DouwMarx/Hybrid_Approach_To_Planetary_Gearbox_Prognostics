@@ -5,6 +5,7 @@ import dill
 import definitions
 import scipy.signal as scisig
 import scipy.optimize as opt
+import scipy.integrate as inter
 
 def make_1dof_spring_mass_system(plot=False):
     zeta,omega_n,t,d_0,v_0 = sym.symbols("zeta,omega_n,t,d_0,v_0",real=True)
@@ -60,6 +61,24 @@ def save_sympy_lambda_funcs():
 
     return
 
+def ratio_of_d0():
+    xdotdot_2 = xdotdot_1.subs(d_0,n*d_0)
+    # subbed_t = xdotdot.subs(t,0)
+    # print(subbed_t)
+    # v_0_sol = sym.solve(subbed_t, v_0)
+    # print(v_0_sol[0].simplify())
+    # #print(sym.latex(subbed_t.simplify()))
+    print("Ratio between responses with ratio n between d_0 and d_1")
+    ratio = xdotdot_2/xdotdot_1
+    print(ratio.simplify())
+
+    print("")
+    print("at t=0 and v=0")
+    ratio = ratio.subs(t,5)
+    ratio = ratio.subs(v_0,0)
+    print(ratio.simplify())
+    #sol = sym.solve(ratio,n)
+    return
 
 class one_dof_sys(object):
     """ Used to fit 1DOF spring mass damper system to Acceleration signal"""
@@ -259,3 +278,36 @@ class one_dof_sys(object):
             plt.plot(self.trange,model)
             plt.xlim(0,self.trange[-1])
         return s
+
+#dum,dum,latex,dum = make_1dof_spring_mass_system()
+#print(latex)
+#
+# zeta,omega_n,t,d_0,n,v_0 = sym.symbols("zeta,omega_n,t,d_0,n,v_0",real=True)
+# omega_d = omega_n*sym.sqrt(-(zeta**2-1)) # Damped natural frequency, - because 0<- zeta <1
+#
+# a = sym.exp(-zeta*omega_n*t)
+# b = d_0*sym.cos(omega_d*t)
+# c = ((v_0+zeta*omega_n*d_0)/omega_d)*sym.sin(omega_d*t)
+#
+# x = a*(b+c)   # For 0<= zeta <1
+# xdot = sym.diff(x,t)
+# xdotdot_1 = sym.diff(xdot,t)
+#
+#
+#
+# xdotdot_2 = xdotdot_1.subs(v_0,n*v_0)
+# # subbed_t = xdotdot.subs(t,0)
+# # print(subbed_t)
+# # v_0_sol = sym.solve(subbed_t, v_0)
+# # print(v_0_sol[0].simplify())
+# # #print(sym.latex(subbed_t.simplify()))
+# print("Ratio between responses with ratio n between d_0 and d_1")
+# ratio = xdotdot_2/xdotdot_1
+# print(ratio.simplify())
+#
+# print("")
+# print("at t=0 and d=0")
+# ratio = ratio.subs(t,0)
+# ratio = ratio.subs(d_0,0)
+# print(ratio.simplify())
+# #sol = sym.solve(ratio,n)

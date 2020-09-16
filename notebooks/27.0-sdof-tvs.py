@@ -3,36 +3,36 @@ import matplotlib.pyplot as plt
 import src.models.lumped_mas_model as pglmm
 import src.models.diagnostics as diag
 
-m = 10
+m = 1
 c = 5
-F = 4
+F = 50
 
 k_mean = 1000
 delta_k = 450
 
-X0 = np.array([F / (k_mean + delta_k), 0])
+X00 = np.array([F / (k_mean + delta_k), 0])
 # X0 = np.array([0, 0])
 # X0 = np.array([F / (k_mean), 0])
 
 
-t_range = np.linspace(0, 10, 1000)
-t_step_start = 0
-t_step_duration = 1
+t_range = np.linspace(0, 20, 1000)
+t_step_start = 3
+t_step_duration = 3
 
 sdof_dict = {"m": m,
              "c": c,
              "F": F,
              "delta_k": delta_k,
              "k_mean": k_mean,
-             "X0": X0,
+             "X00": X00,
              "t_range": t_range,
              "t_step_start": t_step_start,
              "t_step_duration": t_step_duration,
-             "tvms_type": "sine_mean_delta_drop"}
+             "tvms_type": "sine_mean_delta_step"}
 
 sho1 = pglmm.SimpleHarmonicOscillator(sdof_dict)
 
-sol,t  = sho1.get_transducer_vibration()
+sol, t = sho1.get_transducer_vibration()
 sho1.plot_sol()
 
 # optfor = {"m": [9, 11],
