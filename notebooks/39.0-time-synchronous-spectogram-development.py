@@ -14,7 +14,7 @@ directory = definitions.root + "\\data\\processed\\" + filename
 with open(directory, 'rb') as filename:
     data = pickle.load(filename)
 
-signal = data.dataset["Acc_Carrier"].values#[0:50*38600]
+signal = data.dataset["Acc_Carrier"].values
 
 fs = data.info["f_s"]
 nperseg = 50

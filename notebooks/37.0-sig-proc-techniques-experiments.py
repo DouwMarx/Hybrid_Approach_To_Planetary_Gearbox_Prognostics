@@ -11,12 +11,7 @@ import numpy as np
 
 
 to_apply = [
-
-    "tsa_odt_scaleogram",
-    "tsa_odt_spectrogram",
-    "rpm",
-    "order track",
-    "abs_odt_cpw_tsa"
+            "squared_signal"
             ]
 
 
@@ -40,7 +35,7 @@ channel = "Acc_Carrier"
 
 #for gear in ["g1_p7_", "g2_p5_"]:
 #for gear in ["g2_p5_"]:
-for gear in ["g2_p4_"]:
+for gear in ["g2_p5_"]:
     for voltage in ["9.0", "9.2", "9.4", "9.6", "9.8", "8.8"]:
     #for voltage in ["9.0"]:
         filename = gear + voltage + ".pgdata"

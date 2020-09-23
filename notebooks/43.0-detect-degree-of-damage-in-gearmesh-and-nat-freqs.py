@@ -82,7 +82,6 @@ def get_gearmesh(data, channel, gear_mesh_harmonics, bandwidth_as_fraction_of_fu
 
     return gear_mesh_bands, samples_per_rev
 
-
 def compare_nat_freqs(data, bandwidth_as_fraction_of_gmf=0.5, channel="Acc_Carrier", n_harmonics=4, plot=False):
     signal = data.dataset[channel].values
 
@@ -117,7 +116,6 @@ def compare_nat_freqs(data, bandwidth_as_fraction_of_gmf=0.5, channel="Acc_Carri
         # axs[harmonic].set_xlim((harmonic + 1) - 0.8 ,(harmonic +1) + 0.8)
         # axs[harmonic].legend(loc=1)
     return odt_time, odt_sig, samples_per_rev
-
 
 def scalogram_of_non_gearmesh(d_list):
     for data in d_list:
@@ -216,7 +214,7 @@ def tsa_of_bandlimited(dataset_list,gearmesh_harmonics):
         for i, band in enumerate(bands):
             sig_for_tsa = {"interp_sig":band**2,"samples_per_rev":spr}
             winds = data.window_extract(0,
-                                        2/62,
+                                        4/62,
                                         sig_for_tsa,
                                         order_track="precomputed")
             windave,all_per_teeth = data.window_average(winds)
@@ -224,12 +222,56 @@ def tsa_of_bandlimited(dataset_list,gearmesh_harmonics):
                                         plot_title_addition = data.dataset_name + "band_limited(x^2)" + str(gearmesh_harmonics[i]) + "*gmf")
     return
 
-#dlist = [damaged, healthy]
-dlist = [damaged, d_mid, h_mid, healthy]
+def remove_gearmesh(data, bandwidth_as_fraction_of_gmf=0.5, channel="Acc_Carrier", n_harmonics=20, plot=False):
+    signal = data.dataset[channel].values
 
-squared_spectrum_at_harmonics(dlist, harmonics)
-spectrum_of_squared_band_limited_signal(dlist, harmonics)
+    bandwidth = bandwidth_as_fraction_of_gmf * data.derived_attributes["GMF_ave"]
+
+    for harmonic in range(n_harmonics):
+        mid_freq = data.derived_attributes["GMF_ave"] * (harmonic + 1)
+
+        # Filter around gearmesh
+        top_freq = mid_freq + 0.5 * bandwidth
+        bot_freq = mid_freq - 0.5 * bandwidth
+
+        signal = data.filter_band_stop(signal, bot_freq, top_freq)
+
+    if plot:
+        freq, mag, phase = data.fft(signal,data.info["f_s"])
+        plt.figure()
+        plt.plot(freq, mag ** 2)
+        # # Filter the data around the gearmesh frequency
+        # data.filter_column(channel, filter_params)
+        # odt_time, odt_sig, samples_per_rev = data.order_track(data.dataset["filtered_bp_Acc_Carrier"])
+        # freq, mag, phase = data.fft(odt_sig,
+        #                             samples_per_rev / data.PG.Z_r)  # Sampling rate scales frequency to be in terms
+        # # of synchronous gear mesh frequency
+        #
+        # axs[harmonic].plot(freq, (mag / np.max(mag)) ** 2, label=name)
+        # axs[harmonic].set_ylabel(str(harmonic + 1))#"Magnitude^2")
+        # axs[harmonic].set_xlim((harmonic + 1) - 0.8 ,(harmonic +1) + 0.8)
+        # axs[harmonic].legend(loc=1)
+        return signal
+
+#dlist = [damaged, healthy]
+# dlist = [damaged, d_mid, h_mid, healthy]
+#
+# squared_spectrum_at_harmonics(dlist, harmonics)
+# spectrum_of_squared_band_limited_signal(dlist, harmonics)
 #tsa_of_bandlimited(dlist,harmonics)
 #scalogram_of_non_gearmesh(dlist)
 
-print("Dataset ave RPM's ", [x.info["rpm_sun_ave"] for x in dlist])
+# print("Dataset ave RPM's ", [x.info["rpm_sun_ave"] for x in dlist])
+data = damaged
+for data in [damaged, d_mid, h_mid, healthy]:
+    gmf_free_sig = remove_gearmesh(damaged,bandwidth_as_fraction_of_gmf=0.5,n_harmonics=40,plot=True)
+
+    winds = data.window_extract(0,
+                                4 / 62,
+                                gmf_free_sig,
+                                order_track=True)
+
+    windave, all_per_teeth = data.window_average(winds**2)
+    aaw = data.aranged_averaged_windows(windave, plot="together",
+                                        plot_title_addition=data.dataset_name + "gmf_removed")
+

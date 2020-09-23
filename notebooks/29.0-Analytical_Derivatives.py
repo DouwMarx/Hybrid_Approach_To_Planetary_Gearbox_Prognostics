@@ -2,8 +2,6 @@ import sympy as sym
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-import definitions
-import pickle
 
 def one_dof_oscillator():
     sigma,t,a,omega,b = sym.symbols("sigma t a omega b",real=True)

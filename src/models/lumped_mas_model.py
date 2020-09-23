@@ -12,6 +12,7 @@ import time
 import src.features.second_order_solvers as solvers
 import scipy.integrate as inter
 
+
 class M(object):
     """
     This class is used to create mass matrix objects
@@ -211,9 +212,9 @@ class K_b(object):
         if gear == "ring":
             K_jb[2, 2] = self.kru  # The ring resists rotational motion
 
-       # if gear == "carrier":  # Carrier also resists rotational motion
-           # K_jb[2, 2] = self.kru
-        #if gear == "sun":  # sun also resists rotational motion
+        # if gear == "carrier":  # Carrier also resists rotational motion
+        # K_jb[2, 2] = self.kru
+        # if gear == "sun":  # sun also resists rotational motion
         #    K_jb[2, 2] = self.kru
 
         else:
@@ -257,10 +258,10 @@ class K_e(object):
         self.Omega_c = PG_obj.Omega_c
 
         #  Compute the square waves up-front (big speedup)
-        #t = self.PG.solve_atr["time_range"]
-        #GMF_sp = 100
-        #k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
-        #self.interp_func = interp.interp1d(t, k)
+        # t = self.PG.solve_atr["time_range"]
+        # GMF_sp = 100
+        # k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        # self.interp_func = interp.interp1d(t, k)
 
     def smooth_square(self, t, f, delta):
         return self.k_atr[0] + self.PG.delta_k * 0.5 * ((2 / np.pi) * np.arctan(np.sin(2 * np.pi * t * f) / delta) + 1)
@@ -833,20 +834,20 @@ class K_e_fast(object):
 
         self.PG = PG_obj
         self.k_atr = PG_obj.k_atr
-        #self.K_e_mat = self.Compiled
+        # self.K_e_mat = self.Compiled
         self.Omega_c = PG_obj.Omega_c
 
         #  Compute the square waves up-front (big speedup)
-        #t = self.PG.solve_atr["time_range"]
-        #GMF_sp = 100
-        #k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
-        #self.interp_func = interp.interp1d(t, k)
+        # t = self.PG.solve_atr["time_range"]
+        # GMF_sp = 100
+        # k = self.k_atr[0] + self.PG.delta_k * (s.square(t * 2 * np.pi * GMF_sp, 0.5) + 1)
+        # self.interp_func = interp.interp1d(t, k)
 
         # Set the constants as attributes
         self.set_constants()
 
     def set_constants(self):
-          # Make an empty array to store constant arrays
+        # Make an empty array to store constant arrays
         self.K_s2_c = np.zeros((3, 3 * self.PG.N))
         self.K_r2_c = np.zeros((3, 3 * self.PG.N))
         self.K_c2_c = np.zeros((3, 3 * self.PG.N))
@@ -867,7 +868,6 @@ class K_e_fast(object):
             self.K_r3_c[:, (p - 1) * 3: p * 3] = self.Kp_r3_c(p)
             self.K_s3_c[:, (p - 1) * 3: p * 3] = self.Kp_s3_c(p)
             self.K_c3_c[:, (p - 1) * 3: p * 3] = self.Kp_c3_c(p)
-
 
     def smooth_square(self, t, f, delta):
         return self.k_atr[0] + self.PG.delta_k * 0.5 * ((2 / np.pi) * np.arctan(np.sin(2 * np.pi * t * f) / delta) + 1)
@@ -893,7 +893,8 @@ class K_e_fast(object):
         # return self.k_atr[0]
 
         # return self.interp_func(t)
-        return np.ones(self.PG.N) * self.smooth_square(t, 100, 1 / self.PG.fs) # At this stage all plant TVMS is the same
+        return np.ones(self.PG.N) * self.smooth_square(t, 100,
+                                                       1 / self.PG.fs)  # At this stage all plant TVMS is the same
 
     def k_rp(self, t):
         """
@@ -1262,7 +1263,7 @@ class K_e_fast(object):
         -------
         Sum_Kp_c1   : 3x3 numpy array
         """
-        Sum_Kp_c1 = np.zeros((3,3))
+        Sum_Kp_c1 = np.zeros((3, 3))
         for p in range(self.PG.N):
             Sum_Kp_c1 += self.K_c1_c[:, p * 3:(p + 1) * 3]
         return Sum_Kp_c1
@@ -1332,8 +1333,8 @@ class K_e_fast(object):
             rect[3:6, (p - 1) * 3:p * 3] = krp_t[p - 1] * self.K_r2_c[:, (p - 1) * 3:p * 3]
             rect[6:9, (p - 1) * 3:p * 3] = ksp_t[p - 1] * self.K_s2_c[:, (p - 1) * 3:p * 3]
 
-            #rect[3:6, (p - 1) * 3:p * 3] = krp_t[p - 1] * self.K_s2_c[:, (p - 1) * 3:p * 3]
-            #rect[6:9, (p - 1) * 3:p * 3] = ksp_t[p - 1] * self.K_r2_c[:, (p - 1) * 3:p * 3]
+            # rect[3:6, (p - 1) * 3:p * 3] = krp_t[p - 1] * self.K_s2_c[:, (p - 1) * 3:p * 3]
+            # rect[6:9, (p - 1) * 3:p * 3] = ksp_t[p - 1] * self.K_r2_c[:, (p - 1) * 3:p * 3]
         return rect
 
     def Right_Bottom(self, krp_t, ksp_t):
@@ -1448,7 +1449,7 @@ class T(object):
 
         vb = 0.00000001  # constant base velocity # In this case the base is the planet carrier
         xb = vb * t  # base displacement
-        #T_vec[2, 0] = self.kru* xb  # -(1+70/30)*self.T_s
+        # T_vec[2, 0] = self.kru* xb  # -(1+70/30)*self.T_s
         T_vec[8, 0] = - self.T_s  # Sun
 
         return T_vec
@@ -1469,9 +1470,9 @@ class T(object):
         C = 10
 
         T_vec = np.zeros((9 + 3 * self.N, 1))
-        T_vec[2, 0] = C/0.024#self.T_s
-        T_vec[5, 0] = C/0.056
-        T_vec[8, 0] =- C/0.016
+        T_vec[2, 0] = C / 0.024  # self.T_s
+        T_vec[5, 0] = C / 0.056
+        T_vec[8, 0] = - C / 0.016
 
         return T_vec
 
@@ -1495,10 +1496,9 @@ class PG_ratios(object):
         self.planet_ring_reset = self.n_reset("planet")
         self.planet_sun_reset = self.n_reset("sun")
 
-
         self.Mesh_Sequence = self.Meshing_sequence()  # Calculate the meshing sequence
 
-    def n_reset(self,gear):
+    def n_reset(self, gear):
         """
         Calculates the number of required carrier revolutions for either planet or sun to have the same mesh happening again.
         For every x revolutions the same planet-ring teeth will be in mesh for instance
@@ -1509,7 +1509,7 @@ class PG_ratios(object):
 
         """
         if gear == "planet":
-            return int(np.lcm(self.Z_p,self.Z_r)/self.Z_r)
+            return int(np.lcm(self.Z_p, self.Z_r) / self.Z_r)
 
         if gear == "sun":
             return int(np.lcm(self.Z_s, self.Z_r) / self.Z_r)
@@ -1678,8 +1678,8 @@ class Transmission_Path(object):
         return summation
 
     def F_ri(self, planet, t_range):
-        return self.ksp_array[:, planet-1] * self.d_ri(planet)
-        #return self.PG.k_rp(t_range) * self.d_ri(planet)
+        return self.ksp_array[:, planet - 1] * self.d_ri(planet)
+        # return self.PG.k_rp(t_range) * self.d_ri(planet)
 
     def d_ri(self, planet):
         """
@@ -1842,7 +1842,8 @@ class Planetary_Gear(object):
             self.T = T(self).T_vec_stationary
 
         # Compiles the system stiffness matrix
-        self.K = lambda t: self.K_b + self.K_e_fast(t) #- self.Omega_c ** 2 * self.K_Omega Gyroscopic component excluded
+        self.K = lambda t: self.K_b + self.K_e_fast(
+            t)  # - self.Omega_c ** 2 * self.K_Omega Gyroscopic component excluded
 
         # Derived Solver Attributes
         self.time_range = self.solve_atr["time_range"]
@@ -1850,14 +1851,16 @@ class Planetary_Gear(object):
 
         #  Make proportional damping time dependent or constant
         if self.solve_atr["time_varying_proportional_damping"] == True:
-            #self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
+            # self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
             #        self.M + self.K(t))
-            self.C = lambda t: self.solve_atr["proportional_damping_constant"] * (self.M + self.K(t))  # No gyroscopic damping
+            self.C = lambda t: self.solve_atr["proportional_damping_constant"] * (
+                        self.M + self.K(t))  # No gyroscopic damping
             print(np.linalg.norm(self.C(1)))
         else:
-            #self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
+            # self.C = lambda t: self.Omega_c * self.G + self.solve_atr["time_varying_proportional_damping"] * (
             #        self.M + self.K(0))
-            self.C = lambda t: self.solve_atr["proportional_damping_constant"] * (self.M + self.K(0))  # No gyroscopic damping
+            self.C = lambda t: self.solve_atr["proportional_damping_constant"] * (
+                        self.M + self.K(0))  # No gyroscopic damping
 
         self.k_sp = K_e_fast(self).k_sp  # This is a function. Takes the argument t [s]
         self.k_rp = K_e_fast(self).k_rp  # This is a function. Takes the argument t [s]
@@ -1909,7 +1912,7 @@ class Planetary_Gear(object):
 
         return
 
-    def plot_solution(self, state_time_der, labels = True):
+    def plot_solution(self, state_time_der, labels=True):
 
         try:
             nstate = int(np.shape(self.time_domain_solution)[1] / 3)
@@ -1968,13 +1971,13 @@ class Planetary_Gear(object):
         # if labels:
         #     plt.legend()
 
-    def plot_stiffness_and_damping_mat(self, plot = "normal"):
+    def plot_stiffness_and_damping_mat(self, plot="normal"):
 
         t = 0
         K = self.K(t)
         C = self.C(t)
 
-        for matrix,name in zip([K,C],["K","C"]):
+        for matrix, name in zip([K, C], ["K", "C"]):
             plt.figure()
             if plot == "normal":
                 plt.imshow(matrix)
@@ -1987,15 +1990,13 @@ class Planetary_Gear(object):
                 plt.imshow(np.sign(matrix))
                 plt.colorbar()
 
-            plt.scatter([8],[5], c = "black", label = "ring - sun")
-            plt.scatter([11],[8], c = "red", label = "planet 1 - sun")
-            plt.scatter([11],[5], c = "green", label = "planet 1 - ring")
-            plt.scatter([11],[2], c = "white", label = "planet 1 - carrier")
-            plt.legend(bbox_to_anchor = (1.05,1))
-            plt.title(name + "@ t = " + str(t) )
+            plt.scatter([8], [5], c="black", label="ring - sun")
+            plt.scatter([11], [8], c="red", label="planet 1 - sun")
+            plt.scatter([11], [5], c="green", label="planet 1 - ring")
+            plt.scatter([11], [2], c="white", label="planet 1 - carrier")
+            plt.legend(bbox_to_anchor=(1.05, 1))
+            plt.title(name + "@ t = " + str(t))
         return
-
-
 
     def get_solution(self):
         try:
@@ -2014,7 +2015,7 @@ class Planetary_Gear(object):
         solver = solvers.LMM_sys(self.M, self.C, self.K, self.T, X0, Xd0, timerange)
 
         t = time.time()
-        #print("Solution started")
+        # print("Solution started")
         sol = solver.solve_de(solver_alg)
         print(solver_alg, "time: ", time.time() - t)
 
@@ -2063,6 +2064,7 @@ class Planetary_Gear(object):
         winds = tp.window_extract(window_length, y, self.Omega_c, self.fs)
         return winds
 
+
 # ================================================================================================================== #
 
 
@@ -2077,11 +2079,11 @@ class SimpleHarmonicOscillator(object):
         self.delta_k = info_dict["delta_k"]
         self.k_mean = info_dict["k_mean"]
 
-        self.X0 = info_dict["X0"]
+        # self.X0 = info_dict["X0"]
+        # self.Xd0 = info_dict["Xd0"]
+        # self.X00 = np.array([self.X0, self.Xd0])
 
-        self.Xd0 = info_dict["Xd0"]
-
-        self.X00 = np.array([self.X0, self.Xd0])
+        self.X00 = info_dict["X00"]
 
         self.t_range = info_dict["t_range"]
 
@@ -2089,7 +2091,7 @@ class SimpleHarmonicOscillator(object):
         self.t_step_duration = info_dict["t_step_duration"]
 
         # Make a stiffness object and get a function from it.
-        self.k = Ksho(self,self.tvms_type).k_func
+        self.k = Ksho(self, self.tvms_type).k_func
 
     def Xdot(self, t, X):
         E = np.array([[0, 1], [-self.k(t) / self.m, -self.c / self.m]])
@@ -2121,33 +2123,108 @@ class SimpleHarmonicOscillator(object):
         sol = inter.solve_ivp(self.Xdot, [self.t_range[0], self.t_range[-1]],
                               self.X00,
                               vectorized=True,
-                              t_eval=self.t_range)
+                              t_eval=self.t_range,
+                              atol=1e-8,
+                              rtol=1e-3)
         return sol["y"], sol["t"]
 
     def get_transducer_vibration(self):
-        sol,t = self.integrate_ode()
+        sol, t = self.integrate_ode()
         xdd = self.Xdotdot(sol)
-        return xdd,t
+        return xdd, t
 
     def plot_sol(self):
 
-        sol,t = self.integrate_ode()
-        fig,axs = plt.subplots(2,2)
-        axs[0,0].set_title("Displacement")
-        axs[0,0].plot(t, sol[0, :])
+        sol, t = self.integrate_ode()
+        fig, axs = plt.subplots(2, 2)
+        axs[0, 0].set_title("Displacement")
+        axs[0, 0].plot(t, sol[0, :])
 
-        axs[0,1].set_title("Velocity")
-        axs[0,1].plot(t, sol[1, :])
+        axs[0, 1].set_title("Velocity")
+        axs[0, 1].plot(t, sol[1, :])
 
-        axs[1,1].set_title("Acceleration")
-        axs[1,1].plot(t, self.Xdotdot(sol))
+        axs[1, 1].set_title("Acceleration")
+        axs[1, 1].plot(t, self.Xdotdot(sol))
 
         klist = []
         for t in self.t_range:
             klist.append(self.k(t))
 
-        axs[1,0].set_title("TVMS")
-        axs[1,0].plot(self.t_range, klist)
+        axs[1, 0].set_title("TVMS")
+        axs[1, 0].plot(self.t_range, klist)
+
+class SHOConstantK(object):
+    def __init__(self, info_dict):
+
+        self.m = info_dict["m"]
+        self.c = info_dict["c"]
+        self.f = info_dict["f_func"]
+        self.k = info_dict["k"]
+
+        self.X00 = info_dict["X00"]
+
+        self.t_range = info_dict["t_range"]
+
+
+    def Xdot(self, t, X):
+        E = np.array([[0, 1], [-self.k / self.m, -self.c / self.m]])
+        Q = np.array([[0], [self.f(t) / self.m]])
+        return np.dot(E, X) + Q
+
+    def Xdotdot(self, y):
+        """
+
+        Parameters
+        ----------
+        y: Solution to the integrated differential equation
+
+        Returns
+        -------
+
+        """
+        Xdotdot = np.zeros((2, len(self.t_range)))
+        for t, i in zip(self.t_range, range(len(self.t_range))):
+            E = np.array([[0, 1], [-self.k / self.m, -self.c / self.m]])
+            Q = np.array([[0], [self.f(t) / self.m]])
+            Xdd = np.dot(E, np.array([y[:, i]]).T) + Q
+            Xdotdot[:, i] = Xdd[:, 0]
+
+        return Xdotdot.T[:, 1]
+
+    def integrate_ode(self):
+        sol = inter.solve_ivp(self.Xdot, [self.t_range[0], self.t_range[-1]],
+                              self.X00,
+                              vectorized=True,
+                              t_eval=self.t_range,
+                              atol=1e-8,
+                              rtol=1e-3)
+        return sol["y"], sol["t"]
+
+    def get_transducer_vibration(self):
+        sol, t = self.integrate_ode()
+        xdd = self.Xdotdot(sol)
+        return xdd, t
+
+    def plot_sol(self):
+
+        sol, t = self.integrate_ode()
+        fig, axs = plt.subplots(2, 2)
+        axs[0, 0].set_title("Displacement")
+        axs[0, 0].plot(t, sol[0, :])
+
+        axs[0, 1].set_title("Velocity")
+        axs[0, 1].plot(t, sol[1, :])
+
+        axs[1, 1].set_title("Acceleration")
+        axs[1, 1].plot(t, self.Xdotdot(sol))
+
+        flist = []
+        for t in self.t_range:
+            flist.append(self.f(t))
+
+        axs[1, 0].set_title("f(t)")
+        axs[1, 0].plot(self.t_range, flist)
+
 
 class Ksho(object):
     def __init__(self, model_obj, variant):
@@ -2159,7 +2236,7 @@ class Ksho(object):
                     "sine_mean_delta": self.sine_mean_delta,
                     "sine_mean_delta_drop": self.sine_mean_delta_drop,
                     "sine_mean_delta_step": self.sine_mean_delta_step,
-                    "dropstep": self.dropstep}
+                    "drop_step": self.drop_step}
 
         self.k_func = var_dict[variant]
 
@@ -2209,7 +2286,8 @@ class Ksho(object):
         if t <= self.model.t_step_start:
             return self.model.k_mean + self.model.delta_k
         elif t <= self.model.t_step_start + self.model.t_step_duration:
-            return 0.5*(np.cos(2*np.pi*0.5*(t - self.model.t_step_start)/self.model.t_step_duration) + 1)*self.model.delta_k + self.model.k_mean
+            return 0.5 * (np.cos(2 * np.pi * 0.5 * (
+                        t - self.model.t_step_start) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
 
         else:
             return self.model.k_mean
@@ -2225,14 +2303,15 @@ class Ksho(object):
         else:
             return self.model.delta_k + self.model.k_mean
 
-    def dropstep(self, t):
+    def drop_step(self, t):
         d = 0.5
 
         if t <= self.model.t_step_start:
             return self.model.k_mean + self.model.delta_k
 
         elif t <= self.model.t_step_start + self.model.t_step_duration:
-            return 0.5*(np.cos(2*np.pi*0.5*(t - self.model.t_step_start)/self.model.t_step_duration) + 1)*self.model.delta_k + self.model.k_mean
+            return 0.5 * (np.cos(2 * np.pi * 0.5 * (
+                        t - self.model.t_step_start) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
 
         elif t <= self.model.t_step_start + self.model.t_step_duration + d:
             return self.model.k_mean
@@ -2240,7 +2319,7 @@ class Ksho(object):
         elif t <= self.model.t_step_start + self.model.t_step_duration + d + self.model.t_step_duration:
             return 0.5 * (-np.cos(
                 np.pi * (
-                        t - self.model.t_step_start - self.model.t_step_duration -d) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
+                        t - self.model.t_step_start - self.model.t_step_duration - d) / self.model.t_step_duration) + 1) * self.model.delta_k + self.model.k_mean
 
         else:
             return self.model.delta_k + self.model.k_mean
