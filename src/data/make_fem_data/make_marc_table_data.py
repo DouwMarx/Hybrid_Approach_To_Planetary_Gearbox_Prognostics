@@ -8,10 +8,11 @@ Created on Fri Feb 28 14:27:42 2020
 import numpy as np
 import matplotlib.pyplot as plt
 import definitions
+import os
 
 
 class Marc_Tables(object):
-    def __init__(self, number_of_increments, plot = True, write = True):
+    def __init__(self, number_of_increments, plot = True, write = True,fig_save = False):
          self.number_of_increments = number_of_increments
          self.time = np.linspace(0,1,number_of_increments*2+1) # Add an additional increment for the intial touching
          
@@ -21,7 +22,7 @@ class Marc_Tables(object):
          
          #Plot the tables
          if plot == True:
-             self.plot_tables()
+             self.plot_tables(fig_save = fig_save)
              
         #Save the tables in a format that Marc can read
          if write == True:
@@ -60,13 +61,13 @@ class Marc_Tables(object):
         """
         writes out a table for use in Marc Mentat that dictates the moment on te gear for a time increment
         """
-        small_moment = 0.01 #Set the contact maintain moment to be 1/100 of actual full moment
+        self.small_moment = 0.01 #Set the contact maintain moment to be 1/100 of actual full moment
         
         moment = np.zeros((self.number_of_increments*2+1,2))
         moment[:,0] =self.time  # Set the time array in the main array to be exported to txt
         
         moment[0,1] = 0 # Brings the gear into contact
-        moment[1,1] = small_moment # End of bringing into contact, start loading
+        moment[1,1] = self.small_moment # End of bringing into contact, start loading
         
         counter = 2
         loading_cycle = True
@@ -74,28 +75,44 @@ class Marc_Tables(object):
             if loading_cycle == True:
                 moment[counter,1] = 1 # When in a loading cycle, keep rotation constant
             else:
-                moment[counter,1] = small_moment
+                moment[counter,1] = self.small_moment
             
             loading_cycle = not loading_cycle
             counter += 1
         return moment
     
-    def plot_tables(self):
+    def plot_tables(self,fig_save = False):
         plt.figure()
+
+        # Plot the angular displacement over time
         A = self.motion
-        plt.plot(A[:,0],A[:,1],label = "Displacement")
-        
+        plt.plot(A[:,0],A[:,1],"-k", label =  "% of total ring angular displacement")
+
+        # Plot the moment over time
         B = self.moment
-        plt.plot(B[:,0],B[:,1],label = "Moment")
-        
-        plt.legend()
-        plt.xlabel("time")
-        
-        plt.scatter(self.time,self.time)
+        plt.plot(B[:,0], B[:,1], "--k",label = "% of maximum applied moment")
+
+        # Plot the lower torque range
+        #plt.plot(B[:,0], np.ones(len(B[:,0]))*self.small_moment)
+
+
+        plt.grid(which="both")
+        plt.xlabel("Simulation time")
+        plt.ylabel("%")
+        plt.xticks(np.arange(0, 1, step=0.1))
+
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15))
+
+        if fig_save:
+            repos = os.path.abspath(os.path.join(definitions.root, os.pardir))
+            fig_save_path = repos + "\\fem_images\\tables_5.pdf"
+            plt.savefig(fig_save_path, bbox_inches = "tight")
+        #plt.scatter(self.time,self.time)
         return
         
     
-table_generator = Marc_Tables(20, plot=False, write=True)
+# table_generator = Marc_Tables(5, plot=True, fig_save=True, write=False)
+table_generator = Marc_Tables(1000, plot=False, fig_save=False, write=True)
 
 
 

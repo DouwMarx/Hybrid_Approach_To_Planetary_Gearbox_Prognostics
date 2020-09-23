@@ -1,0 +1,4 @@
+
+Command > *arrow_length 8
+Command > *redraw
+Command > *image_save_graphics "..\..\..\..\fem_images\tvms_bcs_global.png" yes
