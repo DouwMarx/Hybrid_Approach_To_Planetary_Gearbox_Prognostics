@@ -5,6 +5,9 @@ import json
 import os
 
 #  All functions are finally called in main()
+#*export nastran "..\mesh\run_16_planet_meshes\health.bdf" yes
+# Take note that the above needs to be run if a healthy mesh is done in tvms calc
+# It appears that if the load applied is not constant there are problems
 
 def file_paths():
     """
@@ -128,7 +131,8 @@ def import_planet(bdf_file):
     py_send("*add_contact_body_elements all_existing")
 
     py_send("*prog_option move:mode:rotate")
-    py_send("*set_move_centroid y " + str(planet_carrier_pcr))  # Rotate the planet about this point
+    # py_send("*set_move_centroid y " + str(planet_carrier_pcr))  # Rotate the planet about this point
+    py_send("*set_move_centroid y " + str(0))  # Rotate the planet about this point
     py_send("*set_move_rotation z " + str(rotate_planet))
     py_send("*move_elements all_existing")
     return
@@ -182,8 +186,9 @@ def boundary_conditions():
     py_send("*select_clear")
     py_send("*select_method_point_dist")
     py_send("*set_select_distance " + str(planet_axle_radius * 1.01))
-    py_send("*select_nodes 0.000000000000e+00   " + str(
-        planet_carrier_pcr) + "  0.000000000000e+00")  # Select all nodes on the inside edge of the gear
+    # py_send("*select_nodes 0.000000000000e+00   " + str(
+    #     planet_carrier_pcr) + "  0.000000000000e+00")  # Select all nodes on the inside edge of the gear
+    py_send("*select_nodes 0.000000000000e+00   " + str(0) + "  0.000000000000e+00")  # Select all nodes on the inside edge of the gear
 
     py_send("*new_apply *apply_type fixed_displacement")
     py_send("*apply_name Fixed_Axle")
@@ -203,15 +208,16 @@ def boundary_conditions():
     #  Add the edge load
     py_send("*select_clear")
     py_send("*select_method_point_dist")
-    edge_search_radius = 0.3
+    edge_search_radius = 0.25
     py_send("*set_select_distance " + str(edge_search_radius))
     py_send("*select_edges 1.4   72.5   0.000000000000e+00")  # Select nodes where the edge load should be applied
 
     py_send("*new_apply *apply_type edge_load")
     py_send("*apply_name Meshing_Force")
-    py_send("*apply_dof p *apply_dof_value p " + str(applied_load))
-    py_send("*apply_dof_table p table1")
+    py_send("*apply_dof p *apply_dof_value p " + str(applied_load/(4*0.05)))
+    #py_send("*apply_dof_table p table1") # Currently not running it cyclically using table
     py_send("*add_apply_edges all_selected")
+    py_send("*apply_option edge_load_mode:length*")  # Use force per unit length
 
     return
 
@@ -324,20 +330,23 @@ def job():
     py_send("*submit_job 1 *monitor_job")
 
     run = True
-    t_prev = 99
-    t_start = time.time()
-    # Check if file is being modified
-    while run == True:
-        fname = run_dir_dir + "\\" + run_file[0:-5] + "_crack" + "_job1" + ".sts"
 
-        time.sleep(100)  # Check every 5 seconds if the simulation is done running
-        t = os.path.getmtime(fname)
+    check_before_post_proc = False
+    if check_before_post_proc:
+        t_prev = 99
+        t_start = time.time()
+        # Check if file is being modified
+        while run == True:
+            fname = run_dir_dir + "\\" + run_file[0:-5] + "_crack" + "_job1" + ".sts"
 
-        if t_prev == t:
-            run = False
-            print("Done with crack simulation ", run_file[0:-5], " in ", time.time() - t_start, " seconds")
-        else:
-            t_prev = t
+            time.sleep(100)  # Check every 5 seconds if the simulation is done running
+            t = os.path.getmtime(fname)
+
+            if t_prev == t:
+                               run = False
+                               print("Done with crack simulation ", run_file[0:-5], " in ", time.time() - t_start, " seconds")
+            else:
+                t_prev = t
 
     return
 
@@ -382,7 +391,6 @@ def open_file():
     # py_send("*zoom_box(2,0.472408,0.085288,0.525084,0.149254)")
     return
 
-
 def extract_meshes():
     result_path = run_dir_dir + "\\" + run_file[0:-5] + "_crack_job1.t16"
     p = post_open(result_path)
@@ -407,10 +415,13 @@ def extract_meshes():
     except FileExistsError:
         print("run file ", run_file[0:-5], " already ran: Overwriting")
 
+    py_send("*post_rewind")
     for i in range(ninc):
-        p.moveto(ninc - i)
+        #p.moveto(ninc - i)
+        p.moveto(i+1)
         py_send("*post_next")
         if mesh_extract == True:
+            #crack_length = round(p.global_value(n - 3),3) # round crack length to 3 decimal places
             crack_length = round(p.global_value(n - 3),3) # round crack length to 3 decimal places
 
             # print(p.global_value_label(n-3), crack_length) # Print the crack lengths at various timesteps
@@ -464,25 +475,25 @@ def post():
 
 
 def main():
-    load_run_file()
-
-    create_model()
-
-    tables()
-
-    import_planet(planet_mesh)
-
-    geometrical_properties_and_element_types()
-
-    material_properties()
-
-    crack_init()
-
-    boundary_conditions()
-
-    loadcase()
-
-    job()
+    # load_run_file()
+    #
+    # create_model()
+    #
+    # tables()
+    #
+    # import_planet(planet_mesh)
+    #
+    # geometrical_properties_and_element_types()
+    #
+    # material_properties()
+    #
+    # crack_init()
+    #
+    # boundary_conditions()
+    #
+    # loadcase()
+    #
+    # job()
 
     post()
 

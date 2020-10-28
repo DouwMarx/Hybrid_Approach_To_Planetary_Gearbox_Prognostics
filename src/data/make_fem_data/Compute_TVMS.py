@@ -41,7 +41,7 @@ class TVMS(object):
         # plt.scatter(self.Planet_Axle_Angle[:,0], self.Planet_Axle_Angle[:,1], label="Planet Axle angle")
         plt.plot(self.Planet_Axle_Angle[:, 0], self.Planet_Axle_Angle[:, 1], label="Planet Axle angle")
         plt.xlabel("Time [s]")
-        plt.ylabel("Angular Position [rad]")
+        plt.ylabel("Planet Angle [rad]")
         plt.legend()
         return
 
@@ -49,8 +49,8 @@ class TVMS(object):
         plt.figure()
         print(self.ideal)
         print(self.linear_stiffness)
-        plt.scatter(self.ideal[1:], self.linear_stiffness)
-        plt.plot(self.ideal[1:], self.linear_stiffness) # Not sure if first or last element should be excluded
+        plt.scatter(self.ideal[1:], self.linear_stiffness,c="k",marker=".")
+        #plt.plot(self.ideal[1:], self.linear_stiffness) # Not sure if first or last element should be excluded
         plt.ylabel("Stiffness [N/m]")
         plt.xlabel("Rotation angle [rad]")
 
@@ -63,7 +63,7 @@ class TVMS(object):
 
         torsional_stiffness = self.M_app / self.deflected
         linear_stiffness = torsional_stiffness / r ** 2
-        return -linear_stiffness
+        return linear_stiffness
 
     def measure_deflection(self, Plot_Test=False):
         """Finds the indexes that will be used to compute the stiffness"""
@@ -81,17 +81,16 @@ class TVMS(object):
             plt.figure()
             plt.scatter(ideal_angle[0:-1], deflection_angle*1000)
             plt.plot(ideal_angle[0:-1], deflection_angle*1000)
-            plt.xlabel("Ideal, Infinite stiffness angle x 1000")
-            plt.ylabel("Angle of deflection")
+            plt.xlabel("Ideal, Infinite stiffness angle ")
+            plt.ylabel("Angle of deflection x 1000")
 
-        return ideal_angle, deflection_angle
+        return ideal_angle, np.abs(deflection_angle)
 
 
 data_dir = definitions.root + "\\data\\external\\fem\\raw"
 
 
 repos = os.path.abspath(os.path.join(definitions.root, os.pardir))
-fig_save_path = repos + "\\fem_images\\linear_tvms.pdf"
 
 def get_parameters_from_json(run_file_name):
     run_file_path = definitions.root + "\\models\\fem\\run_input_files\\" + run_file_name + ".json"
@@ -136,16 +135,47 @@ def get_parameters_from_json(run_file_name):
 # for crack_length_result in ["beam_to_beam_double_force.txt"]:
 #for crack_length_result in ["displacement_and_angle_convergence_criteria.txt"]:
 
-run_name = "run_13"
-crack_length = "2.5mm"
+# run_name = "run_17"
+# crack_length = "3.2mm"
+# result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
+
+# run_name = "run_16"
+# crack_length = "health"
+# result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
+
+# run_name = "run_18"
+# crack_length = "health"
+# result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
+
+#run_20_planet_0.5mm-global_0.05-edge_20201016_tr_planet_angle.txt
+
+# run_name = "run_20"
+# crack_length = "planet_0.5mm-global_0.05-edge_20201016_tr"
+# result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
+
+# Healthy planet
+run_name = "run_21"
+crack_length = "health_20201016_tr"
 result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
 
+# Cracked planet
+# run_name = "run_22"
+# crack_length = "3.0mm"
+# result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
+
+# Sun planet
+run_name = "run_23"
+crack_length = "health_20201016_tr"
+result_file_name = run_name + "_" + crack_length + "_planet_angle.txt"
+
+#run_23_health_20201016_tr_planet_angle.txt
 params = get_parameters_from_json(run_name)
 applied_moment = params["TVMS Properties"]["Load Case"]["Applied Moment"]  # Moment on planet gear [Nm]
 print("moment", applied_moment)
 pitch_diameter = params["Geometry"]["Pitch Diameter"]  # Internal radius of the planet gear [mm]
 print("PD", pitch_diameter)
 
+fig_save_path = repos + "\\fem_images\\linear_tvms_" + run_name + "_" + crack_length + ".pdf"
 for crack_length_result in [result_file_name]:
 # run_11_1.0mm_planet_angle
 #for crack_length_result in ["run_7_1.4mm_planet_angle.txt"]:  # os.listdir(data_dir):

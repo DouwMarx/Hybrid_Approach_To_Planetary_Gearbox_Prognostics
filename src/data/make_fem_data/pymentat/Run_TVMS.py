@@ -187,7 +187,8 @@ def import_planet(bdf_file):
     
     # Make small adjustments to planet to ensure that there is no interference between meshes
     py_send("*prog_option move:mode:translate")
-    py_send("*set_move_translation y " + str(move_planet_up))  # Small planet adjustment in the y direction
+    # py_send("*set_move_translation y " + str(move_planet_up))  # Small planet adjustment in the y direction
+    py_send("*set_move_translation y " + str(R_carrier_axle_adjusted))  # Small planet adjustment in the y direction
     py_send("*move_elements all_selected")
 
 
@@ -341,9 +342,12 @@ def job(mesh_name):
     py_send("*new_job structural") # Start a new job
     py_send("*add_job_loadcases lcase1")  # Use loadcase 1
     py_send("*job_option strain:large")  # Use large strain formulation
-    py_send("*job_option dimen:pstress")  # Plane stress
+
+    #py_send("*job_option dimen:pstress")  # Select between plane stress and plane strain
+    py_send("*job_option dimen:pstrain")  #
+
     py_send("*job_contact_table ctable1")  # Set up initial contact to be contact table 1
-    # py_send("*job_option follow:on")  # Enables follower force
+    py_send("*job_option follow:on")  # Enables follower force, This is required for the applied shear load
     py_send("*job_option friction_model:coul_stick_slip")  # Use Stick slip friction model
     #py_send("*job_option contact_method: node_segment") # Use node to segnment contact
     #py_send("*job_option friction_model:coulomb_bilinear") # Use bilinear coulomb (less accurate than stick slip)
@@ -362,9 +366,10 @@ def job(mesh_name):
     py_send("*add_post_var von_mises") # Add equivalent von mises stress
 
     #Run the Job
-    py_send("*update_job")
-    py_send("*save_model")
-    py_send("*submit_job 1 *monitor_job")
+    # py_send("*update_job")
+    # py_send("*save_model")
+    # py_send("*submit_job 1 *monitor_job")
+
     #print("sleep_start")
     #time.sleep(20)
     #print("sleep_end")
@@ -381,18 +386,18 @@ def job(mesh_name):
 
     #print(fname)
     #os.remove(fname)  # Make the file does not exist so it does not write out results due to previous simulations, Permission error?
-    while run == True:
-
-
-        time.sleep(100)  # Check every 20 seconds if the simulation is done running
-                        # Make sure this is longer than it takes the a single increment of the simulation to run
-        t = os.path.getmtime(fname)
-
-        if t_prev == t:
-            run = False
-            print("Done with mesh ", model_name + " :" + mesh_name," in < ",(time.time()-t_start)/60, " min")
-        else:
-            t_prev = t
+    # while run == True:
+    #
+    #
+    #     time.sleep(100)  # Check every 20 seconds if the simulation is done running
+    #                     # Make sure this is longer than it takes the a single increment of the simulation to run
+    #     t = os.path.getmtime(fname)
+    #
+    #     if t_prev == t:
+    #         run = False
+    #         print("Done with mesh ", model_name + " :" + mesh_name," in < ",(time.time()-t_start)/60, " min")
+    #     else:
+    #         t_prev = t
             #print(t_prev)
 
     return
@@ -457,25 +462,25 @@ def main():
     for cracked_mesh in os.listdir(planet_meshes):
         if cracked_mesh.endswith('.bdf'):
 
-            Preliminary_Calculations()
-
-            create_model(cracked_mesh)
-
-            tables()
-
-            import_ring(ring_mesh)
-
-            import_planet(cracked_mesh)
-
-            contact()
-
-            loadcase()
-
-            geometrical_properties_and_element_types()
-
-            material_properties()
-
-            job(cracked_mesh)
+            # Preliminary_Calculations()
+            #
+            # create_model(cracked_mesh)
+            #
+            # tables()
+            #
+            # import_ring(ring_mesh)
+            #
+            # import_planet(cracked_mesh)
+            #
+            # contact()
+            #
+            # loadcase()
+            #
+            # geometrical_properties_and_element_types()
+            #
+            # material_properties()
+            #
+            # job(cracked_mesh)
 
             post_processing(cracked_mesh)
 

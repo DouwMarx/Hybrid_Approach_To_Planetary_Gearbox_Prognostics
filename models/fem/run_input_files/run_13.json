@@ -20,15 +20,15 @@
         "TVMS Properties": {
 
                 "Load Case": {
-                        "Total Rotation": 0.5,
-                        "Number Of Loadsteps": 1000,
+                        "Total Rotation": 0.3,
+                        "Number Of Loadsteps": 500,
                         "Applied Moment": 40
                 },
                 "Contact": {
                         "Friction Coefficient": 0.07
                 },
                 "Position Adjustment": {
-                        "Move Planet Up": -0.035,
+                        "Move Planet Up": -0.1,
                         "Rotate Planet": -15,
                         "Ring Gear Rotation": 55
                 }
