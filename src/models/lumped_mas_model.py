@@ -2225,7 +2225,6 @@ class SHOConstantK(object):
         axs[1, 0].set_title("f(t)")
         axs[1, 0].plot(self.t_range, flist)
 
-
 class Ksho(object):
     def __init__(self, model_obj, variant):
         self.model = model_obj

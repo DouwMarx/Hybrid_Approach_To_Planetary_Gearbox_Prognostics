@@ -17,4 +17,4 @@ with open(directory, 'rb') as filename:
     data = pickle.load(filename)
 
 
-data.plot_fft("Acc_Sun",plot_gmf = True)
+data.plot_fft("Acc_Sun",data.info["f_s"], plot_gmf = True)

@@ -830,7 +830,9 @@ class Time_Synchronous_Averaging(object):
         return stat
 
     def arranged_window_stats(self, window_averages, plot=False,plot_together=False, plot_title_addition=""):
-        """ Takes the computed stats from extracted windows and arranges them in order as determined by the meshing sequence.
+        """
+        This is terrible practice but for now arranged does something different than aranged
+        Takes the computed stats from extracted windows and arranges them in order as determined by the meshing sequence.
         ----------
         window_averages: array
              Array of window stats
@@ -845,12 +847,6 @@ class Time_Synchronous_Averaging(object):
         planet_gear_revolution: Array of length n*m
                 n gear teeth, m samples  in a window, all samples in the correct order concatenated together.
             """
-
-        #        averages_in_order = window_averages[
-        #            meshing_sequence]  # Order the array of averages according to the meshing sequence
-
-        # ids = np.array(meshing_sequence)/2
-        # ids = ids.astype(int)
 
         len_mesh_seq = len(self.PG.Mesh_Sequence)
         ids = self.derived_attributes["mesh_sequence_at_planet_pass"][1:len_mesh_seq + 1]
@@ -883,7 +879,6 @@ class Time_Synchronous_Averaging(object):
 
                 plt.xlabel("Samples @ 38400Hz")
                 plt.suptitle("Time synchronous statistic per gear tooth pair: " + plot_title_addition)
-
 
         return stats_in_order, planet_gear_revolution
 
@@ -924,16 +919,43 @@ class Time_Synchronous_Averaging(object):
 
             rotations_to_repeat = np.shape(averages_in_order)[0]
 
-            fig, axs = plt.subplots(rotations_to_repeat, 1)
+            fig, axs = plt.subplots(nrows=rotations_to_repeat,ncols= 1, sharex=True, sharey=True)
+
+            time_range = 1000*np.arange(len(averages_in_order[1, :]))/38400  # Multiply by sampling period to get time. Also 1000 to get to milli seconds
+
+            #INFO: This is added so that the plot is done in terms of angle and not time 20201122
+            window_frac = 2/62
+            angle_range = np.linspace(0,1,len(averages_in_order[1, :]))*window_frac*360 # in degrees
 
             for tooth_pair in range(rotations_to_repeat):
-                axs[tooth_pair].plot(averages_in_order[tooth_pair, :])
-                # 1 because one sample is discarded in window extract
-                axs[tooth_pair].set_ylabel(str(tooth_pair * 2))
+                timex=False # Plot time or angle on the x-axis
+                if timex:
+                    axs[tooth_pair].plot(time_range,averages_in_order[tooth_pair, :])
+                else:
+                    axs[tooth_pair].plot(angle_range,averages_in_order[tooth_pair, :])
+
+                # +1 because one sample is discarded in window extract
+                axs[tooth_pair].set_ylabel("tooth " + str(tooth_pair * 2) + ", " + str(tooth_pair * 2 + 1),
+                                           rotation=0,
+                                           labelpad=30,
+                                           va="center",
+                                           fontsize=6)
+                axs[tooth_pair].tick_params(axis="y", labelsize=7)
+                axs[tooth_pair].tick_params(axis="x", labelsize=7)
+
+                axs[tooth_pair].yaxis.set_label_position("right")
                 axs[tooth_pair].set_ylim(mini, maxi)  # Set all of the axis limits to be the same
 
-            plt.xlabel("Samples @ 38400Hz")
-            plt.suptitle("TSA per gear tooth pair: " + plot_title_addition)
+            if timex:
+                plt.xlabel("time [ms]")
+            else:
+                plt.xlabel("angle [degrees]")
+            plt.text(-max(time_range)*0.18, maxi*13, r'Averaged acceleration [$m/s^2$]', va='center',
+                     rotation='vertical')
+
+            #plt.subplot_tool()
+            plt.subplots_adjust(right=0.83)
+            # plt.suptitle("TSA per gear tooth pair: " + plot_title_addition)
 
         if plot=="together":
 
@@ -962,18 +984,6 @@ class Time_Synchronous_Averaging(object):
         winds = self.window_extract(fraction_offset, fraction_of_revolution, signal, order_track=ordertrack)
         aves, apt = self.window_average(winds)
         arranged, together = self.aranged_averaged_windows(aves, plot=plot, plot_title_addition=plot_title_addition)
-
-        # if plot:
-        #     plt.figure()
-        #     minimum = np.min(together)
-        #     maximum = np.max(together)
-        #     plt.ylabel("Response_squared")
-        #     plt.xlabel("Planet Gear Angle")
-        #     angles = np.linspace(0, 360, len(together))
-        #     plt.plot(angles, together)
-        #     for line in range(np.shape(aves)[0]):
-        #         plt.vlines(line * np.shape(aves)[1] * np.average(np.diff(angles)), minimum, maximum)
-
         return arranged
 
 

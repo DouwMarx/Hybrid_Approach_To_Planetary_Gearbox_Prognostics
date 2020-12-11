@@ -6,15 +6,15 @@ import numpy as np
 
 
 # Select the gear and test phase to convert the data for
-gear = "G1"
-phase = 5
+gear = "G2"
+phase = 0
 file_name = gear.lower() + "_p" + str(phase) + ".h5"
 
 # Directory with all split up .h5 files
 h5_dir = "D:\\M_Data\\interim\\" + gear + "\\" + file_name[0:-3]
 
 # Make sure the full dataset was converted to .pgdata allready so the tooth position info can be extracted
-dproc.make_pgdata("D:\\M_Data\\interim\\G1\\g1_full",file_name,proc.Bonfiglioli,10)
+dproc.make_pgdata("D:\\M_Data\\interim\\G2\\g2_full",file_name,proc.Bonfiglioli,10)
 
 # Define the output directory
 directory = definitions.root + "\\data\\processed\\" + file_name[0:-3] + ".pgdata"

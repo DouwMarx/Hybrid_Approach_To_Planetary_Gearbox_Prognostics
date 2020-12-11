@@ -57,7 +57,7 @@ class Opperating_Conditions(object):
         Ti = self.T
         n_eff = 0.9
         Ti = Ti*n_eff  # Assume some losses take place in the gear train
-        #F = Ti/(3*0.5*self.Zs*self.m*np.cos(np.deg2rad(self.phi)))  # For three planet carriers
+        #F = Ti/(3*0.5*self.Zs*self.m*np.cos(np.deg2rad(self.phi)))  # For three planet gears
         F = Ti / (1* 0.5 * self.Zs * self.m * np.cos(np.deg2rad(self.phi)))  # Notice this is for one planet gear
         return F
 
