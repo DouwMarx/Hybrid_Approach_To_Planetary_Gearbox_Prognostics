@@ -185,9 +185,10 @@ def import_planet(bdf_file):
     py_send("*select_clear")
     py_send("*select_elements_cbody Planet") # Select the planet elemets
     
-    # Move planet
+    # Make small adjustments to planet to ensure that there is no interference between meshes
     py_send("*prog_option move:mode:translate")
-    py_send("*set_move_translation y " + str(move_planet_up))  # Move the planet in the y direction
+    # py_send("*set_move_translation y " + str(move_planet_up))  # Small planet adjustment in the y direction
+    py_send("*set_move_translation y " + str(R_carrier_axle_adjusted))  # Small planet adjustment in the y direction
     py_send("*move_elements all_selected")
 
 
@@ -196,8 +197,7 @@ def import_planet(bdf_file):
     py_send("*set_move_rotation z " + str(rotate_planet))
     py_send("*move_elements all_selected")
 
-    
-    # Create a geometrical contact body on the outside of the ring gear
+
     py_send("*add_nodes 0 " + str(R_carrier_axle_adjusted) + " 0") #Add the reference nodes for the contact body
     py_send("*add_nodes 0 " + str(R_carrier_axle_adjusted + 5) + " 0") #Add the reference nodes for the contact body
     
@@ -206,32 +206,35 @@ def import_planet(bdf_file):
     
     ID_Control_Node = int(n_nodes -1) # Set the node number of the control node and auxlilary nodes to be used 
     ID_Auxilary_Node = int(n_nodes)
-    
-    py_send("*set_curve_type circle_cr") #Curve type to circle
-    planet_centre = "0 " + str(R_carrier_axle_adjusted) + " 0 "
 
-    
+    # Planet carrier axle that carries the planet gear
+    py_send("*set_curve_type circle_cr")  # Curve type to circle
+    planet_centre = "0 " + str(R_carrier_axle_adjusted) + " 0 "
     py_send("*add_curves " + planet_centre + str(planet_axle_radius)) # Draw the circle
     
-    py_send("*new_cbody geometry *contact_option geometry_nodes:off ") # Make contact body
+    py_send("*new_cbody geometry *contact_option geometry_nodes:off ")  # Make contact body
     py_send("*contact_body_name Carrier_Axle")  
     
     py_send("*contact_option control:load")
-    py_send("*cbody_control_node " + str(ID_Control_Node)) # Set the primary control node
-    py_send("*cbody_control_node_rot " + str(ID_Auxilary_Node)) # Set the auxilary control node
+    py_send("*contact_option load_control_rotation:allowed")  # Allow rotation of the contact body
+    py_send("*cbody_control_node " + str(ID_Control_Node))  # Set the primary control node
+    py_send("*cbody_control_node_rot " + str(ID_Auxilary_Node))  # Set the auxilary control node
 
     py_send("*select_clear")
     py_send("*select_curves_cbody_all") #Select all curves associated with a contact body in order to ultimately select the new curve
     py_send("*add_contact_body_curves all_unselected")
+
+    py_send("*set_plot_curve_div_high") # Set the curve tolerance to be higher to let circles appear more circular
+    py_send("*redraw")
 
     #Add a fixed displacement constraint to the Carrier axle contact body
     py_send("*new_apply *apply_type fixed_displacement") 
     py_send("*apply_name Carrier_Axle_Fix")
     py_send("*apply_dof x *apply_dof_value x")
     py_send("*apply_dof y *apply_dof_value y")
-    py_send("*apply_dof z *apply_dof_value z")
-    py_send("*apply_dof rx *apply_dof_value rx")
-    py_send("*apply_dof ry *apply_dof_value ry")
+    # py_send("*apply_dof z *apply_dof_value z") # These are not constrained becuase in planar analysis third DOF would be rotation
+    # py_send("*apply_dof rx *apply_dof_value rx")
+    # py_send("*apply_dof ry *apply_dof_value ry")
     
     py_send("*add_apply_nodes " + str(ID_Control_Node) + " # | End of List")
 
@@ -257,15 +260,19 @@ def import_planet(bdf_file):
 
 def contact():
     """Sets the contact interactions and contact table"""
-    # Contact interaction glued 
+    # Contact interaction glued (rigid body on mesh)
     py_send("*new_interact mesh:geometry *interact_option state_1:solid") 
     py_send("*interact_name Glued_Interact")
     py_send("*interact_option contact_type:glue")
+    py_send("*interact_option project_stress_free:on") # Turn stress free projection on to prevent stresses in planet due to contact with planet axle
+    py_send("*interact_option dist_tol:redefined") # Redefine the contact tollerance to make sure there is contact between Planet_Axle and Planet
+    py_send("*interact_param dist_tol 1")
     
-    # Contact interaction touch deformable on deformable
+    # Contact interaction touch deformable on deformable (tooth on tooth)
     py_send("*new_interact mesh:mesh *interact_option state_1:solid *interact_option state_2:solid")
     py_send("*interact_name Tooth_on_Tooth")
     py_send("*interact_param friction " + str(friction_coefficient))
+    py_send("*interact_option delay_slide_off:on")  # Tangential contact extension, could prevent noisy TVMS readings
     
     # Make a contact table
     py_send("*new_contact_table") #Creates a new contact table
@@ -279,7 +286,7 @@ def contact():
     py_send("*prog_string ctable:old_interact Glued_Interact *ctable_entry_interact Planet Carrier_Axle")
     
     py_send("*ctable_entry Ring Planet")
-    py_send("*contact_table_option Ring Planet contact:on") # Make glued connection between planet and carrier axle
+    py_send("*contact_table_option Ring Planet contact:on")
     py_send("*prog_string ctable:old_interact Tooth_on_Tooth *ctable_entry_interact Ring Planet")
 
     return
@@ -319,7 +326,7 @@ def geometrical_properties_and_element_types():
     py_send("*add_geometry_elements all_existing") #Add this property to all of the geometry
     
     #Element types (This has to be changed depending on whether input mesh is first or second order elements
-    #py_send("*element_type 124 all_existing") #Change all of the elements to plane stress full integration second order
+    py_send("*element_type 124 all_existing") #Change all of the elements to plane stress full integration second order
     #py_send("*element_type 3 all_existing") # Plane stress full integration quad 1st order
     #py_send("*element_type 201 all_existing") # Plane stress full integration tri 1st order
     py_send("*element_type 26 all_existing") # Plane stress full integration quad 2nd order
@@ -335,9 +342,12 @@ def job(mesh_name):
     py_send("*new_job structural") # Start a new job
     py_send("*add_job_loadcases lcase1")  # Use loadcase 1
     py_send("*job_option strain:large")  # Use large strain formulation
-    py_send("*job_option dimen:pstress")  # Plane stress
+
+    #py_send("*job_option dimen:pstress")  # Select between plane stress and plane strain
+    py_send("*job_option dimen:pstrain")  #
+
     py_send("*job_contact_table ctable1")  # Set up initial contact to be contact table 1
-    #py_send("*job_option follow:on")  # Enables follower force
+    py_send("*job_option follow:on")  # Enables follower force, This is required for the applied shear load
     py_send("*job_option friction_model:coul_stick_slip")  # Use Stick slip friction model
     #py_send("*job_option contact_method: node_segment") # Use node to segnment contact
     #py_send("*job_option friction_model:coulomb_bilinear") # Use bilinear coulomb (less accurate than stick slip)
@@ -347,18 +357,19 @@ def job(mesh_name):
     #Solver
     py_send("*update_job")
     py_send("*job_option solver:pardiso")  # Use Pardiso Solver
-    #py_send("*job_option assem_recov_multi_threading:on")
-    #py_send("*job_param assem_recov_nthreads 8")  # Use multiple threads for assembly and recovery
-    #py_send("*job_option pardiso_multi_threading:on")
-    #py_send("*job_param nthreads 8")  # Use multiple threads for solution
+    py_send("*job_option assem_recov_multi_threading:on")
+    py_send("*job_param assem_recov_nthreads 8")  # Use multiple threads for assembly and recovery
+    py_send("*job_option pardiso_multi_threading:on")
+    py_send("*job_param nthreads 8")  # Use multiple threads for solution
 
     #Job results
     py_send("*add_post_var von_mises") # Add equivalent von mises stress
 
     #Run the Job
-    py_send("*update_job")
-    py_send("*save_model")
-    py_send("*submit_job 1 *monitor_job")
+    # py_send("*update_job")
+    # py_send("*save_model")
+    # py_send("*submit_job 1 *monitor_job")
+
     #print("sleep_start")
     #time.sleep(20)
     #print("sleep_end")
@@ -367,21 +378,27 @@ def job(mesh_name):
     #py_send("*post_open_default") #Open the default post file
     #py_send("*post_monitor")
 
+    fname = run_dir_dir + "\\" + model_name + "_" + mesh_name[0:-4] + "_job1" + ".sts"
     run = True
-    t_prev = 99
+    t_prev = os.path.getmtime(fname)
     t_start = time.time()
     # Check if file is being modified
-    while run == True:
-        fname = run_dir_dir + "\\" + model_name + "_" + mesh_name[0:-4] + "_job1" + ".sts"
 
-        time.sleep(5)  # Check every 5 seconds if the simulation is done running
-        t = os.path.getmtime(fname)
-
-        if t_prev == t:
-            run = False
-            print("Done with mesh ", model_name + " :" + mesh_name," in ",time.time()-t_start, " seconds")
-        else:
-            t_prev = t
+    #print(fname)
+    #os.remove(fname)  # Make the file does not exist so it does not write out results due to previous simulations, Permission error?
+    # while run == True:
+    #
+    #
+    #     time.sleep(100)  # Check every 20 seconds if the simulation is done running
+    #                     # Make sure this is longer than it takes the a single increment of the simulation to run
+    #     t = os.path.getmtime(fname)
+    #
+    #     if t_prev == t:
+    #         run = False
+    #         print("Done with mesh ", model_name + " :" + mesh_name," in < ",(time.time()-t_start)/60, " min")
+    #     else:
+    #         t_prev = t
+            #print(t_prev)
 
     return
 
@@ -413,9 +430,10 @@ def open_file(planet_mesh):
     py_send("*fill_view")
 
 def angle_pos_history_plot(planet_mesh):
+    time.sleep(5)  # Sleep for a while
     "Makes a history plot of the angular displacement of the planet axle rigid body"
     py_send("*history_collect 0 999999999 1")
-    py_send("*history_clear")
+    #py_send("*history_clear")
     py_send("*prog_option history_plot:data_carrier_type_x:global")
     py_send("*set_history_global_variable_x Time")
 
@@ -431,7 +449,8 @@ def angle_pos_history_plot(planet_mesh):
 
 
 def post_processing(planet_mesh):
-    py_send("*post_close")
+    time.sleep(5)  # Wait 5 seconds just in case
+    #py_send("*post_close")
     open_file(planet_mesh)
     angle_pos_history_plot(planet_mesh)
     return
@@ -443,25 +462,25 @@ def main():
     for cracked_mesh in os.listdir(planet_meshes):
         if cracked_mesh.endswith('.bdf'):
 
-            Preliminary_Calculations()
-
-            create_model(cracked_mesh)
-
-            tables()
-
-            import_ring(ring_mesh)
-
-            import_planet(cracked_mesh)
-
-            contact()
-
-            loadcase()
-
-            geometrical_properties_and_element_types()
-
-            material_properties()
-
-            job(cracked_mesh)
+            # Preliminary_Calculations()
+            #
+            # create_model(cracked_mesh)
+            #
+            # tables()
+            #
+            # import_ring(ring_mesh)
+            #
+            # import_planet(cracked_mesh)
+            #
+            # contact()
+            #
+            # loadcase()
+            #
+            # geometrical_properties_and_element_types()
+            #
+            # material_properties()
+            #
+            # job(cracked_mesh)
 
             post_processing(cracked_mesh)
 

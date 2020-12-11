@@ -1,0 +1,7 @@
+Command > *post_contour_bands
+Command > *post_value VCCT Energy Release I #plot VCCT contour plot
+Enter post variable : *post_skip_to_last
+Enter post variable : *post_prev
+Command > *edges_outline *find_solid_outline *regen  # Plot edges and not entire mesh
+Command > *model_orientation_back # Flip model to reverse crack direction
+Command > *image_save_graphics "..\..\..\..\fem_images\crack_growth_result_20200826.png" yes # Save window

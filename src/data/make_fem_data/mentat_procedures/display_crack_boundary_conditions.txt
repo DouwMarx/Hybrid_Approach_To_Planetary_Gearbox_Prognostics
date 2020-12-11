@@ -1,0 +1,8 @@
+Command > *identify_applys *redraw #Show bc's
+Command > *arrow_length 0.1 # Change force arrow length
+Command > *redraw
+Command > *arrow_length 1
+Command > *redraw
+Command > *set_arrow_heads on
+Command > *model_orientation_back # Flip to agree with experimental
+Command > *image_save_current "..\..\..\..\fem_images\crack_growth_fem_bcs_global.png" yes

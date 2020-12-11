@@ -1,0 +1,57 @@
+{
+        "Description": "crack tip reliefed planet ring",
+        "Mesh": {
+                        "Ring Mesh": "ring_2mm-global_0.05-edge_20201026_tr_loop.bdf",
+                        "Planet Mesh": "planet_2mm-global_0.05-edge_20201027_tr.bdf"
+                },
+
+        "Geometry": {
+                        "Gear Thickness": 12,
+                        "Planet Carrier Pitch Centre Radius": 42.75,
+                        "Ring Gear External Radius": 80,
+                        "Planet Axle Radius": 14.19,
+                        "Pitch Diameter": 54
+                },
+        "Material": {
+                        "Young's Modulus": 200000,
+                        "Poisson Ratio": 0.3
+                },
+
+        "TVMS Properties": {
+
+                "Load Case": {
+                        "Total Rotation": 0.3,
+                        "Number Of Loadsteps": 100,
+                        "Applied Moment": 100
+                },
+                "Contact": {
+                        "Friction Coefficient": 0.07
+                },
+                "Position Adjustment": {
+                        "Move Planet Up": -0.17859,
+                        "Rotate Planet": -14.1,
+                        "Ring Gear Rotation": 96
+                }
+        },
+        "Crack Properties": {
+                "Load Case": {
+                        "Number Of Loadsteps":31,
+                        "Applied Load": 100
+                },
+                "Crack Initialization": {
+                        "Cut Start Coordinate": [2.5,24.6],
+                        "Cut End Coordinate": [2.2,24.45]
+                },
+                "Crack Growth Parameters": {
+                        "Fatigue Time Period": 2,
+                        "Minimum Crack Growth Increment": 0.1,
+                        "Maximum Crack Growth Increment": 0.2,
+                        "Paris Law Threshold": 0,
+                        "Paris Law C": 9.12e-11,
+                        "Paris Law m": 1.4354
+                },
+                "Position Adjustment": {
+                        "Rotate Planet": 112.09
+                }
+        }
+}
